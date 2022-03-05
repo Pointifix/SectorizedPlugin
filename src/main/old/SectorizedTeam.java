@@ -1,4 +1,4 @@
-package sectorized;
+package main.old;
 
 import mindustry.game.Team;
 import mindustry.gen.Player;

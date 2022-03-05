@@ -1,4 +1,4 @@
-package sectorized;
+package main.old;
 
 import arc.Events;
 import arc.graphics.Color;
@@ -41,7 +41,7 @@ public class SectorizedPlugin extends Plugin {
 
     @Override
     public void init() {
-        rules.tags.put("sectorized", "true");
+        rules.tags.put("main/sectorized", "true");
         rules.enemyCoreBuildRadius = 0.0f;
         rules.canGameOver = false;
         rules.waves = true;
@@ -241,7 +241,7 @@ public class SectorizedPlugin extends Plugin {
 
     @Override
     public void registerServerCommands(CommandHandler handler) {
-        handler.register("sectorized", "Host sectorized game mode.", args -> {
+        handler.register("sectorized", "Host main.sectorized game mode.", args -> {
             if (!state.is(GameState.State.menu)) {
                 Log.err("Stop the server first");
                 return;
@@ -301,6 +301,6 @@ public class SectorizedPlugin extends Plugin {
     }
 
     public boolean active() {
-        return state.rules.tags.getBool("sectorized") && !state.is(GameState.State.menu);
+        return state.rules.tags.getBool("main/sectorized") && !state.is(GameState.State.menu);
     }
 }

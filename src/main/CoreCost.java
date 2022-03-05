@@ -1,4 +1,4 @@
-package sectorized;
+package main;
 
 import mindustry.content.Items;
 import mindustry.game.Team;
@@ -8,7 +8,7 @@ import mindustry.type.ItemStack;
 
 import java.util.HashMap;
 
-public class SectorizedCoreCost {
+public class CoreCost {
     private static final HashMap<Item, String> itemUnicodes = new HashMap<Item, String>() {{
         put(Items.copper, "\uF838");
         put(Items.lead, "\uF837");
@@ -45,8 +45,8 @@ public class SectorizedCoreCost {
         }
     }
 
-    public static boolean consumeIfHas(Team team) {
-        int core = SectorizedTeamManager.getTeam(team).cores - 1;
+    public static boolean checkAndConsumeFunds(Team team) {
+        int core = team.cores().size - 1;
 
         ItemSeq requirement = requirements[Math.max(Math.min(core, size - 1), 0)];
 
@@ -59,16 +59,18 @@ public class SectorizedCoreCost {
     }
 
     public static String getRequirementsText(Team team) {
-        int cores = SectorizedTeamManager.getTeam(team).cores - 1;
+        int cores = team.cores().size - 1;
 
-        String requirementsText = "Requirements for next Core: \n";
+        StringBuilder requirementsText = new StringBuilder("Costs for next \uF869\n");
 
         for (ItemStack itemStack : requirements[cores]) {
             int availableItems = team.items().get(itemStack.item);
 
-            requirementsText += itemUnicodes.get(itemStack.item) + (availableItems >= itemStack.amount ? itemStack.amount + "[green]\uE800[white]" : "[red]" + availableItems + "[white]/" + itemStack.amount) + "\n";
+            requirementsText.append(itemUnicodes.get(itemStack.item)).append(availableItems >= itemStack.amount ? itemStack.amount + "[green]\uE800[white]" : "[red]" + availableItems + "[white]/" + itemStack.amount).append("\n");
         }
 
-        return requirementsText;
+        requirementsText.append("\nToggle with [teal]/hud [white]");
+
+        return requirementsText.toString();
     }
 }

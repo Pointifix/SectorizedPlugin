@@ -2,37 +2,36 @@ apply plugin: "java"
 
 version '1.0'
 
-sourceCompatibility = 1.8
+sourceCompatibility = 1.9
 
 sourceSets.main.java.srcDirs = ["src"]
 
 compileJava.options.encoding = "UTF-8"
 compileTestJava.options.encoding = "UTF-8"
 
-repositories{
+repositories {
     mavenCentral()
-    maven{ url 'https://www.jitpack.io' }
+    maven { url 'https://www.jitpack.io' }
 }
 
-ext{
+ext {
     //the build number that this plugin is made for
     mindustryVersion = 'v126.2'
 }
 
-dependencies{
+dependencies {
     implementation 'org.jetbrains:annotations:20.1.0'
     compileOnly "com.github.Anuken.Arc:arc-core:$mindustryVersion"
     compileOnly "com.github.Anuken.Mindustry:core:$mindustryVersion"
-    //implementation 'org.mariadb.jdbc:mariadb-java-client:2.1.2'
 }
 
-jar{
+jar {
     archiveFileName = "${project.archivesBaseName}.jar"
-    from{
-        configurations.runtimeClasspath.collect{it.isDirectory() ? it : zipTree(it)}
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 
-    from(rootDir){
+    from(rootDir) {
         include "plugin.json"
     }
 

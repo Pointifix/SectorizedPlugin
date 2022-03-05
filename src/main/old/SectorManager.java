@@ -1,4 +1,4 @@
-package sectorized;
+package main.old;
 
 import arc.Events;
 import arc.graphics.Color;
@@ -28,7 +28,7 @@ public class SectorManager {
     private static final int coreFoundationRadius = 32;
     private static final int coreNucleusRadius = 38;
 
-    private static final HashMap<CoreBlock, Integer> radii = new HashMap<CoreBlock, Integer>() {{
+    protected static final HashMap<CoreBlock, Integer> radii = new HashMap<CoreBlock, Integer>() {{
         put((CoreBlock) Blocks.coreShard, coreShardRadius);
         put((CoreBlock) Blocks.coreFoundation, coreFoundationRadius);
         put((CoreBlock) Blocks.coreNucleus, coreNucleusRadius);

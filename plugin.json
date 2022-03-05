@@ -1,7 +1,7 @@
 {
   "name": "SectorizedPlugin",
   "author": "Pointifix",
-  "main": "sectorized.SectorizedPlugin",
+  "main": "main.SectorizedPlugin",
   "description": "Sectorized game mode",
   "version": 1.0
 }
