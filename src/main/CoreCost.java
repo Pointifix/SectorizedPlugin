@@ -63,7 +63,7 @@ public class CoreCost {
 
         StringBuilder requirementsText = new StringBuilder("Costs for next \uF869\n");
 
-        for (ItemStack itemStack : requirements[cores]) {
+        for (ItemStack itemStack : requirements[Math.max(Math.min(cores, size - 1), 0)]) {
             int availableItems = team.items().get(itemStack.item);
 
             requirementsText.append(itemUnicodes.get(itemStack.item)).append(availableItems >= itemStack.amount ? itemStack.amount + "[green]\uE800[white]" : "[red]" + availableItems + "[white]/" + itemStack.amount).append("\n");

@@ -1,9 +1,13 @@
 package main.generation;
 
 import arc.func.Cons;
+import arc.struct.StringMap;
 import mindustry.content.Blocks;
+import mindustry.maps.Map;
 import mindustry.world.Tile;
 import mindustry.world.Tiles;
+
+import static mindustry.Vars.state;
 
 public class MapGenerator implements Cons<Tiles> {
     private final int width, height;
@@ -28,5 +32,7 @@ public class MapGenerator implements Cons<Tiles> {
                 tiles.set(x, y, tile);
             }
         }
+
+        state.map = new Map(StringMap.of("name", "Sectorized"));
     }
 }

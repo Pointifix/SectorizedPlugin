@@ -20,11 +20,11 @@ public class BiomesGenerator {
 
     protected Biome getBiome(int x, int y) {
         int temperature = Mathf.clamp(
-                (int) ((Utils.normalizeSimplex(this.temperateSimplex.octaveNoise2D(10, 0.55, 0.0005, x, y)) * 10 - 5.5) * this.biomes.length),
+                (int) ((Utils.normalizeSimplex(this.temperateSimplex.octaveNoise2D(10, 0.55, 0.0008, x, y)) * 8 - 4.5) * this.biomes.length),
                 0,
                 this.biomes.length - 1);
         int humidity = Mathf.clamp(
-                (int) ((Utils.normalizeSimplex(this.humiditySimplex.octaveNoise2D(10, 0.55, 0.0005, x, y)) * 10 - 5.5) * this.biomes[0].length),
+                (int) ((Utils.normalizeSimplex(this.humiditySimplex.octaveNoise2D(10, 0.55, 0.0008, x, y)) * 8 - 4.5) * this.biomes[0].length),
                 0,
                 this.biomes[0].length - 1);
 

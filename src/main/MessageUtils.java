@@ -10,7 +10,8 @@ import java.util.EnumMap;
 public class MessageUtils {
     public enum MessageLevel {
         INFO,
-        WARNING
+        WARNING,
+        ELIMINATION
     }
 
     private static final String welcomePopupMessage = "[cyan]Welcome to\n[white]\uF897[#9C4F96]S[#FF6355]E[#FBA949]C[#FAE442]T[#8BD448]O[#2AA8F2]R[#01D93F]I[#F0EC00]Z[#FF8B00]E[#DB2B28]D[white]\uF897\n\n" +
@@ -28,8 +29,9 @@ public class MessageUtils {
     private static final EnumMap<MessageLevel, String> messageLevelPrefixes = new EnumMap<>(MessageLevel.class);
 
     static {
-        messageLevelPrefixes.put(MessageLevel.INFO, "[gold]\uE837 [white]");
-        messageLevelPrefixes.put(MessageLevel.WARNING, "[red]\u26A0 [white]");
+        messageLevelPrefixes.put(MessageLevel.INFO, "[gold]\uE837 [lightgray]");
+        messageLevelPrefixes.put(MessageLevel.WARNING, "[orange]\u26A0 [lightgray]");
+        messageLevelPrefixes.put(MessageLevel.ELIMINATION, "[red]\uE861 [lightgray]");
     }
 
     public static void sendMessage(String message, MessageLevel level) {
@@ -49,7 +51,7 @@ public class MessageUtils {
 
         if (!cannotBuildHereCooldown.contains(uuid)) {
             cannotBuildHereCooldown.add(uuid);
-            player.sendMessage(messageLevelPrefixes.get(MessageLevel.WARNING) + "You cannot build outside your sector! To expand your sector place a [pink]vault[white] \uF866 within the borders of your sector!");
+            player.sendMessage(messageLevelPrefixes.get(MessageLevel.WARNING) + "You cannot build outside your sector! To expand your sector place a [pink]vault[lightgray] \uF866 within the borders of your sector!");
 
             Timer.schedule(() -> cannotBuildHereCooldown.remove(uuid), 3);
         }

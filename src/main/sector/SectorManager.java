@@ -3,11 +3,13 @@ package main.sector;
 import arc.graphics.Color;
 import arc.math.Mathf;
 import arc.math.geom.Point2;
+import arc.struct.Queue;
 import arc.util.Time;
 import mindustry.content.Blocks;
 import mindustry.content.Bullets;
 import mindustry.content.Fx;
 import mindustry.game.Team;
+import mindustry.game.Teams;
 import mindustry.gen.Building;
 import mindustry.gen.Call;
 import mindustry.type.Item;
@@ -63,6 +65,19 @@ public class SectorManager {
         }
 
         return true;
+    }
+
+    public boolean validBorder(int x, int y, int teamId) {
+        if (this.sectors[x][y] != -1) return false;
+
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                if (this.sectors[Math.max(0, Math.min(x + dx, this.width - 1))][Math.max(0, Math.min(y + dy, this.height - 1))] == teamId) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public void addArea(int coreX, int coreY, CoreBlock coreBlock, int teamId) {
@@ -137,6 +152,10 @@ public class SectorManager {
             int sector = this.sectors[x][y];
 
             if (!(borderX || borderY) && sector >= 0 && sector != world.tile(x, y).team().id) {
+                Queue<Teams.BlockPlan> blocks = Team.get(removeRectangle.teamId).data().blocks;
+                int removeIndex = blocks.indexOf(b -> b.x == x && b.y == y);
+                if (removeIndex >= 0) blocks.removeIndex(removeIndex);
+
                 this.destroyTileWithoutPolyRebuild(world.tile(x, y));
             }
         });

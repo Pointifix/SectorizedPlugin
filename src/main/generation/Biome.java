@@ -17,8 +17,11 @@ public class Biome {
     static {
         Seq<GenerateFilter> savannaOres = new Seq<>();
         maps.addDefaultOres(savannaOres);
-        savannaOres.each(o -> ((OreFilter) o).threshold -= 0.05f);
-        ((OreFilter) savannaOres.find((ore) -> ((OreFilter) ore).ore == Blocks.oreThorium)).threshold -= 0.1f;
+        savannaOres.each(o -> ((OreFilter) o).threshold -= 0.03f);
+        savannaOres.each(o -> {
+            OreFilter oreFilter = ((OreFilter) o);
+            if (oreFilter.ore == Blocks.oreThorium) oreFilter.threshold += 0.01f;
+        });
         savannaOres.each(GenerateFilter::randomize);
 
         savanna = new Biome(new Block[][]{
@@ -31,7 +34,7 @@ public class Biome {
 
         Seq<GenerateFilter> swampOres = new Seq<>();
         maps.addDefaultOres(swampOres);
-        swampOres.each(o -> ((OreFilter) o).threshold -= 0.05f);
+        swampOres.each(o -> ((OreFilter) o).threshold -= 0.04f);
         swampOres.insert(0, new OreFilter() {{
             ore = Blocks.oreScrap;
             scl *= 2f;
@@ -49,7 +52,7 @@ public class Biome {
 
         Seq<GenerateFilter> vulcanoOres = new Seq<>();
         maps.addDefaultOres(vulcanoOres);
-        vulcanoOres.each(o -> ((OreFilter) o).threshold -= 0.05f);
+        vulcanoOres.each(o -> ((OreFilter) o).threshold -= 0.03f);
         vulcanoOres.insert(0, new OreFilter() {{
             ore = Blocks.oreScrap;
             scl *= 2f;
@@ -67,18 +70,24 @@ public class Biome {
 
         Seq<GenerateFilter> icelandsOres = new Seq<>();
         maps.addDefaultOres(icelandsOres);
+        icelandsOres.each(o -> ((OreFilter) o).threshold -= 0.03f);
+        icelandsOres.each(o -> {
+            OreFilter oreFilter = ((OreFilter) o);
+            if (oreFilter.ore == Blocks.oreCoal) oreFilter.threshold -= 0.01f;
+        });
         icelandsOres.insert(0, new OreFilter() {{
             ore = Blocks.oreScrap;
             scl *= 0.8f;
             threshold = 0.75f;
         }});
-        ((OreFilter) savannaOres.find((ore) -> ((OreFilter) ore).ore == Blocks.oreThorium)).threshold += 0.1f;
         icelandsOres.each(GenerateFilter::randomize);
 
         icelands = new Biome(new Block[][]{
-                {Blocks.snow, Blocks.snow, Blocks.iceSnow},
-                {Blocks.snow, Blocks.ice, Blocks.ice},
-                {Blocks.iceSnow, Blocks.ice, Blocks.water},
+                {Blocks.sand, Blocks.sand, Blocks.sand, Blocks.snow, Blocks.iceSnow},
+                {Blocks.sand, Blocks.sand, Blocks.snow, Blocks.iceSnow, Blocks.ice},
+                {Blocks.snow, Blocks.snow, Blocks.iceSnow, Blocks.ice, Blocks.ice},
+                {Blocks.iceSnow, Blocks.iceSnow, Blocks.ice, Blocks.ice, Blocks.water},
+                {Blocks.iceSnow, Blocks.ice, Blocks.sand, Blocks.ice, Blocks.water},
         }, icelandsOres, 12, 0.55, 0.05, 12, 0.6, 0.03);
 
         Seq<GenerateFilter> riverOres = new Seq<>();

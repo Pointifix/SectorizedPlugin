@@ -4,14 +4,17 @@ import arc.Events;
 import arc.math.Mathf;
 import arc.math.geom.Point2;
 import arc.struct.Seq;
+import arc.util.noise.Simplex;
+import main.generation.Utils;
 import mindustry.content.Blocks;
 import mindustry.entities.units.BuildPlan;
 import mindustry.game.EventType;
 import mindustry.game.Team;
 import mindustry.world.Tile;
+import mindustry.world.blocks.environment.Floor;
 import mindustry.world.blocks.storage.CoreBlock;
 
-import static mindustry.Vars.world;
+import static mindustry.Vars.*;
 
 public class SectorSpawns {
     private final int width, height;
@@ -48,9 +51,47 @@ public class SectorSpawns {
             this.spawnSeq.set(r, a);
         }
 
+        int radius = (int) (state.rules.dropZoneRadius / tilesize);
+        Simplex simplex = new Simplex(Mathf.random(100_000));
+
         for (int i = 0; i < 3 && this.spawnSeq.size > 0; i++) {
             Tile tile = world.tile(this.spawnSeq.get(this.spawnSeq.size - 1).pack());
             this.spawnSeq.remove(this.spawnSeq.size - 1);
+
+            for (int x = Math.max(0, tile.x - radius); x <= Math.min(this.width - 1, tile.x + radius); x++) {
+                for (int y = Math.max(0, tile.y - radius); y <= Math.min(this.height - 1, tile.y + radius); y++) {
+                    double t = Utils.normalizeSimplex(simplex.octaveNoise2D(10, 0.5, 0.1, x, y));
+
+                    if (t < 0.5) {
+                        int dist = (int) tile.dst(x * tilesize, y * tilesize) / tilesize;
+
+                        if (dist < radius) {
+                            int b = Mathf.random(4);
+
+                            switch (b) {
+                                case 0:
+                                    world.tile(x, y).setFloor((Floor) Blocks.darkPanel1);
+                                    break;
+                                case 1:
+                                    world.tile(x, y).setFloor((Floor) Blocks.darkPanel2);
+                                    break;
+                                case 2:
+                                    world.tile(x, y).setFloor((Floor) Blocks.darkPanel3);
+                                    break;
+                                case 3:
+                                    world.tile(x, y).setFloor((Floor) Blocks.darkPanel4);
+                                    break;
+                                case 4:
+                                    world.tile(x, y).setFloor((Floor) Blocks.darkPanel5);
+                                    break;
+                            }
+                        } else if (dist == radius) {
+                            world.tile(x, y).setFloor((Floor) Blocks.metalFloor5);
+                        }
+                    }
+                }
+            }
+
             tile.setOverlay(Blocks.spawn);
         }
 
@@ -71,7 +112,7 @@ public class SectorSpawns {
                     -1));
 
             if (subRectangles.length == 0) {
-                this.spawningSearchStartIndex = (this.spawningSearchStartIndex + 1) % this.spawnSeq.size;
+                this.spawningSearchStartIndex = (i + this.spawningSearchStartIndex + 1) % this.spawnSeq.size;
                 return p;
             }
         }

@@ -11,9 +11,6 @@ import mindustry.world.Tile;
 import mindustry.world.blocks.storage.CoreBlock;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static mindustry.Vars.netServer;
@@ -21,12 +18,8 @@ import static mindustry.Vars.tilesize;
 
 public class SectorizedTeamAssigner {
     private final Seq<Team> availableTeams = new Seq<>(Team.all);
-    private final Seq<Team> usedTeams = new Seq<>();
 
-    private final HashMap<String, Team> sectorizedTeamsUUIDMap = new HashMap<>();
-    private final HashMap<Team, List<String>> sectorizedTeamsTeamMap = new HashMap<>();
-    private final HashMap<Team, Player> sectorizedTeamsLeader = new HashMap<>();
-
+    private final Seq<SectorizedTeam> teams = new Seq<>();
     private final ArrayList<String> eliminatedPlayers = new ArrayList<>();
 
     public SectorizedTeamAssigner() {
@@ -37,91 +30,126 @@ public class SectorizedTeamAssigner {
     }
 
     public boolean hasTeam(Player player) {
-        return sectorizedTeamsUUIDMap.get(player.uuid()) != null;
+        return teams.contains(t -> t.playerUUIDs.contains(player.uuid()));
     }
 
     public Team getTeam(Player player) {
-        return sectorizedTeamsUUIDMap.get(player.uuid());
+        return teams.find(t -> t.playerUUIDs.contains(player.uuid())).team;
     }
 
     public boolean isTeamLead(Player player) {
-        return sectorizedTeamsTeamMap.get(player.team()).get(0).equals(player.uuid());
+        return teams.contains(t -> t.getTeamLead().equals(player.uuid()));
     }
 
     public boolean isEliminated(Player player) {
         return eliminatedPlayers.contains(player.uuid());
     }
 
+    public int getPlayerCount(Team team) {
+        return teams.find(t -> t.team == team).playerUUIDs.size();
+    }
+
     public void assignNewTeam(Player player) {
         Team team = availableTeams.pop();
-        usedTeams.add(team);
 
         player.team(team);
 
-        sectorizedTeamsUUIDMap.put(player.uuid(), team);
-        sectorizedTeamsTeamMap.put(team, new ArrayList<>(Collections.singleton(player.uuid())));
-        sectorizedTeamsLeader.put(team, player);
+        this.teams.add(new SectorizedTeam(team, player));
+    }
+
+    public void joinTeam(Player request, Player target) {
+        if (hasTeam(request)) {
+            SectorizedTeam requestTeam = teams.find(t -> t.playerUUIDs.contains(request.uuid()));
+
+            this.forceEliminateTeam(requestTeam.team);
+        }
+
+        SectorizedTeam targetTeam = teams.find(t -> t.playerUUIDs.contains(target.uuid()));
+
+        request.team(targetTeam.team);
+        targetTeam.playerUUIDs.add(request.uuid());
     }
 
     public void eliminateTeam(Team team, Tile tile) {
         Unit closestUnit = Units.closestEnemy(team, tile.getX(), tile.getY(), tilesize * 20, (unit) -> true);
 
-        Player leader = sectorizedTeamsLeader.get(team);
+        SectorizedTeam sectorizedTeam = teams.find(t -> t.team == team);
+        String leaderName = sectorizedTeam.leaderName;
         if (closestUnit != null) {
-            if (closestUnit.team() == Team.crux)
-                MessageUtils.sendMessage("Team of player [gold]" + leader.name() + "[white] got eliminated by the crux waves!", MessageUtils.MessageLevel.WARNING);
-            else if (sectorizedTeamsLeader.get(closestUnit.team()) != null)
-                MessageUtils.sendMessage("Team of player [gold]" + leader.name() + "[white] got eliminated by the team of player [gold]" + sectorizedTeamsLeader.get(closestUnit.team()).name() + "[white]!", MessageUtils.MessageLevel.WARNING);
+            if (closestUnit.team() == Team.crux) {
+                MessageUtils.sendMessage("[gold]" + leaderName + "[lightgray] got eliminated by the crux waves!", MessageUtils.MessageLevel.ELIMINATION);
+            } else {
+                String eliminatorName = teams.find(t -> t.team == closestUnit.team).leaderName;
+                MessageUtils.sendMessage("[gold]" + leaderName + "[lightgray] got eliminated by [red]" + eliminatorName + "[white]!", MessageUtils.MessageLevel.ELIMINATION);
+            }
         } else {
-            MessageUtils.sendMessage("Team of player [gold]" + leader.name() + "[white] got eliminated!", MessageUtils.MessageLevel.WARNING);
+            MessageUtils.sendMessage("[gold]" + leaderName + "[lightgray] got eliminated!", MessageUtils.MessageLevel.ELIMINATION);
         }
 
         Groups.unit.each((unit) -> unit.team() == team, (Unitc::kill));
 
-        for (String uuid : sectorizedTeamsTeamMap.get(team)) {
-            sectorizedTeamsUUIDMap.remove(uuid);
-
+        for (String uuid : sectorizedTeam.playerUUIDs) {
             eliminatedPlayers.add(uuid);
-            Timer.schedule(() -> eliminatedPlayers.remove(uuid), 60 * 5);
+            Timer.schedule(() -> {
+                eliminatedPlayers.remove(uuid);
+                Player freePlayer = Groups.player.find(p -> p.uuid().equals(uuid));
+                if (freePlayer != null) {
+                    MessageUtils.sendMessage(freePlayer, "[teal]5 minutes [lightgray] have passed, you can reconnect to spawn again!", MessageUtils.MessageLevel.INFO);
+                }
+            }, 60 * 5);
 
             Player player = Groups.player.find(p -> p.uuid().equals(uuid));
             if (player != null) {
                 player.team(Team.derelict);
             }
         }
-        sectorizedTeamsTeamMap.remove(team);
-        sectorizedTeamsLeader.remove(team);
+        teams.remove(sectorizedTeam);
+        availableTeams.insert(0, team);
 
-        availableTeams.add(team);
-
-        if (sectorizedTeamsTeamMap.size() <= 1) {
+        if (teams.size <= 1) {
             SectorizedPlugin.restarting = true;
 
-            if (sectorizedTeamsTeamMap.size() == 0) {
+            if (teams.size == 0) {
                 Call.infoMessage("\uF7A7[red] GAME OVER [white]\uF7A7\n\n" +
                         "All teams got eliminated!");
             } else {
                 Call.infoMessage("\uF7A7[red] GAME OVER [white]\uF7A7\n\n" +
-                        "Team of player [gold]" + sectorizedTeamsLeader.values().iterator().next().name() + "[white] won!");
+                        "[gold]" + teams.get(0).leaderName + "[white] won!");
             }
 
             int seconds = 10;
             AtomicInteger countdown = new AtomicInteger(seconds);
             Timer.schedule(() -> {
-                MessageUtils.sendMessage("Server restarting in [gold]" + (countdown.getAndDecrement()) + "[white] seconds.", MessageUtils.MessageLevel.INFO);
-
                 if (countdown.get() == 0) {
                     Log.info("Restarting server ...");
                     netServer.kickAll(Packets.KickReason.serverRestarting);
                     System.exit(1);
                 }
+
+                MessageUtils.sendMessage("Server restarting in [gold]" + (countdown.getAndDecrement()) + "[lightgray] seconds.", MessageUtils.MessageLevel.INFO);
             }, 5, 1, seconds);
         }
     }
 
     public void forceEliminateTeam(Team team) {
-        for (CoreBlock.CoreBuild coreBuild : team.cores()) {
+        for (CoreBlock.CoreBuild coreBuild : team.cores().copy()) {
             coreBuild.kill();
+        }
+    }
+
+    private class SectorizedTeam {
+        protected String leaderName;
+        protected Team team;
+        protected ArrayList<String> playerUUIDs = new ArrayList<>();
+
+        public SectorizedTeam(Team team, Player player) {
+            this.team = team;
+            this.playerUUIDs.add(player.uuid());
+            this.leaderName = player.name();
+        }
+
+        public String getTeamLead() {
+            return playerUUIDs.get(0);
         }
     }
 }
