@@ -23,6 +23,8 @@ dependencies {
     implementation 'org.jetbrains:annotations:20.1.0'
     compileOnly "com.github.Anuken.Arc:arc-core:$mindustryVersion"
     compileOnly "com.github.Anuken.Mindustry:core:$mindustryVersion"
+    implementation 'org.mariadb.jdbc:mariadb-java-client:2.1.2'
+    implementation 'com.google.code.gson:gson:2.9.0'
 }
 
 jar {
