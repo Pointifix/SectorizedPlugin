@@ -1,4 +1,7 @@
 # Sectorized Plugin
 Plugin of the Sectorized Server
 
-![image](https://user-images.githubusercontent.com/35230128/155810646-a85981af-0271-417d-8dd3-e194b4f09ca1.png)
+Join the server with `sectorized.ddns.net`
+
+![image](https://user-images.githubusercontent.com/35230128/162400630-993d70ca-d594-4f32-ac4d-90d7b695e7dd.png)
+
