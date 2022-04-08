@@ -13,13 +13,11 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.*;
-import java.util.HashMap;
 
 public class RankingPersistence {
     public final Seq<LeaderBoardEntry> leaderboard = new Seq<>();
     private final double k = 10;
     private final double offset = 10;
-    private final HashMap<String, Member> rankingData = new HashMap<>();
     public String leaderboardText;
     private Connection connection = null;
 
@@ -46,8 +44,6 @@ public class RankingPersistence {
     }
 
     public void getRanking(Member member) {
-        if (rankingData.containsKey(member.player.uuid())) return;
-
         member.player.name = "." + member.player.name;
 
         if (connection != null) {
@@ -64,14 +60,12 @@ public class RankingPersistence {
                 } else {
                     setRanking(member);
                 }
-
-                member.player.name = RankIcons.getRankIcon(member.rank) + member.player.name.substring(1);
-
-                this.rankingData.put(member.player.uuid(), member);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         }
+
+        member.player.name = RankIcons.getRankIcon(member.rank) + member.player.name.substring(1);
     }
 
     private void getLeaderboard() {

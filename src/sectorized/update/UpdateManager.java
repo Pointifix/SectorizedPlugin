@@ -197,7 +197,9 @@ public class UpdateManager implements Manager {
 
     @Override
     public void registerServerCommands(CommandHandler handler) {
-
+        handler.register("restart", "Restarts the server.", args -> {
+            Events.fire(new SectorizedEvents.RestartEvent("Called from console"));
+        });
     }
 
     @Override
