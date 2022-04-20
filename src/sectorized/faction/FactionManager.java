@@ -45,13 +45,13 @@ public class FactionManager implements Manager {
 
             Member member = memberLogic.playerJoin(event.player);
 
-            if (State.gameState == State.GameState.LOCKED)
+            if (State.gameState == State.GameState.LOCKED) {
                 MessageUtils.sendMessage(member.player, "Spawning is currently [purple]locked" + MessageUtils.defaultColor + " because a player is dominating the game!", MessageUtils.MessageLevel.WARNING);
-            if (member.state == Member.MemberState.WAITING) {
+            } else if (member.state == Member.MemberState.WAITING) {
                 Events.fire(new SectorizedEvents.NewMemberEvent(member));
-            }
-            if (member.state == Member.MemberState.ELIMINATED)
+            } else if (member.state == Member.MemberState.ELIMINATED) {
                 MessageUtils.sendMessage(event.player, "You recently got eliminated, you can respawn [teal]5 minutes" + MessageUtils.defaultColor + " after you got eliminated by rejoining the server!", MessageUtils.MessageLevel.WARNING);
+            }
         });
 
         Events.on(SectorizedEvents.MemberSpawnedEvent.class, event -> {

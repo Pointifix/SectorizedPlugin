@@ -97,7 +97,7 @@ public class SectorSpawns {
             tile.setOverlay(Blocks.spawn);
         }
 
-        spawnSeq.sort((Point2 a, Point2 b) -> (Math.abs(world.width() / 2 - b.x) + Math.abs(world.height() / 2 - b.y)) - (Math.abs(world.width() / 2 - a.x) + Math.abs(world.height() / 2 - a.y)));
+        spawnSeq.sort((Point2 a, Point2 b) -> Math.max(Math.abs(world.width() / 2 - b.x), Math.abs(world.width() / 2 - b.y)) - Math.max(Math.abs(world.width() / 2 - a.x), Math.abs(world.width() / 2 - a.y)));
 
         for (int i = 0; i < spawnSeq.size - 1; i++) {
             Point2 a = spawnSeq.get(i);
