@@ -3,19 +3,23 @@ package sectorized.world.map.biomes.simple;
 import arc.math.Mathf;
 import mindustry.content.Blocks;
 import mindustry.maps.filters.OreFilter;
-import mindustry.world.Block;
 import mindustry.world.Tile;
 import sectorized.world.map.biomes.SimpleBiome;
+import sectorized.world.map.generator.BlockG;
+import sectorized.world.map.generator.Generator;
 import sectorized.world.map.generator.SimplexGenerator2D;
 
 public class Vulcano extends SimpleBiome {
     public Vulcano() {
-        super(new SimplexGenerator2D<>(new Block[][]{
-                {Blocks.slag, Blocks.hotrock, Blocks.basalt, Blocks.basalt, Blocks.darksand},
-                {Blocks.magmarock, Blocks.basalt, Blocks.basalt, Blocks.darksand, Blocks.darksand},
-                {Blocks.hotrock, Blocks.basalt, Blocks.darksand, Blocks.darksand, Blocks.stone},
-                {Blocks.basalt, Blocks.darksand, Blocks.darksand, Blocks.stone, Blocks.charr},
-                {Blocks.darksand, Blocks.darksand, Blocks.stone, Blocks.craters, Blocks.dacite}
+        super(new SimplexGenerator2D(new Generator[][]{
+                {BlockG.slag, BlockG.hotrock, BlockG.basalt, BlockG.basalt, BlockG.darksand},
+                {BlockG.magmarock, BlockG.basalt, BlockG.basalt, BlockG.darksand, BlockG.darksand},
+                {BlockG.hotrock, BlockG.basalt, BlockG.darksand, BlockG.darksand, BlockG.stone},
+                {BlockG.basalt, BlockG.darksand, BlockG.darksand, BlockG.stone, BlockG.charr},
+                {BlockG.darksand, BlockG.darksand, BlockG.stone, BlockG.craters, new SimplexGenerator2D(new Generator[][]{
+                        {BlockG.tar, BlockG.dacite},
+                        {BlockG.dacite, BlockG.craters},
+                }, 12, 0.5, 0.01, 1.15, 12, 0.5, 0.01, 1.15)}
         }, 12, 0.67, 0.02, 1.3, 12, 0.67, 0.03, 1.3));
 
         ores.each(o -> ((OreFilter) o).threshold -= 0.03f);
@@ -36,5 +40,10 @@ public class Vulcano extends SimpleBiome {
             if (tile.floor() == Blocks.stone && Mathf.chance(0.01)) tile.setBlock(Blocks.boulder);
             if (tile.floor() == Blocks.dacite && Mathf.chance(0.02)) tile.setBlock(Blocks.daciteBoulder);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Vulcano";
     }
 }

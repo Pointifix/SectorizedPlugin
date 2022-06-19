@@ -12,6 +12,8 @@ import mindustry.world.Tiles;
 import mindustry.world.blocks.environment.Floor;
 import sectorized.SectorizedEvents;
 
+import java.util.HashMap;
+
 import static mindustry.Vars.state;
 import static mindustry.Vars.world;
 
@@ -24,6 +26,8 @@ public class MapGenerator implements Cons<Tiles> {
         int offsetX = Mathf.random(9999999);
         int offsetY = Mathf.random(9999999);
 
+        HashMap<Biomes.Biome, Integer> biomeDistribution = new HashMap();
+
         for (int x = 0; x < world.width(); x++) {
             for (int y = 0; y < world.height(); y++) {
                 Block water = riversGenerator.sample(x + offsetX, y + offsetY);
@@ -32,6 +36,8 @@ public class MapGenerator implements Cons<Tiles> {
 
                 if (water == null) {
                     Biomes.Biome biome = biomesGenerator.sample(x + offsetX, y + offsetY);
+
+                    biomeDistribution.put(biome, biomeDistribution.getOrDefault(biome, 0) + 1);
 
                     biome.sample(x + offsetX, y + offsetY, tile);
                 } else {
@@ -45,8 +51,18 @@ public class MapGenerator implements Cons<Tiles> {
             }
         }
 
+        StringBuilder mostFrequentBiomes = new StringBuilder();
+        int threshold = (int) (world.width() * world.height() * 0.1);
+        final int[] count = {0};
+        biomeDistribution.forEach((key, value) -> {
+            if (value >= threshold && count[0] < 3) {
+                mostFrequentBiomes.append(key.toString()).append("-");
+                count[0]++;
+            }
+        });
+
         Events.fire(new SectorizedEvents.BiomesGeneratedEvent());
 
-        state.map = new Map(StringMap.of("name", "Sectorized"));
+        state.map = new Map(StringMap.of("name", mostFrequentBiomes.deleteCharAt(mostFrequentBiomes.length() - 1)));
     }
 }

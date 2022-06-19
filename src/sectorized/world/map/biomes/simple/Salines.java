@@ -4,21 +4,28 @@ import arc.math.Mathf;
 import arc.util.noise.Simplex;
 import mindustry.content.Blocks;
 import mindustry.maps.filters.OreFilter;
-import mindustry.world.Block;
 import mindustry.world.Tile;
 import sectorized.world.map.biomes.SimpleBiome;
+import sectorized.world.map.generator.BlockG;
+import sectorized.world.map.generator.Generator;
 import sectorized.world.map.generator.SimplexGenerator2D;
 
 public class Salines extends SimpleBiome {
     private final Simplex rotationSimplex;
 
     public Salines() {
-        super(new SimplexGenerator2D<>(new Block[][]{
-                {Blocks.tar, Blocks.charr, Blocks.water, Blocks.water, Blocks.water},
-                {Blocks.shale, Blocks.salt, Blocks.salt, Blocks.dacite, Blocks.water},
-                {Blocks.stone, Blocks.sand, Blocks.sand, Blocks.salt, Blocks.darksand},
-                {Blocks.salt, Blocks.dacite, Blocks.salt, Blocks.darksand, Blocks.darksand},
-                {Blocks.slag, Blocks.salt, Blocks.darksand, Blocks.darksand, Blocks.slag}
+        super(new SimplexGenerator2D(new Generator[][]{
+                {new SimplexGenerator2D(new Generator[][]{
+                        {BlockG.tar, BlockG.charr},
+                        {BlockG.shale, BlockG.tar},
+                }, 12, 0.5, 0.1, 1.15, 12, 0.5, 0.1, 1.15), BlockG.charr, BlockG.water, BlockG.water, BlockG.water},
+                {BlockG.shale, BlockG.salt, BlockG.salt, BlockG.dacite, BlockG.water},
+                {BlockG.stone, BlockG.sand, BlockG.sand, BlockG.salt, BlockG.darksand},
+                {BlockG.salt, BlockG.dacite, BlockG.salt, BlockG.darksand, BlockG.darksand},
+                {BlockG.slag, BlockG.salt, BlockG.darksand, BlockG.darksand, new SimplexGenerator2D(new Generator[][]{
+                        {BlockG.slag, BlockG.magmarock},
+                        {BlockG.magmarock, BlockG.hotrock},
+                }, 12, 0.5, 0.1, 1.15, 12, 0.5, 0.1, 1.15)}
         }, 12, 0.62, 0.01, 1.3, 12, 0.62, 0.01, 1.3));
 
         ores.each(o -> ((OreFilter) o).threshold -= 0.03f);
@@ -41,5 +48,10 @@ public class Salines extends SimpleBiome {
             if (tile.floor() == Blocks.darksand && Mathf.chance(0.005)) tile.setBlock(Blocks.basaltBoulder);
             if (tile.floor() == Blocks.grass && Mathf.chance(0.005)) tile.setBlock(Blocks.pine);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Salines";
     }
 }

@@ -3,10 +3,10 @@ package sectorized.world.map;
 import sectorized.world.map.generator.SimplexGenerator3D;
 
 public class BiomesGenerator {
-    private final SimplexGenerator3D<Biomes.Biome> generator;
+    private final SimplexGenerator3D generator;
 
     public BiomesGenerator() {
-        generator = new SimplexGenerator3D<>(new Biomes.Biome[][][]{
+        generator = new SimplexGenerator3D(new Biomes.Biome[][][]{
                 {
                         {Biomes.desert, Biomes.desert, Biomes.archipelago},
                         {Biomes.desert, Biomes.desert, Biomes.ruins},

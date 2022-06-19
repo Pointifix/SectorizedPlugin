@@ -2,16 +2,17 @@ package sectorized.world.map.generator;
 
 import arc.math.Mathf;
 import arc.util.noise.Simplex;
+import mindustry.world.Block;
 
-public class SimplexGenerator2D<T> {
-    private final T[][] mapping;
+public class SimplexGenerator2D extends Generator {
+    private final Generator[][] mapping;
 
     private final Simplex simplex1, simplex2;
 
     private final double octaves1, persistence1, scale1, multiplier1;
     private final double octaves2, persistence2, scale2, multiplier2;
 
-    public SimplexGenerator2D(T[][] mapping, double octaves1, double persistence1, double scale1, double multiplier1, double octaves2, double persistence2, double scale2, double multiplier2) {
+    public SimplexGenerator2D(Generator[][] mapping, double octaves1, double persistence1, double scale1, double multiplier1, double octaves2, double persistence2, double scale2, double multiplier2) {
         this.mapping = mapping;
 
         this.octaves1 = octaves1;
@@ -28,15 +29,15 @@ public class SimplexGenerator2D<T> {
         simplex2 = new Simplex(Mathf.random(99999999));
     }
 
-    public SimplexGenerator2D(T[][] mapping, double octaves1, double persistence1, double scale1, double octaves2, double persistence2, double scale2) {
+    public SimplexGenerator2D(Generator[][] mapping, double octaves1, double persistence1, double scale1, double octaves2, double persistence2, double scale2) {
         this(mapping, octaves1, persistence1, scale1, 1, octaves2, persistence2, scale2, 1);
     }
 
-    public T sample(int x, int y) {
+    public Block sample(int x, int y) {
         int sampleX = sampleSimplex(simplex1, octaves1, persistence1, scale1, multiplier1, x, y, mapping.length - 1);
         int sampleY = sampleSimplex(simplex2, octaves2, persistence2, scale2, multiplier2, x, y, mapping[0].length - 1);
 
-        return mapping[sampleX][sampleY];
+        return mapping[sampleX][sampleY].sample(x, y);
     }
 
     private int sampleSimplex(Simplex simplex, double octaves, double persistence, double scale, double multiplier, int x, int y, int max) {

@@ -4,21 +4,25 @@ import arc.math.Mathf;
 import arc.util.noise.Simplex;
 import mindustry.content.Blocks;
 import mindustry.maps.filters.OreFilter;
-import mindustry.world.Block;
 import mindustry.world.Tile;
 import sectorized.world.map.biomes.SimpleBiome;
+import sectorized.world.map.generator.BlockG;
+import sectorized.world.map.generator.Generator;
 import sectorized.world.map.generator.SimplexGenerator2D;
 
 public class Grove extends SimpleBiome {
     private final Simplex rotationSimplex;
 
     public Grove() {
-        super(new SimplexGenerator2D<>(new Block[][]{
-                {Blocks.tar, Blocks.darksand, Blocks.darksand, Blocks.shale, Blocks.dirt},
-                {Blocks.basalt, Blocks.shale, Blocks.shale, Blocks.dirt, Blocks.shale},
-                {Blocks.charr, Blocks.shale, Blocks.darksand, Blocks.shale, Blocks.darksand},
-                {Blocks.shale, Blocks.basalt, Blocks.shale, Blocks.darksand, Blocks.hotrock},
-                {Blocks.stone, Blocks.darksand, Blocks.darksand, Blocks.hotrock, Blocks.magmarock}
+        super(new SimplexGenerator2D(new Generator[][]{
+                {BlockG.tar, BlockG.darksand, BlockG.darksand, BlockG.shale, BlockG.dirt},
+                {BlockG.basalt, BlockG.shale, BlockG.shale, BlockG.dirt, BlockG.shale},
+                {BlockG.charr, BlockG.shale, BlockG.darksand, BlockG.shale, BlockG.darksand},
+                {BlockG.shale, BlockG.darksand, BlockG.shale, BlockG.darksand, BlockG.hotrock},
+                {BlockG.stone, new SimplexGenerator2D(new Generator[][]{
+                        {BlockG.tar, BlockG.shale},
+                        {BlockG.stone, BlockG.darksand},
+                }, 12, 0.7, 0.1, 1.15, 12, 0.7, 0.1, 1.15), BlockG.darksand, BlockG.hotrock, BlockG.magmarock}
         }, 12, 0.65, 0.02, 1.1, 12, 0.65, 0.002, 1.2));
 
         ores.each(o -> ((OreFilter) o).threshold -= 0.01f);
@@ -46,5 +50,10 @@ public class Grove extends SimpleBiome {
             if (tile.floor() == Blocks.salt && Mathf.chance(0.001)) tile.setBlock(Blocks.boulder);
             if (tile.floor() == Blocks.darksand && Mathf.chance(0.005)) tile.setBlock(Blocks.basaltBoulder);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Grove";
     }
 }

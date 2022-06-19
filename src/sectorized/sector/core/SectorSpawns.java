@@ -64,7 +64,7 @@ public class SectorSpawns {
                 for (int y = Math.max(0, tile.y - radius); y <= Math.min(world.height() - 1, tile.y + radius); y++) {
                     double t = simplex.octaveNoise2D(10, 0.5, 0.1, x, y);
 
-                    if (t < 0.6) {
+                    if (world.tile(x, y).floor().hasSurface() ? t < 0.6 : t < 0.3) {
                         int dist = (int) tile.dst(x * tilesize, y * tilesize) / tilesize;
 
                         if (dist < radius) {

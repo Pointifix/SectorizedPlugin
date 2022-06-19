@@ -13,6 +13,7 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.*;
+import java.util.Comparator;
 
 public class RankingPersistence {
     public final Seq<LeaderBoardEntry> leaderboard = new Seq<>();
@@ -120,13 +121,13 @@ public class RankingPersistence {
     }
 
     public void calculateNewRankings(Faction winnerFaction, Faction looserFaction) {
-        Member winner = winnerFaction.members.first();
-        Member looser = looserFaction.members.first();
+        Member winner = winnerFaction.members.copy().sort(Comparator.comparingInt(a -> -a.score)).first();
+        Member looser = looserFaction.members.copy().sort(Comparator.comparingInt(a -> -a.score)).first();
 
-        double expectedValueWinner = 1 / (1 + Math.pow(10, ((double) Math.max(Math.min(looser.score - winner.score, 500), -500) / 500)));
-        double expectedValueLooser = 1 / (1 + Math.pow(10, ((double) Math.max(Math.min(winner.score - looser.score, 500), -500) / 500)));
+        double expectedValueWinner = 1 / (1 + Math.pow(10, ((double) Math.max(Math.min(looser.score - winner.score, 2000), -2000) / 2000)));
+        double expectedValueLooser = 1 / (1 + Math.pow(10, ((double) Math.max(Math.min(winner.score - looser.score, 2000), -2000) / 2000)));
 
-        int winnerScoreDiff = (int) ((looser.faction.maxCores * k + offset) * (1 - expectedValueWinner) * 2);
+        int winnerScoreDiff = (int) ((looser.faction.maxCores * k + offset) * (1 - expectedValueWinner) * 1.5);
         int looserScoreDiff = (int) ((looser.faction.maxCores * k + offset) * (0 - expectedValueLooser));
 
         int win = winnerScoreDiff / winnerFaction.members.size;

@@ -7,13 +7,13 @@ import arc.util.Timer;
 import mindustry.content.UnitTypes;
 import mindustry.entities.Units;
 import mindustry.game.EventType;
+import mindustry.game.Team;
 import mindustry.gen.Groups;
 import mindustry.gen.Player;
 import mindustry.gen.Unit;
 import mindustry.world.blocks.storage.CoreBlock;
 import sectorized.Manager;
 import sectorized.SectorizedEvents;
-import sectorized.constant.Constants;
 import sectorized.constant.MessageUtils;
 import sectorized.constant.StartingBase;
 import sectorized.constant.State;
@@ -22,6 +22,9 @@ import sectorized.faction.core.Member;
 import sectorized.faction.logic.FactionLogic;
 import sectorized.faction.logic.MemberLogic;
 import sectorized.faction.persistence.RankingPersistence;
+
+import java.util.Arrays;
+import java.util.Comparator;
 
 import static mindustry.Vars.state;
 import static mindustry.Vars.tilesize;
@@ -77,15 +80,31 @@ public class FactionManager implements Manager {
                 CoreBlock.CoreBuild coreBuild = (CoreBlock.CoreBuild) event.tile.build;
                 Faction faction = factionLogic.getFaction(event.tile.team());
 
-                int radius = Constants.radii.get((CoreBlock) coreBuild.block);
-                Unit closestUnit = Units.closestEnemy(faction.team, event.tile.getX(), event.tile.getY(), tilesize * radius * 2, (unit) -> !unit.isPlayer() && unit.type() != UnitTypes.mono);
-
-                Faction attacker = null;
-                if (closestUnit != null) attacker = factionLogic.getFaction(closestUnit.team);
-
                 Events.fire(new SectorizedEvents.CoreDestroyEvent(faction, coreBuild));
 
                 if (faction.team.cores().isEmpty()) {
+                    int radius = 60 * tilesize;
+
+                    final Unit[] mostHealthUnit = {null};
+                    Units.nearbyEnemies(faction.team, event.tile.getX() - radius, event.tile.getY() - radius, radius * 2, radius * 2, unit -> {
+                        if (!unit.isPlayer() && unit.type() != UnitTypes.mono && unit.team != Team.crux) {
+                            if (mostHealthUnit[0] == null) mostHealthUnit[0] = unit;
+                            else if (unit.health() > mostHealthUnit[0].health()) mostHealthUnit[0] = unit;
+                        }
+                    });
+
+                    Faction attacker = null;
+                    if (mostHealthUnit[0] != null) attacker = factionLogic.getFaction(mostHealthUnit[0].team);
+                    else if (faction.maxCores >= 5) {
+                        Team dominatingTeam;
+                        Team[] teams = Team.all.clone();
+                        Arrays.sort(teams, Comparator.comparingInt(t -> -t.cores().size));
+                        dominatingTeam = teams[0];
+                        Faction dominatingFaction = factionLogic.getFaction(dominatingTeam);
+
+                        if (dominatingFaction.maxCores >= 5) attacker = dominatingFaction;
+                    }
+
                     Events.fire(new SectorizedEvents.EliminateFactionEvent(faction, attacker));
                 }
             }

@@ -3,6 +3,7 @@ package sectorized.faction.logic;
 import arc.Events;
 import arc.struct.Seq;
 import arc.util.Timer;
+import mindustry.Vars;
 import mindustry.game.Team;
 import mindustry.gen.Call;
 import mindustry.gen.Groups;
@@ -69,7 +70,7 @@ public class FactionLogic {
         });
 
         double timeSinceSpawned = State.time - defender.time;
-        if (timeSinceSpawned < 60 * 60 * 5) {
+        if (defender.maxCores <= 3 && timeSinceSpawned < 60 * 60 * 5) {
             defender.members.each(m -> {
                 MessageUtils.sendMessage(m.player, "No points lost because you spawned less than [magenta]5 minutes" + MessageUtils.defaultColor + " ago", MessageUtils.MessageLevel.INFO);
             });
@@ -110,9 +111,11 @@ public class FactionLogic {
 
             Member winner = factions.first().members.first();
             winner.wins++;
+            winner.score += Vars.state.wave * 2;
+            MessageUtils.sendMessage(winner.player, "You gained [magenta]" + Vars.state.wave * 2 + MessageUtils.defaultColor + " for winning the game!", MessageUtils.MessageLevel.INFO);
             persistence.setRanking(winner);
 
-            Call.infoMessage("\uF7A7[red] GAME OVER [white]\uF7A7\n\n[gold]" + winner.player.name + "[white] won!");
+            Call.infoMessage("\uF7A7[red] GAME OVER [white]\uF7A7\n\n[gold]" + winner.player.name + "[white] won the game in [magenta]" + Vars.state.wave + "[white] waves!");
 
             Events.fire(new SectorizedEvents.RestartEvent("Game over! [gold]" + winner.player.name + MessageUtils.defaultColor + " won."));
         } else if (factions.size == 0 && State.gameState != State.GameState.GAMEOVER) {

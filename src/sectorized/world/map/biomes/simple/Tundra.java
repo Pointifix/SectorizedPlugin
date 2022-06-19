@@ -3,19 +3,23 @@ package sectorized.world.map.biomes.simple;
 import arc.math.Mathf;
 import mindustry.content.Blocks;
 import mindustry.maps.filters.OreFilter;
-import mindustry.world.Block;
 import mindustry.world.Tile;
 import sectorized.world.map.biomes.SimpleBiome;
+import sectorized.world.map.generator.BlockG;
+import sectorized.world.map.generator.Generator;
 import sectorized.world.map.generator.SimplexGenerator2D;
 
 public class Tundra extends SimpleBiome {
     public Tundra() {
-        super(new SimplexGenerator2D<>(new Block[][]{
-                {Blocks.sand, Blocks.sand, Blocks.sand, Blocks.sand, Blocks.snow},
-                {Blocks.sand, Blocks.sand, Blocks.snow, Blocks.iceSnow, Blocks.ice},
-                {Blocks.sand, Blocks.snow, Blocks.iceSnow, Blocks.ice, Blocks.ice},
-                {Blocks.iceSnow, Blocks.iceSnow, Blocks.ice, Blocks.ice, Blocks.water},
-                {Blocks.tar, Blocks.ice, Blocks.sand, Blocks.ice, Blocks.water}
+        super(new SimplexGenerator2D(new Generator[][]{
+                {BlockG.sand, BlockG.sand, BlockG.sand, BlockG.sand, BlockG.snow},
+                {BlockG.sand, BlockG.sand, BlockG.snow, BlockG.iceSnow, new SimplexGenerator2D(new Generator[][]{
+                        {BlockG.tar, BlockG.ice},
+                        {BlockG.ice, BlockG.tar},
+                }, 12, 0.5, 0.1, 1.15, 12, 0.5, 0.1, 1.15)},
+                {BlockG.sand, BlockG.snow, BlockG.iceSnow, BlockG.ice, BlockG.ice},
+                {BlockG.iceSnow, BlockG.iceSnow, BlockG.ice, BlockG.ice, BlockG.water},
+                {BlockG.tar, BlockG.ice, BlockG.sand, BlockG.ice, BlockG.water}
         }, 12, 0.55, 0.05, 1.2, 12, 0.6, 0.03, 1.2));
 
         ores.each(o -> ((OreFilter) o).threshold -= 0.03f);
@@ -39,5 +43,10 @@ public class Tundra extends SimpleBiome {
             if (tile.floor() == Blocks.snow && Mathf.chance(0.003)) tile.setBlock(Blocks.whiteTree);
             if (tile.floor() == Blocks.iceSnow && Mathf.chance(0.001)) tile.setBlock(Blocks.whiteTreeDead);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Tundra";
     }
 }

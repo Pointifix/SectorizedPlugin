@@ -13,12 +13,12 @@ import static mindustry.Vars.maps;
 import static mindustry.Vars.world;
 
 public class SimpleBiome implements Biomes.Biome {
-    private final SimplexGenerator2D<Block> generator;
+    private final SimplexGenerator2D generator;
 
     protected final Seq<GenerateFilter> ores;
     private final GenerateFilter.GenerateInput in;
 
-    public SimpleBiome(SimplexGenerator2D<Block> generator) {
+    public SimpleBiome(SimplexGenerator2D generator) {
         this.generator = generator;
 
         ores = new Seq<>();

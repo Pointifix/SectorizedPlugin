@@ -25,6 +25,8 @@ public class SectorizedPlugin extends Plugin {
         for (Manager manager : managers) {
             manager.init();
         }
+
+        //new TestRiverGenerator(Mathf.random(0.0005f, 0.001f));
     }
 
     @Override

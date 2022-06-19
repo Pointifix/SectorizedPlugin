@@ -6,9 +6,10 @@ import mindustry.game.Schematic;
 import mindustry.game.Schematics;
 import mindustry.game.Team;
 import mindustry.maps.filters.OreFilter;
-import mindustry.world.Block;
 import mindustry.world.Tile;
 import sectorized.world.map.biomes.SimpleBiome;
+import sectorized.world.map.generator.BlockG;
+import sectorized.world.map.generator.Generator;
 import sectorized.world.map.generator.SimplexGenerator2D;
 
 import static mindustry.Vars.world;
@@ -26,12 +27,19 @@ public class Ruins extends SimpleBiome {
     };
 
     public Ruins() {
-        super(new SimplexGenerator2D<>(new Block[][]{
-                {Blocks.tar, Blocks.basalt, Blocks.darksand, Blocks.sand, Blocks.grass},
-                {Blocks.basalt, Blocks.darksand, Blocks.darksand, Blocks.sand, Blocks.sand},
-                {Blocks.darksand, Blocks.darksand, Blocks.darksand, Blocks.darksand, Blocks.darksand},
-                {Blocks.darksand, Blocks.darksand, Blocks.darksand, Blocks.darksand, Blocks.metalFloorDamaged},
-                {Blocks.dacite, Blocks.darksand, Blocks.darksand, Blocks.metalFloorDamaged, Blocks.metalFloor}
+        super(new SimplexGenerator2D(new Generator[][]{
+                {new SimplexGenerator2D(new Generator[][]{
+                        {BlockG.tar, BlockG.darksand},
+                        {BlockG.basalt, BlockG.tar},
+                }, 12, 0.5, 0.1, 1.15, 12, 0.5, 0.1, 1.15), BlockG.basalt, BlockG.darksand, BlockG.sand, BlockG.grass},
+                {BlockG.basalt, BlockG.darksand, BlockG.darksand, BlockG.sand, BlockG.sand},
+                {BlockG.darksand, BlockG.darksand, BlockG.darksand, BlockG.darksand, BlockG.darksand},
+                {BlockG.darksand, BlockG.darksand, BlockG.darksand, new SimplexGenerator2D(new Generator[][]{
+                        {BlockG.darksand, BlockG.darksand, BlockG.darksand},
+                        {BlockG.darksand, BlockG.tar, BlockG.darksand},
+                        {BlockG.darksand, BlockG.darksand, BlockG.basalt},
+                }, 12, 0.5, 0.1, 1.15, 12, 0.5, 0.1, 1.15), BlockG.metalFloorDamaged},
+                {BlockG.dacite, BlockG.darksand, BlockG.darksand, BlockG.metalFloorDamaged, BlockG.metalFloor}
         }, 12, 0.65, 0.02, 1.8, 12, 0.65, 0.02, 1.8));
 
         ores.each(o -> ((OreFilter) o).threshold -= 0.01f);
@@ -77,5 +85,10 @@ public class Ruins extends SimpleBiome {
                 }
             }
         });
+    }
+
+    @Override
+    public String toString() {
+        return "Ruins";
     }
 }

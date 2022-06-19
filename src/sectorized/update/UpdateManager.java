@@ -15,10 +15,7 @@ import mindustry.net.Packets;
 import mindustry.type.ItemStack;
 import sectorized.Manager;
 import sectorized.SectorizedEvents;
-import sectorized.constant.CoreCost;
-import sectorized.constant.Loadout;
-import sectorized.constant.MessageUtils;
-import sectorized.constant.State;
+import sectorized.constant.*;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -43,11 +40,12 @@ public class UpdateManager implements Manager {
             if (interval.get(0, 60 * 5)) {
                 double blockDamageMultiplier = Math.round(state.rules.blockDamageMultiplier * 10.0) / 10.0;
                 double unitDamageMultiplier = Math.round(state.rules.unitDamageMultiplier * 10.0) / 10.0;
+                double unitHealthMultiplier = Math.round(Units.healthMultiplier * 10.0) / 10.0;
 
                 Groups.player.each(player -> !hideHud.contains(player.uuid()), player -> {
                     int cores = player.team().cores().size - 1;
 
-                    StringBuilder infoPopupText = new StringBuilder("Costs for next \uF869\n");
+                    StringBuilder infoPopupText = new StringBuilder("[cyan]Costs for next[white] \uF869\n");
 
                     for (ItemStack itemStack : CoreCost.requirements[Math.max(Math.min(cores, CoreCost.requirements.length - 1), 0)]) {
                         int availableItems = player.team().items().get(itemStack.item);
@@ -58,13 +56,18 @@ public class UpdateManager implements Manager {
                                 .append("\n");
                     }
 
-                    infoPopupText.append("\nDamage Multipliers: ")
-                            .append("\n")
-                            .append("[white]\uF856 [magenta]")
+                    infoPopupText.append("\n[magenta]Multipliers:[white]\n")
+                            .append("\uF856 ")
                             .append(blockDamageMultiplier)
-                            .append(" [white]\uF7F4 [magenta]")
+                            .append(" \uF7F4 ")
                             .append(unitDamageMultiplier)
-                            .append("[white]\n");
+                            .append(" \uf848 ")
+                            .append(unitHealthMultiplier)
+                            .append("\n");
+
+                    infoPopupText.append("\n[orange]Unit Cap: [white]")
+                            .append(mindustry.entities.Units.getCap(player.team()))
+                            .append("\n");
 
                     if (State.gameState == State.GameState.LOCKED) {
                         infoPopupText.append("\n(Re)spawning [purple]locked[white]\n");
@@ -98,7 +101,7 @@ public class UpdateManager implements Manager {
                 infoMessageIndex = (infoMessageIndex + 1) % 3;
             }
 
-            if (interval.get(2, 60 * 60)) {
+            if (interval.get(2, 60 * 60 * 2)) {
                 if (Groups.player.size() < 2) return;
 
                 Team dominatingTeam = null;
@@ -106,7 +109,7 @@ public class UpdateManager implements Manager {
 
                 Team[] teams = Team.all.clone();
                 Arrays.sort(teams, Comparator.comparingInt(t -> -t.cores().size));
-                if (teams[0].cores().size >= teams[1].cores().size + 4 + (state.wave * 0.1)) {
+                if (teams[0].cores().size >= teams[1].cores().size + 3 + (state.wave * 0.1)) {
                     dominatingTeam = teams[0];
                     lock = true;
                 }
@@ -148,8 +151,10 @@ public class UpdateManager implements Manager {
         Events.on(EventType.WaveEvent.class, event -> {
             state.rules.loadout = Loadout.getLoadout(state.wave);
 
-            state.rules.blockDamageMultiplier = (float) (2 / (Math.pow(state.wave * 0.05, 2) + 1));
-            state.rules.unitDamageMultiplier = (float) (2.5 - (2 / (Math.pow(state.wave * 0.05, 2) + 1)));
+            state.rules.blockDamageMultiplier = (float) (1 + (1 / (Math.pow(state.wave * 0.05, 2) + 1)));
+            state.rules.unitDamageMultiplier = (float) (1.5 - (1 / (Math.pow(state.wave * 0.05, 2) + 1)));
+
+            Units.setUnitHealthMultiplier((float) (3 - (2 / (Math.pow(state.wave * 0.05, 2) + 1))));
 
             setServerDescription();
         });

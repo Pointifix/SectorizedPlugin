@@ -3,19 +3,23 @@ package sectorized.world.map.biomes.simple;
 import arc.math.Mathf;
 import mindustry.content.Blocks;
 import mindustry.maps.filters.OreFilter;
-import mindustry.world.Block;
 import mindustry.world.Tile;
 import sectorized.world.map.biomes.SimpleBiome;
+import sectorized.world.map.generator.BlockG;
+import sectorized.world.map.generator.Generator;
 import sectorized.world.map.generator.SimplexGenerator2D;
 
 public class Archipelago extends SimpleBiome {
     public Archipelago() {
-        super(new SimplexGenerator2D<>(new Block[][]{
-                {Blocks.grass, Blocks.sand, Blocks.sand, Blocks.water, Blocks.deepwater},
-                {Blocks.sand, Blocks.darksand, Blocks.water, Blocks.deepwater, Blocks.water},
-                {Blocks.darksand, Blocks.water, Blocks.deepwater, Blocks.water, Blocks.sand},
-                {Blocks.water, Blocks.deepwater, Blocks.water, Blocks.sand, Blocks.grass},
-                {Blocks.deepwater, Blocks.water, Blocks.darksand, Blocks.darksand, Blocks.grass}
+        super(new SimplexGenerator2D(new Generator[][]{
+                {BlockG.grass, new SimplexGenerator2D(new Generator[][]{
+                        {BlockG.tar, BlockG.sand},
+                        {BlockG.sand, BlockG.darksand},
+                }, 12, 0.5, 0.1, 1.15, 12, 0.5, 0.1, 1.15), BlockG.sand, BlockG.water, BlockG.deepwater},
+                {BlockG.sand, BlockG.darksand, BlockG.water, BlockG.deepwater, BlockG.water},
+                {BlockG.darksand, BlockG.water, BlockG.deepwater, BlockG.water, BlockG.sand},
+                {BlockG.water, BlockG.deepwater, BlockG.water, BlockG.sand, BlockG.grass},
+                {BlockG.deepwater, BlockG.water, BlockG.darksand, BlockG.darksand, BlockG.grass}
         }, 12, 0.45, 0.01, 2, 12, 0.45, 0.01, 2));
 
         ores.each(o -> ((OreFilter) o).scl -= 10f);
@@ -33,5 +37,10 @@ public class Archipelago extends SimpleBiome {
             if (tile.floor() == Blocks.darksand && Mathf.chance(0.005)) tile.setBlock(Blocks.basaltBoulder);
             if (tile.floor() == Blocks.grass && Mathf.chance(0.01)) tile.setBlock(Blocks.pine);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Archipelago";
     }
 }

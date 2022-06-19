@@ -2,15 +2,16 @@ package sectorized.world.map.generator;
 
 import arc.math.Mathf;
 import arc.util.noise.Simplex;
+import sectorized.world.map.Biomes;
 
-public class SimplexGenerator3D<T> {
-    private final T[][][] mapping;
+public class SimplexGenerator3D {
+    private final Biomes.Biome[][][] mapping;
 
     private final Simplex simplex1, simplex2, simplex3;
 
     private final double octaves, persistence, scale, multiplier;
 
-    public SimplexGenerator3D(T[][][] mapping, double octaves, double persistence, double scale, double multiplier) {
+    public SimplexGenerator3D(Biomes.Biome[][][] mapping, double octaves, double persistence, double scale, double multiplier) {
         this.mapping = mapping;
 
         this.octaves = octaves;
@@ -23,7 +24,7 @@ public class SimplexGenerator3D<T> {
         simplex3 = new Simplex(Mathf.random(99999999));
     }
 
-    public T sample(int x, int y) {
+    public Biomes.Biome sample(int x, int y) {
         int sampleX = sampleSimplex(simplex1, octaves, persistence, scale, multiplier, x, y, mapping.length - 1);
         int sampleY = sampleSimplex(simplex2, octaves, persistence, scale, multiplier, x, y, mapping[0].length - 1);
         int sampleZ = sampleSimplex(simplex3, octaves, persistence, scale, multiplier, x, y, mapping[0][0].length - 1);

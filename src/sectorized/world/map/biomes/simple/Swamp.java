@@ -3,19 +3,23 @@ package sectorized.world.map.biomes.simple;
 import arc.math.Mathf;
 import mindustry.content.Blocks;
 import mindustry.maps.filters.OreFilter;
-import mindustry.world.Block;
 import mindustry.world.Tile;
 import sectorized.world.map.biomes.SimpleBiome;
+import sectorized.world.map.generator.BlockG;
+import sectorized.world.map.generator.Generator;
 import sectorized.world.map.generator.SimplexGenerator2D;
 
 public class Swamp extends SimpleBiome {
     public Swamp() {
-        super(new SimplexGenerator2D<>(new Block[][]{
-                {Blocks.tar, Blocks.shale, Blocks.taintedWater, Blocks.grass, Blocks.grass, Blocks.grass},
-                {Blocks.shale, Blocks.shale, Blocks.darksand, Blocks.grass, Blocks.grass, Blocks.grass},
-                {Blocks.shale, Blocks.darksand, Blocks.darksand, Blocks.grass, Blocks.grass, Blocks.dirt},
-                {Blocks.water, Blocks.darksand, Blocks.darksand, Blocks.moss, Blocks.dirt, Blocks.dirt},
-                {Blocks.deepwater, Blocks.water, Blocks.moss, Blocks.sporeMoss, Blocks.mud, Blocks.mud}
+        super(new SimplexGenerator2D(new Generator[][]{
+                {BlockG.tar, BlockG.shale, BlockG.taintedWater, BlockG.grass, BlockG.grass, BlockG.grass},
+                {new SimplexGenerator2D(new Generator[][]{
+                        {BlockG.tar, BlockG.shale},
+                        {BlockG.shale, BlockG.tar},
+                }, 12, 0.5, 0.1, 1.15, 12, 0.5, 0.1, 1.15), BlockG.shale, BlockG.darksand, BlockG.grass, BlockG.grass, BlockG.grass},
+                {BlockG.shale, BlockG.darksand, BlockG.darksand, BlockG.grass, BlockG.grass, BlockG.dirt},
+                {BlockG.water, BlockG.darksand, BlockG.darksand, BlockG.moss, BlockG.dirt, BlockG.dirt},
+                {BlockG.deepwater, BlockG.water, BlockG.moss, BlockG.sporeMoss, BlockG.mud, BlockG.mud}
         }, 12, 0.63, 0.01, 1.2, 12, 0.63, 0.008, 1.2));
 
         ores.each(o -> ((OreFilter) o).threshold -= 0.04f);
@@ -37,5 +41,10 @@ public class Swamp extends SimpleBiome {
             if (tile.floor() == Blocks.moss && Mathf.chance(0.009)) tile.setBlock(Blocks.sporePine);
             if (tile.floor() == Blocks.sporeMoss && Mathf.chance(0.01)) tile.setBlock(Blocks.sporeCluster);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Swamp";
     }
 }

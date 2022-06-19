@@ -3,19 +3,20 @@ package sectorized.world.map.biomes.simple;
 import arc.math.Mathf;
 import mindustry.content.Blocks;
 import mindustry.maps.filters.OreFilter;
-import mindustry.world.Block;
 import mindustry.world.Tile;
 import sectorized.world.map.biomes.SimpleBiome;
+import sectorized.world.map.generator.BlockG;
+import sectorized.world.map.generator.Generator;
 import sectorized.world.map.generator.SimplexGenerator2D;
 
 public class Savanna extends SimpleBiome {
     public Savanna() {
-        super(new SimplexGenerator2D<>(new Block[][]{
-                {Blocks.sand, Blocks.darksand, Blocks.darksand, Blocks.darksand, Blocks.grass},
-                {Blocks.sand, Blocks.sand, Blocks.grass, Blocks.darksand, Blocks.stone},
-                {Blocks.water, Blocks.sand, Blocks.sand, Blocks.darksand, Blocks.darksand},
-                {Blocks.water, Blocks.water, Blocks.sand, Blocks.sand, Blocks.darksand},
-                {Blocks.water, Blocks.salt, Blocks.sand, Blocks.sand, Blocks.sand}
+        super(new SimplexGenerator2D(new Generator[][]{
+                {BlockG.sand, BlockG.darksand, BlockG.darksand, BlockG.darksand, BlockG.grass},
+                {BlockG.sand, BlockG.sand, BlockG.grass, BlockG.darksand, BlockG.stone},
+                {BlockG.water, BlockG.sand, BlockG.sand, BlockG.darksand, BlockG.darksand},
+                {BlockG.water, BlockG.water, BlockG.sand, BlockG.sand, BlockG.darksand},
+                {BlockG.water, BlockG.salt, BlockG.sand, BlockG.sand, BlockG.sand}
         }, 12, 0.55, 0.005, 1.2, 12, 0.6, 0.003, 1.2));
 
         ores.each(o -> ((OreFilter) o).threshold -= 0.03f);
@@ -34,5 +35,10 @@ public class Savanna extends SimpleBiome {
             if (tile.floor() == Blocks.darksand && Mathf.chance(0.005)) tile.setBlock(Blocks.basaltBoulder);
             if (tile.floor() == Blocks.grass && Mathf.chance(0.01)) tile.setBlock(Blocks.pine);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Savanna";
     }
 }

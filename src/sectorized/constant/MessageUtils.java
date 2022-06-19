@@ -11,10 +11,10 @@ public class MessageUtils {
     private static final String welcomePopupMessage = "[cyan]Welcome to\n[white]\uF897[#9C4F96]S[#FF6355]E[#FBA949]C[#FAE442]T[#8BD448]O[#2AA8F2]R[#01D93F]I[#F0EC00]Z[#FF8B00]E[#DB2B28]D[white]\uF897\n\n" +
             "[gold]\uE87C How it works \uE87C[white]\n" +
             "You can only build within the bounds of your teams sector, highlighted by [gray]shock mines [white]\uF897.\n" +
-            "Expand your sector by placing [pink]vaults[white] \uF866 within the borders of your sector. You can see the expansion cost on the info popup.\n" +
-            "Eliminate all other teams to win, but be aware of the crux waves.\n\n" +
-            "[blue]\u26A0 BETA \u26A0[white]\n" +
-            "The plugin is still under development!\nPlease report any bugs you encounter on discord.\n\n" +
+            "Expand your sector by placing [pink]vaults[white] \uF866 within the borders of your sector. You can see the expansion cost on the info popup.\n\n" +
+            "Placing vaults next to a core does not turn the vault into a new core!\n\n" +
+            "[gold]\uE809 Your goal \uE809[white]\n" +
+            "Survive against the [red]crux[white] waves and eliminate all other teams to win.\n\n" +
             "Have fun playing :)\n\n" +
             "[blue]\uE80D[lightgray] https://discord.gg/AmdMXKkS9Q[white]";
 
