@@ -25,6 +25,7 @@ dependencies {
     compileOnly "com.github.Anuken.Mindustry:core:$mindustryVersion"
     implementation 'org.mariadb.jdbc:mariadb-java-client:2.1.2'
     implementation 'com.google.code.gson:gson:2.9.0'
+    implementation 'net.dv8tion:JDA:5.0.0-alpha.17'
 }
 
 jar {
@@ -38,4 +39,6 @@ jar {
     }
 
     destinationDirectory.set(file("$buildDir/../mindustry-server/config/mods"))
+
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }

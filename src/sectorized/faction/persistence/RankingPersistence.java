@@ -187,7 +187,7 @@ public class RankingPersistence {
         }
     }
 
-    public class LeaderBoardEntry {
+    private static class LeaderBoardEntry {
         public final String name;
         public final int rank;
         public final int score;

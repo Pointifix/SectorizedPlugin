@@ -11,6 +11,7 @@ import mindustry.world.Tile;
 import mindustry.world.Tiles;
 import mindustry.world.blocks.environment.Floor;
 import sectorized.SectorizedEvents;
+import sectorized.constant.DiscordBot;
 
 import java.util.HashMap;
 
@@ -54,6 +55,7 @@ public class MapGenerator implements Cons<Tiles> {
         StringBuilder mostFrequentBiomes = new StringBuilder();
         int threshold = (int) (world.width() * world.height() * 0.1);
         final int[] count = {0};
+
         biomeDistribution.forEach((key, value) -> {
             if (value >= threshold && count[0] < 3) {
                 mostFrequentBiomes.append(key.toString()).append("-");
@@ -61,8 +63,12 @@ public class MapGenerator implements Cons<Tiles> {
             }
         });
 
+        mostFrequentBiomes.deleteCharAt(mostFrequentBiomes.length() - 1);
+
         Events.fire(new SectorizedEvents.BiomesGeneratedEvent());
 
-        state.map = new Map(StringMap.of("name", mostFrequentBiomes.deleteCharAt(mostFrequentBiomes.length() - 1)));
+        DiscordBot.sendMessage("**Server started!** Current map: " + mostFrequentBiomes);
+
+        state.map = new Map(StringMap.of("name", mostFrequentBiomes));
     }
 }

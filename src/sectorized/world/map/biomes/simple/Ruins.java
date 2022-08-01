@@ -29,14 +29,14 @@ public class Ruins extends SimpleBiome {
     public Ruins() {
         super(new SimplexGenerator2D(new Generator[][]{
                 {new SimplexGenerator2D(new Generator[][]{
-                        {BlockG.tar, BlockG.darksand},
-                        {BlockG.basalt, BlockG.tar},
+                        {BlockG.dirt, BlockG.darksand},
+                        {BlockG.basalt, BlockG.darksand},
                 }, 12, 0.5, 0.1, 1.15, 12, 0.5, 0.1, 1.15), BlockG.basalt, BlockG.darksand, BlockG.sand, BlockG.grass},
                 {BlockG.basalt, BlockG.darksand, BlockG.darksand, BlockG.sand, BlockG.sand},
                 {BlockG.darksand, BlockG.darksand, BlockG.darksand, BlockG.darksand, BlockG.darksand},
                 {BlockG.darksand, BlockG.darksand, BlockG.darksand, new SimplexGenerator2D(new Generator[][]{
                         {BlockG.darksand, BlockG.darksand, BlockG.darksand},
-                        {BlockG.darksand, BlockG.tar, BlockG.darksand},
+                        {BlockG.tar, BlockG.darksand, BlockG.darksand},
                         {BlockG.darksand, BlockG.darksand, BlockG.basalt},
                 }, 12, 0.5, 0.1, 1.15, 12, 0.5, 0.1, 1.15), BlockG.metalFloorDamaged},
                 {BlockG.dacite, BlockG.darksand, BlockG.darksand, BlockG.metalFloorDamaged, BlockG.metalFloor}

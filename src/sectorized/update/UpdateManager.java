@@ -184,7 +184,10 @@ public class UpdateManager implements Manager {
                 case command:
                     return false;
                 case control:
-                    if (!(action.unit instanceof BlockUnitUnit)) return false;
+                    if (!(action.unit instanceof BlockUnitUnit) &&
+                            action.unit.type != UnitTypes.poly &&
+                            action.unit.type != UnitTypes.mono &&
+                            action.unit.type != UnitTypes.oct) return false;
                     break;
             }
 
@@ -244,10 +247,14 @@ public class UpdateManager implements Manager {
 
     private void setServerDescription() {
         if (state.wave < 2) {
+            DiscordBot.setStatus("Wave " + state.wave + " | Time elapsed: Just started! | Players: " + Groups.player.size());
+
             Administration.Config.desc.set("[white]Wave [red]" + state.wave + "[gray] |[white] Time elapsed: [green]Just started!");
         } else {
             int hour = (int) (State.time / 60 / 60 / 60);
             int min = (int) (State.time / 60 / 60 % 60);
+
+            DiscordBot.setStatus("Wave " + state.wave + " | Time elapsed: " + (hour > 0 ? hour + "h " : "") + min + "m" + (State.gameState == State.GameState.LOCKED ? " | LOCKED" : "") + " | Players: " + Groups.player.size());
 
             Administration.Config.desc.set("[white]Wave [red]" + state.wave + "[gray] |[white] Time elapsed: [goldenrod]" + (hour > 0 ? hour + "h " : "") +
                     min + "m" + (State.gameState == State.GameState.LOCKED ? "[gray] | [purple]LOCKED" : ""));

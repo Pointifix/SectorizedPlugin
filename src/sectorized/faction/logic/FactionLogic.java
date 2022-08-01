@@ -2,6 +2,7 @@ package sectorized.faction.logic;
 
 import arc.Events;
 import arc.struct.Seq;
+import arc.util.Strings;
 import arc.util.Timer;
 import mindustry.Vars;
 import mindustry.game.Team;
@@ -10,6 +11,7 @@ import mindustry.gen.Groups;
 import mindustry.gen.Unit;
 import mindustry.world.blocks.storage.CoreBlock;
 import sectorized.SectorizedEvents;
+import sectorized.constant.DiscordBot;
 import sectorized.constant.MessageUtils;
 import sectorized.constant.State;
 import sectorized.faction.core.Faction;
@@ -106,6 +108,8 @@ public class FactionLogic {
             }, 60 * 5);
         });
 
+        if (Vars.state.wave < 5) return;
+
         if (factions.size == 1 && State.gameState != State.GameState.GAMEOVER) {
             State.gameState = State.GameState.GAMEOVER;
 
@@ -117,11 +121,15 @@ public class FactionLogic {
 
             Call.infoMessage("\uF7A7[red] GAME OVER [white]\uF7A7\n\n[gold]" + winner.player.name + "[white] won the game in [magenta]" + Vars.state.wave + "[white] waves!");
 
-            Events.fire(new SectorizedEvents.RestartEvent("Game over! [gold]" + winner.player.name + MessageUtils.defaultColor + " won."));
+            DiscordBot.sendMessageWithScreenshot("**Game Over!** Player *" + Strings.stripColors(winner.player.name).substring(1).replace("@", "at") + "* won the game in " + Vars.state.wave + " waves.");
+
+            Events.fire(new SectorizedEvents.RestartEvent("Game over! [gold]" + winner.player.name + MessageUtils.defaultColor + " won"));
         } else if (factions.size == 0 && State.gameState != State.GameState.GAMEOVER) {
             State.gameState = State.GameState.GAMEOVER;
 
-            Call.infoMessage("\uF7A7[red] GAME OVER [white]\uF7A7\n\n[red]" + "crux[white] won!");
+            Call.infoMessage("\uF7A7[red] GAME OVER [white]\uF7A7\n\n[red]" + "crux[white] won the game in [magenta]" + Vars.state.wave + "[white] waves!");
+
+            DiscordBot.sendMessageWithScreenshot("**Game Over!** Crux won the game in " + Vars.state.wave + " waves.");
 
             Events.fire(new SectorizedEvents.RestartEvent("Game over! [red]crux" + MessageUtils.defaultColor + " won."));
         }

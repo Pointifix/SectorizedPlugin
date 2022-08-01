@@ -3,6 +3,7 @@ package sectorized;
 import arc.Events;
 import arc.util.CommandHandler;
 import mindustry.mod.Plugin;
+import sectorized.constant.DiscordBot;
 import sectorized.constant.Rules;
 import sectorized.constant.State;
 import sectorized.faction.FactionManager;
@@ -22,11 +23,11 @@ public class SectorizedPlugin extends Plugin {
 
     @Override
     public void init() {
+        DiscordBot.init();
+
         for (Manager manager : managers) {
             manager.init();
         }
-
-        //new TestRiverGenerator(Mathf.random(0.0005f, 0.001f));
     }
 
     @Override
@@ -49,6 +50,8 @@ public class SectorizedPlugin extends Plugin {
 
             logic.play();
             netServer.openServer();
+
+            renderer.takeMapScreenshot();
 
             State.gameState = State.GameState.ACTIVE;
         });
