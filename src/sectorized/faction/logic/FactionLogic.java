@@ -74,12 +74,12 @@ public class FactionLogic {
         double timeSinceSpawned = State.time - defender.time;
         if (defender.maxCores <= 3 && timeSinceSpawned < 60 * 60 * 5) {
             defender.members.each(m -> {
-                MessageUtils.sendMessage(m.player, "No points lost because you spawned less than [magenta]5 minutes" + MessageUtils.defaultColor + " ago", MessageUtils.MessageLevel.INFO);
+                MessageUtils.sendMessage(m.player, "No points lost because you spawned less than " + MessageUtils.cInfo + "5 minutes" + MessageUtils.cDefault + " ago", MessageUtils.MessageLevel.INFO);
             });
 
             if (attacker != null) {
                 attacker.members.each(m -> {
-                    MessageUtils.sendMessage(m.player, "No points gained because the faction you killed spawned less than [magenta]5 minutes" + MessageUtils.defaultColor + " ago", MessageUtils.MessageLevel.INFO);
+                    MessageUtils.sendMessage(m.player, "No points gained because the faction you killed spawned less than " + MessageUtils.cInfo + "5 minutes" + MessageUtils.cDefault + " ago", MessageUtils.MessageLevel.INFO);
                 });
             }
         } else {
@@ -90,9 +90,9 @@ public class FactionLogic {
         Groups.unit.each(u -> u.team == defender.team, Unit::kill);
 
         if (attacker == null) {
-            MessageUtils.sendMessage("[gold]" + defender.members.first().player.name + MessageUtils.defaultColor + " got eliminated!", MessageUtils.MessageLevel.ELIMINATION);
+            MessageUtils.sendMessage(MessageUtils.cPlayer + defender.members.first().player.name + MessageUtils.cDefault + " got eliminated!", MessageUtils.MessageLevel.ELIMINATION);
         } else {
-            MessageUtils.sendMessage("[gold]" + defender.members.first().player.name + MessageUtils.defaultColor + " got eliminated by [red]" + attacker.members.first().player.name + MessageUtils.defaultColor + "!", MessageUtils.MessageLevel.ELIMINATION);
+            MessageUtils.sendMessage(MessageUtils.cPlayer + defender.members.first().player.name + MessageUtils.cDefault + " got eliminated by " + MessageUtils.cDanger + attacker.members.first().player.name + MessageUtils.cDefault + "!", MessageUtils.MessageLevel.ELIMINATION);
         }
 
         defender.members.each(m -> {
@@ -104,34 +104,30 @@ public class FactionLogic {
                 m.state = Member.MemberState.WAITING;
 
                 if (m.online)
-                    MessageUtils.sendMessage(m.player, "[teal]5 minutes " + MessageUtils.defaultColor + " have passed, you can reconnect to spawn again!", MessageUtils.MessageLevel.INFO);
+                    MessageUtils.sendMessage(m.player, MessageUtils.cInfo + "5 minutes" + MessageUtils.cDefault + " have passed, you can reconnect to spawn again!", MessageUtils.MessageLevel.INFO);
             }, 60 * 5);
         });
 
         if (Vars.state.wave < 5) return;
 
         if (factions.size == 1 && State.gameState != State.GameState.GAMEOVER) {
-            State.gameState = State.GameState.GAMEOVER;
-
             Member winner = factions.first().members.first();
             winner.wins++;
             winner.score += Vars.state.wave * 2;
-            MessageUtils.sendMessage(winner.player, "You gained [magenta]" + Vars.state.wave * 2 + MessageUtils.defaultColor + " for winning the game!", MessageUtils.MessageLevel.INFO);
+            MessageUtils.sendMessage(winner.player, "You gained " + MessageUtils.cInfo + Vars.state.wave * 2 + MessageUtils.cDefault + " for winning the game!", MessageUtils.MessageLevel.INFO);
             persistence.setRanking(winner);
 
-            Call.infoMessage("\uF7A7[red] GAME OVER [white]\uF7A7\n\n[gold]" + winner.player.name + "[white] won the game in [magenta]" + Vars.state.wave + "[white] waves!");
+            Call.infoMessage("\uF7A7" + MessageUtils.cDanger + " GAME OVER [white]\uF7A7\n\n" + MessageUtils.cPlayer + winner.player.name + "[white] won the game in " + MessageUtils.cInfo + Vars.state.wave + "[white] waves!");
 
-            DiscordBot.sendMessageWithScreenshot("**Game Over!** Player *" + Strings.stripColors(winner.player.name).substring(1).replace("@", "at") + "* won the game in " + Vars.state.wave + " waves.");
+            DiscordBot.sendMessage("**Game Over!** Player *" + Strings.stripColors(winner.player.name).substring(1).replace("@", "at") + "* won the game in " + Vars.state.wave + " waves.");
 
-            Events.fire(new SectorizedEvents.RestartEvent("Game over! [gold]" + winner.player.name + MessageUtils.defaultColor + " won"));
+            Events.fire(new SectorizedEvents.RestartEvent("Game over! " + MessageUtils.cPlayer + winner.player.name + MessageUtils.cDefault + " won"));
         } else if (factions.size == 0 && State.gameState != State.GameState.GAMEOVER) {
-            State.gameState = State.GameState.GAMEOVER;
+            Call.infoMessage("\uF7A7" + MessageUtils.cDanger + " GAME OVER [white]\uF7A7\n\n" + MessageUtils.cDanger + "crux[white] won the game in " + MessageUtils.cInfo + Vars.state.wave + "[white] waves!");
 
-            Call.infoMessage("\uF7A7[red] GAME OVER [white]\uF7A7\n\n[red]" + "crux[white] won the game in [magenta]" + Vars.state.wave + "[white] waves!");
+            DiscordBot.sendMessage("**Game Over!** Crux won the game in " + Vars.state.wave + " waves.");
 
-            DiscordBot.sendMessageWithScreenshot("**Game Over!** Crux won the game in " + Vars.state.wave + " waves.");
-
-            Events.fire(new SectorizedEvents.RestartEvent("Game over! [red]crux" + MessageUtils.defaultColor + " won."));
+            Events.fire(new SectorizedEvents.RestartEvent("Game over! " + MessageUtils.cDanger + "crux" + MessageUtils.cDefault + " won."));
         }
     }
 
@@ -139,7 +135,7 @@ public class FactionLogic {
         final StringBuilder info = new StringBuilder("You can request to join the following players:");
 
         factions.each(f -> !f.members.contains(member), f -> {
-            info.append("\n[white]").append(f.members.first().player.name).append(MessageUtils.defaultColor).append(" - [violet]").append(f.members.first().player.id);
+            info.append("\n").append(MessageUtils.cPlayer).append(f.members.first().player.name).append(MessageUtils.cDefault).append(" - ").append(MessageUtils.cHighlight2).append(f.members.first().player.id);
         });
 
         return info.toString();

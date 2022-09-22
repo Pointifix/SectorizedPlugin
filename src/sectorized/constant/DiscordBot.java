@@ -1,30 +1,30 @@
 package sectorized.constant;
 
-import arc.files.Fi;
-import arc.graphics.Pixmap;
-import arc.graphics.PixmapIO;
-import arc.graphics.gl.FrameBuffer;
-import arc.util.Buffers;
-import arc.util.ScreenUtils;
+import arc.util.Strings;
 import com.google.gson.Gson;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.ChunkingFilter;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
 
 import javax.security.auth.login.LoginException;
-import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-
-import static arc.Core.camera;
-import static mindustry.Vars.*;
+import java.util.HashMap;
 
 public class DiscordBot {
     private static JDA bot;
+    private static Guild guild;
     private static TextChannel log;
+    private static TextChannel hallOfFame;
+
+    private static final HashMap<String, sectorized.faction.core.Member> awaitConfirmMessage = new HashMap<>();
 
     public static void init() {
         try {
@@ -33,9 +33,19 @@ public class DiscordBot {
             DiscordConfig config = gson.fromJson(reader, DiscordConfig.class);
             reader.close();
 
-            DiscordBot.bot = JDABuilder.createDefault(config.token).build().awaitReady();
+            DiscordBot.bot = JDABuilder.createDefault(config.token)
+                    .setChunkingFilter(ChunkingFilter.ALL)
+                    .setMemberCachePolicy(MemberCachePolicy.ALL)
+                    .enableIntents(GatewayIntent.GUILD_MEMBERS)
+                    .build()
+                    .awaitReady();
+
+            DiscordBot.guild = DiscordBot.bot.getGuildById(config.guildID);
 
             DiscordBot.log = DiscordBot.bot.getTextChannelById(config.logChannelID);
+            DiscordBot.hallOfFame = DiscordBot.bot.getTextChannelById(config.hallOfFameChannelID);
+
+            DiscordBot.bot.addEventListener(new MessageListener());
         } catch (LoginException | InterruptedException | IOException e) {
             e.printStackTrace();
         }
@@ -45,66 +55,97 @@ public class DiscordBot {
         log.sendMessage(message).queue();
     }
 
-    public static void sendMessageWithScreenshot(String message) {
-        File screenshot = DiscordBot.takeMapScreenshot();
-
-        if (screenshot != null) log.sendMessage(message).addFile(screenshot).queue();
-        else log.sendMessage(message).queue();
+    public static void sendMessageToHallOfFame(String message) {
+        hallOfFame.sendMessage(message).queue();
     }
 
     public static void setStatus(String status) {
         DiscordBot.bot.getPresence().setActivity(Activity.playing(status));
     }
 
-    private static File takeMapScreenshot() {
-        int w = world.width() * tilesize, h = world.height() * tilesize;
-        int memory = w * h * 4 / 1024 / 1024;
+    public static boolean checkIfExists(String tag) {
+        return guild.getMemberByTag(tag) != null;
+    }
 
-        if (memory >= (mobile ? 65 : 120)) {
-            ui.showInfo("@screenshot.invalid");
-            return null;
+    public static void register(String tag, sectorized.faction.core.Member sectorizedMember) {
+        Member member = guild.getMemberByTag(tag);
+
+        if (member != null) {
+            awaitConfirmMessage.put(member.getUser().getAsTag(), sectorizedMember);
+
+            member.getUser().openPrivateChannel().queue(privateChannel -> {
+                privateChannel.sendMessage("Was that you? \nA user named *" + Strings.stripColors(sectorizedMember.player.name).substring(1).replace("@", "at") + "* requested to link this account, type **yes** to confirm! \nIf that was not you please ignore this message!").queue();
+            });
+
+            MessageUtils.sendMessage(sectorizedMember.player, "Check your Discord, you should have received a message from the " + MessageUtils.cHighlight1 + "SectorizedBot" + MessageUtils.cDefault + ". \nIf not, you probably have to adjust your settings to allow messages from other server members.", MessageUtils.MessageLevel.INFO);
         }
-
-        FrameBuffer buffer = new FrameBuffer(w, h);
-
-        renderer.drawWeather = false;
-        float vpW = camera.width, vpH = camera.height, px = camera.position.x, py = camera.position.y;
-        disableUI = true;
-        camera.width = w;
-        camera.height = h;
-        camera.position.x = w / 2f + tilesize / 2f;
-        camera.position.y = h / 2f + tilesize / 2f;
-        buffer.begin();
-        renderer.draw();
-        buffer.end();
-        disableUI = false;
-        camera.width = vpW;
-        camera.height = vpH;
-        camera.position.set(px, py);
-        buffer.begin();
-        byte[] lines = ScreenUtils.getFrameBufferPixels(0, 0, w, h, true);
-        for (int i = 0; i < lines.length; i += 4) {
-            lines[i + 3] = (byte) 255;
-        }
-        buffer.end();
-        Pixmap fullPixmap = new Pixmap(w, h, Pixmap.Format.rgba8888);
-        Buffers.copy(lines, 0, fullPixmap.getPixels(), lines.length);
-        Fi file = new Fi("screenshot.png");
-        PixmapIO.writePNG(file, fullPixmap);
-        fullPixmap.dispose();
-        renderer.drawWeather = true;
-
-        buffer.dispose();
-        return file.file();
     }
 
     private static class DiscordConfig {
         public String token;
+        public long guildID;
         public long logChannelID;
+        public long hallOfFameChannelID;
 
-        public DiscordConfig(String token, long logChannelID) {
+        public DiscordConfig(String token, long guildID, long logChannelID, long hallOfFameChannelID) {
             this.token = token;
+            this.guildID = guildID;
             this.logChannelID = logChannelID;
+            this.hallOfFameChannelID = hallOfFameChannelID;
+        }
+    }
+
+    private static class MessageListener extends ListenerAdapter {
+        public void onMessageReceived(MessageReceivedEvent event) {
+            if (awaitConfirmMessage.containsKey(event.getAuthor().getAsTag()) && event.getMessage().getContentDisplay().equalsIgnoreCase("yes")) {
+                sectorized.faction.core.Member sectorizedMember = awaitConfirmMessage.get(event.getAuthor().getAsTag());
+
+                sectorizedMember.discordTag = event.getAuthor().getAsTag();
+
+                Member guildMember = guild.getMemberByTag(sectorizedMember.discordTag);
+
+                if (guildMember != null) {
+                    DiscordBot.assignRole(sectorizedMember);
+
+                    guildMember.getUser().openPrivateChannel().queue(privateChannel -> {
+                        privateChannel.sendMessage("Successfully linked your ingame account!").queue();
+                    });
+                }
+            }
+        }
+    }
+
+    public static void assignRole(sectorized.faction.core.Member sectorizedMember) {
+        if (sectorizedMember.discordTag != null) {
+            Member guildMember = DiscordBot.guild.getMemberByTag(sectorizedMember.discordTag);
+
+            if (guildMember != null) {
+                String roleName;
+                int rank = sectorizedMember.rank;
+
+                if (rank > 500 || rank == -1) roleName = "other";
+                else if (rank > 200) roleName = "top 500";
+                else if (rank > 100) roleName = "top 200";
+                else if (rank > 50) roleName = "top 100";
+                else if (rank > 25) roleName = "top 50";
+                else if (rank > 10) roleName = "top 25";
+                else roleName = "top 10";
+
+                Role role = null;
+                for (Role r : DiscordBot.guild.getRoles()) {
+                    if (r.getName().equals(roleName)) {
+                        role = r;
+                    }
+                }
+
+                if (role != null) {
+                    for (Role guildMemberRole : guildMember.getRoles()) {
+                        DiscordBot.guild.removeRoleFromMember(guildMember, guildMemberRole).queue();
+                    }
+
+                    DiscordBot.guild.addRoleToMember(guildMember, role).queue();
+                }
+            }
         }
     }
 }

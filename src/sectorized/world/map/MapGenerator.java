@@ -1,5 +1,6 @@
 package sectorized.world.map;
 
+import arc.Core;
 import arc.Events;
 import arc.func.Cons;
 import arc.math.Mathf;
@@ -19,6 +20,15 @@ import static mindustry.Vars.state;
 import static mindustry.Vars.world;
 
 public class MapGenerator implements Cons<Tiles> {
+    private static final int sampleDensity = 50;
+
+    private final Biomes.Biome biomeVote;
+
+    public MapGenerator() {
+        String biomeVoteString = (String) Core.settings.get("biomeVote", "");
+        biomeVote = Biomes.all.stream().filter(biome -> biome.toString().equals(biomeVoteString)).findFirst().orElse(null);
+    }
+
     @Override
     public void get(Tiles tiles) {
         RiversGenerator riversGenerator = new RiversGenerator();
@@ -27,7 +37,42 @@ public class MapGenerator implements Cons<Tiles> {
         int offsetX = Mathf.random(9999999);
         int offsetY = Mathf.random(9999999);
 
-        HashMap<Biomes.Biome, Integer> biomeDistribution = new HashMap();
+        HashMap<Biomes.Biome, Integer> biomeDistribution = new HashMap<>();
+
+        if (biomeVote != null) {
+            int maxOccurrences = 0;
+            int maxOffsetX = offsetX, maxOffsetY = offsetY;
+
+            for (int i = 0; i < 10; i++) {
+                for (int x = sampleDensity / 2; x < world.width(); x += sampleDensity) {
+                    for (int y = sampleDensity / 2; y < world.height(); y += sampleDensity) {
+                        Biomes.Biome biome = biomesGenerator.sample(x + offsetX, y + offsetY);
+
+                        biomeDistribution.put(biome, biomeDistribution.getOrDefault(biome, 0) + 1);
+                    }
+                }
+
+                int occurrences = biomeDistribution.getOrDefault(biomeVote, 0);
+
+                if (occurrences > maxOccurrences) {
+                    maxOccurrences = occurrences;
+                    maxOffsetX = offsetX;
+                    maxOffsetY = offsetY;
+                }
+
+                maxOccurrences = Math.max(maxOccurrences, occurrences);
+
+                offsetX = Mathf.random(9999999);
+                offsetY = Mathf.random(9999999);
+
+                biomeDistribution.clear();
+            }
+
+            System.out.println("Desired seed for biome found with " + (int) ((float) maxOccurrences / (float) (world.width() / sampleDensity * world.height() / sampleDensity) * 100) + "% coverage");
+
+            offsetX = maxOffsetX;
+            offsetY = maxOffsetY;
+        }
 
         for (int x = 0; x < world.width(); x++) {
             for (int y = 0; y < world.height(); y++) {

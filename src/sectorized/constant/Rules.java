@@ -6,6 +6,7 @@ import mindustry.content.Blocks;
 import mindustry.game.SpawnGroup;
 import mindustry.game.Team;
 import mindustry.world.blocks.defense.turrets.ItemTurret;
+import mindustry.world.blocks.defense.turrets.LaserTurret;
 import mindustry.world.blocks.units.Reconstructor;
 
 import static mindustry.content.UnitTypes.*;
@@ -47,6 +48,10 @@ public class Rules {
         ((ItemTurret) (Blocks.foreshadow)).ammoTypes.forEach(ammoType -> {
             ammoType.value.damage *= 0.5;
         });
+        ((ItemTurret) (Blocks.spectre)).ammoTypes.forEach(ammoType -> {
+            ammoType.value.damage *= 2.0;
+        });
+        ((LaserTurret) (Blocks.meltdown)).shootType.damage *= 1.5;
         ((Reconstructor) (Blocks.exponentialReconstructor)).constructTime = 60f * 60f * 1;
         ((Reconstructor) (Blocks.tetrativeReconstructor)).constructTime = 60f * 60f * 2;
 

@@ -14,6 +14,7 @@ import mindustry.gen.Unit;
 import mindustry.world.blocks.storage.CoreBlock;
 import sectorized.Manager;
 import sectorized.SectorizedEvents;
+import sectorized.constant.DiscordBot;
 import sectorized.constant.MessageUtils;
 import sectorized.constant.StartingBase;
 import sectorized.constant.State;
@@ -39,6 +40,8 @@ public class FactionManager implements Manager {
 
     @Override
     public void init() {
+        rankingPersistence.updateHallfOfFame();
+
         Events.on(EventType.PlayerJoin.class, event -> {
             if (State.gameState == State.GameState.INACTIVE) return;
 
@@ -49,11 +52,11 @@ public class FactionManager implements Manager {
             Member member = memberLogic.playerJoin(event.player);
 
             if (State.gameState == State.GameState.LOCKED) {
-                MessageUtils.sendMessage(member.player, "Spawning is currently [purple]locked" + MessageUtils.defaultColor + " because a player is dominating the game!", MessageUtils.MessageLevel.WARNING);
+                MessageUtils.sendMessage(member.player, "Spawning is currently " + MessageUtils.cInfo + "locked" + MessageUtils.cDefault + " because a player is dominating the game!", MessageUtils.MessageLevel.WARNING);
             } else if (member.state == Member.MemberState.WAITING) {
                 Events.fire(new SectorizedEvents.NewMemberEvent(member));
             } else if (member.state == Member.MemberState.ELIMINATED) {
-                MessageUtils.sendMessage(event.player, "You recently got eliminated, you can respawn [teal]5 minutes" + MessageUtils.defaultColor + " after you got eliminated by rejoining the server!", MessageUtils.MessageLevel.WARNING);
+                MessageUtils.sendMessage(event.player, "You recently got eliminated, you can respawn " + MessageUtils.cInfo + "5 minutes" + MessageUtils.cDefault + " after you got eliminated by rejoining the server!", MessageUtils.MessageLevel.WARNING);
             }
         });
 
@@ -143,11 +146,11 @@ public class FactionManager implements Manager {
         Events.on(SectorizedEvents.TeamDominatingEvent.class, event -> {
             Faction faction = factionLogic.getFaction(event.team);
 
-            MessageUtils.sendMessage("(Re)spawning is now [purple]locked" + MessageUtils.defaultColor + " because [gold]" + faction.members.first().player.name + MessageUtils.defaultColor + " is dominating the game!", MessageUtils.MessageLevel.WARNING);
+            MessageUtils.sendMessage("(Re)spawning is now " + MessageUtils.cInfo + "locked" + MessageUtils.cDefault + " because " + MessageUtils.cPlayer + faction.members.first().player.name + MessageUtils.cDefault + " is dominating the game!", MessageUtils.MessageLevel.WARNING);
         });
 
         Events.on(SectorizedEvents.NoTeamDominatingEvent.class, event -> {
-            MessageUtils.sendMessage("(Re)spawning is now [forest]unlocked" + MessageUtils.defaultColor + " again!", MessageUtils.MessageLevel.INFO);
+            MessageUtils.sendMessage("(Re)spawning is now " + MessageUtils.cInfo + "unlocked" + MessageUtils.cDefault + " again!", MessageUtils.MessageLevel.INFO);
         });
     }
 
@@ -178,7 +181,7 @@ public class FactionManager implements Manager {
             if (member.rank == 0) {
                 MessageUtils.sendMessage(player, "You are not ranked yet. Play a game to get ranked!", MessageUtils.MessageLevel.INFO);
             } else {
-                MessageUtils.sendMessage(player, "Rank: [magenta]" + (member.rank < 0 ? "unranked" : member.rank) + MessageUtils.defaultColor + ", Score: [magenta]" + member.score + MessageUtils.defaultColor + ", Wins: [magenta]" + member.wins, MessageUtils.MessageLevel.INFO);
+                MessageUtils.sendMessage(player, "Rank: " + MessageUtils.cHighlight1 + (member.rank < 0 ? "unranked" : member.rank) + MessageUtils.cDefault + ", Score: " + MessageUtils.cHighlight2 + member.score + MessageUtils.cDefault + ", Wins: " + MessageUtils.cHighlight3 + member.wins, MessageUtils.MessageLevel.INFO);
             }
         });
 
@@ -231,15 +234,15 @@ public class FactionManager implements Manager {
 
                 Timer.schedule(() -> {
                     if (joinRequests.remove(j -> j.requester == requester)) {
-                        MessageUtils.sendMessage(requester.player, "Your join request to [white]" + answerer.player.name + MessageUtils.defaultColor + " was not accepted!", MessageUtils.MessageLevel.INFO);
-                        MessageUtils.sendMessage(answerer.player, "Join request of [white]" + requester.player.name + MessageUtils.defaultColor + " expired!", MessageUtils.MessageLevel.INFO);
+                        MessageUtils.sendMessage(requester.player, "Your join request to " + MessageUtils.cPlayer + answerer.player.name + MessageUtils.cDefault + " was not accepted!", MessageUtils.MessageLevel.INFO);
+                        MessageUtils.sendMessage(answerer.player, "Join request of " + MessageUtils.cPlayer + requester.player.name + MessageUtils.cDefault + " expired!", MessageUtils.MessageLevel.INFO);
                     }
                 }, 30);
 
-                MessageUtils.sendMessage(answerer.player, "[white]" + requester.player.name + MessageUtils.defaultColor + " requested to join your team! Type [green]/accept" + MessageUtils.defaultColor + " to accept or [red]/deny" + MessageUtils.defaultColor + " to deny the request!", MessageUtils.MessageLevel.INFO);
-                MessageUtils.sendMessage(requester.player, "Join request sent to [white]" + answerer.player.name + MessageUtils.defaultColor + "!", MessageUtils.MessageLevel.INFO);
+                MessageUtils.sendMessage(answerer.player, MessageUtils.cPlayer + requester.player.name + MessageUtils.cDefault + " requested to join your team! Type " + MessageUtils.cHighlight2 + "/accept" + MessageUtils.cDefault + " to accept or " + MessageUtils.cDanger + "/deny" + MessageUtils.cDefault + " to deny the request!", MessageUtils.MessageLevel.INFO);
+                MessageUtils.sendMessage(requester.player, "Join request sent to " + MessageUtils.cPlayer + answerer.player.name + MessageUtils.cDefault + "!", MessageUtils.MessageLevel.INFO);
             } catch (NumberFormatException e) {
-                MessageUtils.sendMessage(player, "Invalid ID! Type [teal]/join" + MessageUtils.defaultColor + " without an ID to see all valid ID's.", MessageUtils.MessageLevel.WARNING);
+                MessageUtils.sendMessage(player, "Invalid ID! Type " + MessageUtils.cHighlight3 + "/join" + MessageUtils.cDefault + " without an ID to see all valid ID's.", MessageUtils.MessageLevel.WARNING);
             }
         });
 
@@ -257,8 +260,8 @@ public class FactionManager implements Manager {
 
                 factionLogic.changeFaction(joinRequest.requester.faction, answerer.faction, joinRequest.requester);
 
-                MessageUtils.sendMessage(answerer.player, "[white]" + joinRequest.requester.player.name + MessageUtils.defaultColor + " is now part of your team!", MessageUtils.MessageLevel.INFO);
-                MessageUtils.sendMessage(joinRequest.requester.player, "Your join request was accepted by [white]" + answerer.player.name + MessageUtils.defaultColor + "!", MessageUtils.MessageLevel.INFO);
+                MessageUtils.sendMessage(answerer.player, MessageUtils.cPlayer + joinRequest.requester.player.name + MessageUtils.cDefault + " is now part of your team!", MessageUtils.MessageLevel.INFO);
+                MessageUtils.sendMessage(joinRequest.requester.player, "Your join request was accepted by " + MessageUtils.cPlayer + answerer.player.name + MessageUtils.cDefault + "!", MessageUtils.MessageLevel.INFO);
             } else {
                 MessageUtils.sendMessage(answerer.player, "You do not have a pending join request", MessageUtils.MessageLevel.INFO);
             }
@@ -275,6 +278,25 @@ public class FactionManager implements Manager {
                 MessageUtils.sendMessage(request.requester.player, "Your join request was denied!", MessageUtils.MessageLevel.INFO);
             } else {
                 MessageUtils.sendMessage(answerer.player, "You do not have a pending join request", MessageUtils.MessageLevel.INFO);
+            }
+        });
+
+        handler.<Player>register("register", "[tag]", "link your ingame and discord account to display your rank in discord", (args, player) -> {
+            if (State.gameState == State.GameState.INACTIVE) return;
+
+            Member member = memberLogic.getMember(player);
+
+            if (args.length == 0) {
+                MessageUtils.sendMessage(member.player, "Usage: /register username#0000", MessageUtils.MessageLevel.INFO);
+                return;
+            }
+
+            String discordTag = args[0];
+
+            if (DiscordBot.checkIfExists(discordTag)) {
+                DiscordBot.register(discordTag, member);
+            } else {
+                MessageUtils.sendMessage(member.player, "Couln´t find " + MessageUtils.cPlayer + discordTag + MessageUtils.cDefault + " on the Sectorized Discord, please check if you wrote your name and id correctly!", MessageUtils.MessageLevel.INFO);
             }
         });
     }

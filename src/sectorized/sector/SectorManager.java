@@ -8,6 +8,8 @@ import arc.util.CommandHandler;
 import arc.util.Timer;
 import mindustry.content.Blocks;
 import mindustry.content.Fx;
+import mindustry.content.UnitTypes;
+import mindustry.entities.units.BuildPlan;
 import mindustry.game.EventType;
 import mindustry.game.Team;
 import mindustry.gen.Call;
@@ -57,6 +59,14 @@ public class SectorManager implements Manager {
         Events.on(EventType.BlockBuildBeginEvent.class, event -> {
             if (State.gameState == State.GameState.INACTIVE) return;
 
+            if (event.unit.type == UnitTypes.poly && !event.unit.plans.isEmpty()) {
+                BuildPlan plan = event.unit.plans.first();
+
+                if (!sectorLogic.validPlace(plan.x, plan.y, plan.block, event.unit.team().id)) {
+                    event.unit.plans.removeFirst();
+                }
+            }
+
             if (!sectorLogic.validPlace(event.tile.x, event.tile.y, event.tile.cblock() != null ? event.tile.cblock() : Blocks.conveyor, event.unit.team().id)) {
                 event.tile.setNet(Blocks.air);
             }
@@ -94,7 +104,7 @@ public class SectorManager implements Manager {
             switch (action.type) {
                 case placeBlock:
                     if (!sectorLogic.validPlace(action.tile.x, action.tile.y, action.block, action.player.team().id)) {
-                        MessageUtils.sendBufferedMessage(action.player, "You cannot build outside your sector! To expand your sector place a [pink]vault" + MessageUtils.defaultColor + " \uF866 within the borders of your sector!", MessageUtils.MessageLevel.WARNING);
+                        MessageUtils.sendBufferedMessage(action.player, "You cannot build outside your sector! To expand your sector place a " + MessageUtils.cHighlight3 + "vault" + MessageUtils.cDefault + " \uF866 within the borders of your sector!", MessageUtils.MessageLevel.WARNING);
                         return false;
                     }
 
@@ -102,7 +112,7 @@ public class SectorManager implements Manager {
                         if (bufferedCoresPlacement.containsKey(action.player.team().id)) {
                             int seconds = 10 - (int) Math.floor((State.time - bufferedCoresPlacement.get(action.player.team().id)) / 60);
 
-                            MessageUtils.sendBufferedMessage(action.player, "Wait [magenta]" + seconds + " seconds" + MessageUtils.defaultColor + " to place a new core!", MessageUtils.MessageLevel.WARNING, 1);
+                            MessageUtils.sendBufferedMessage(action.player, "Wait " + MessageUtils.cInfo + seconds + " seconds" + MessageUtils.cDefault + " to place a new core!", MessageUtils.MessageLevel.WARNING, 1);
                             action.tile.setNet(Blocks.air);
                         } else if (CoreCost.checkAndConsumeFunds(action.player.team())) {
                             action.tile.setNet(Blocks.coreShard, action.player.team(), 0);

@@ -30,7 +30,7 @@ public class Faction {
             if (this.members.size > 1) {
                 Member newLeader = this.members.get(1);
 
-                MessageUtils.sendMessage(newLeader.player, "You are now the team leader because [gold]" + member.player.name + MessageUtils.defaultColor + " left the team!", MessageUtils.MessageLevel.INFO);
+                MessageUtils.sendMessage(newLeader.player, "You are now the team leader because " + MessageUtils.cPlayer + member.player.name + MessageUtils.cDefault + " left the team!", MessageUtils.MessageLevel.INFO);
             }
         }
 

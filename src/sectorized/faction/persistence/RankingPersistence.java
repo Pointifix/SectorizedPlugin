@@ -1,8 +1,10 @@
 package sectorized.faction.persistence;
 
+import arc.Core;
 import arc.struct.Seq;
 import arc.util.Strings;
 import com.google.gson.Gson;
+import sectorized.constant.DiscordBot;
 import sectorized.constant.MessageUtils;
 import sectorized.constant.RankIcons;
 import sectorized.faction.core.Faction;
@@ -13,7 +15,9 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.*;
+import java.util.Calendar;
 import java.util.Comparator;
+import java.util.Date;
 
 public class RankingPersistence {
     public final Seq<LeaderBoardEntry> leaderboard = new Seq<>();
@@ -30,9 +34,86 @@ public class RankingPersistence {
 
             connection = DriverManager.getConnection(dbUrl.url, dbUrl.user, dbUrl.password);
 
+            updateScoreDecay();
             getLeaderboard();
         } catch (SQLException | IOException | ClassNotFoundException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void updateScoreDecay() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        Date today = calendar.getTime();
+        calendar.add(Calendar.DATE, -1);
+        Date yesterday = calendar.getTime();
+
+        Date lastScoreDecayDate = new Date((long) Core.settings.get("lastScoreDecayDate", yesterday.getTime()));
+
+        Core.settings.put("lastScoreDecayDate", today.getTime());
+        Core.settings.manualSave();
+
+        if (lastScoreDecayDate.before(today)) {
+            try {
+                PreparedStatement statement = connection.prepareStatement("UPDATE ranking SET score = score * 0.99 WHERE score > 100");
+                statement.executeQuery();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void updateHallfOfFame() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        Date today = calendar.getTime();
+        calendar.add(Calendar.DATE, -2);
+        Date twoDaysAgo = calendar.getTime();
+        calendar.add(Calendar.DATE, -1);
+        Date threeDaysAgo = calendar.getTime();
+
+        Date lastHallOfFameDate = new Date((long) Core.settings.get("lastHallOfFameDate", threeDaysAgo.getTime()));
+
+        if (lastHallOfFameDate.before(twoDaysAgo)) {
+            Core.settings.put("lastHallOfFameDate", today.getTime());
+            Core.settings.manualSave();
+
+            StringBuilder text = new StringBuilder(":trophy: __**Leaderboard**__ :trophy:\n");
+            for (LeaderBoardEntry entry : leaderboard) {
+                text.append("\n").append(entry.rank).append(" - ");
+
+                String medal;
+                switch (entry.rank) {
+                    case 1:
+                        medal = ":first_place:";
+                        break;
+                    case 2:
+                        medal = ":second_place:";
+                        break;
+                    case 3:
+                        medal = ":third_place:";
+                        break;
+                    default:
+                        medal = ":medal:";
+                }
+
+                text.append(medal)
+                        .append("**")
+                        .append(entry.name)
+                        .append("**")
+                        .append(" - Score: ")
+                        .append(entry.score)
+                        .append(" - Wins: ")
+                        .append(entry.wins);
+            }
+
+            DiscordBot.sendMessageToHallOfFame(text.toString());
         }
     }
 
@@ -58,6 +139,7 @@ public class RankingPersistence {
                     member.rank = resultSet.getInt("rank");
                     member.score = resultSet.getInt("score");
                     member.wins = resultSet.getInt("wins");
+                    member.discordTag = resultSet.getString("discordTag");
                 } else {
                     setRanking(member);
                 }
@@ -92,11 +174,11 @@ public class RankingPersistence {
                     .append(entry.rank)
                     .append(". [white]")
                     .append(entry.name)
-                    .append(MessageUtils.defaultColor + ", Score: [magenta]")
+                    .append(MessageUtils.cDefault + ", Score: " + MessageUtils.cHighlight2)
                     .append(entry.score)
-                    .append(MessageUtils.defaultColor + ", Wins: [magenta]")
+                    .append(MessageUtils.cDefault + ", Wins: " + MessageUtils.cHighlight3)
                     .append(entry.wins)
-                    .append(MessageUtils.defaultColor);
+                    .append(MessageUtils.cDefault);
         }
         leaderboardText = text.toString();
     }
@@ -104,14 +186,16 @@ public class RankingPersistence {
     public void setRanking(Member member) {
         if (connection != null) {
             try {
-                PreparedStatement statement = connection.prepareStatement("INSERT INTO ranking (uuid, name, score, wins) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE name = ?, score = ?, wins = ?");
+                PreparedStatement statement = connection.prepareStatement("INSERT INTO ranking (uuid, name, score, wins, discordTag) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name = ?, score = ?, wins = ?, discordTag = ?");
                 statement.setString(1, member.player.uuid());
                 statement.setString(2, Strings.stripColors(member.player.name).substring(1));
                 statement.setInt(3, member.score);
                 statement.setInt(4, member.wins);
-                statement.setString(5, Strings.stripColors(member.player.name).substring(1));
-                statement.setInt(6, member.score);
-                statement.setInt(7, member.wins);
+                statement.setString(5, member.discordTag);
+                statement.setString(6, Strings.stripColors(member.player.name).substring(1));
+                statement.setInt(7, member.score);
+                statement.setInt(8, member.wins);
+                statement.setString(9, member.discordTag);
 
                 statement.executeQuery();
             } catch (SQLException e) {
@@ -134,7 +218,7 @@ public class RankingPersistence {
         int loss = looserScoreDiff / looserFaction.members.size;
 
         winnerFaction.members.each(m -> {
-            MessageUtils.sendMessage(m.player, "You gained [magenta]" + win + MessageUtils.defaultColor + " points", MessageUtils.MessageLevel.INFO);
+            MessageUtils.sendMessage(m.player, "You gained " + MessageUtils.cHighlight2 + win + MessageUtils.cDefault + " points", MessageUtils.MessageLevel.INFO);
 
             m.score += win;
             if (m.score < 0) m.score = 0;
@@ -142,7 +226,7 @@ public class RankingPersistence {
         });
 
         looserFaction.members.each(m -> {
-            MessageUtils.sendMessage(m.player, "You lost [magenta]" + Math.abs(loss) + MessageUtils.defaultColor + " points", MessageUtils.MessageLevel.INFO);
+            MessageUtils.sendMessage(m.player, "You lost " + MessageUtils.cDanger + Math.abs(loss) + MessageUtils.cDefault + " points", MessageUtils.MessageLevel.INFO);
 
             m.score += loss;
             if (m.score < 0) m.score = 0;
@@ -159,7 +243,7 @@ public class RankingPersistence {
         int loss = looserScoreDiff / looserFaction.members.size;
 
         looserFaction.members.each(m -> {
-            MessageUtils.sendMessage(m.player, "You lost [magenta]" + Math.abs(loss) + MessageUtils.defaultColor + " points", MessageUtils.MessageLevel.INFO);
+            MessageUtils.sendMessage(m.player, "You lost " + MessageUtils.cDanger + Math.abs(loss) + MessageUtils.cDefault + " points", MessageUtils.MessageLevel.INFO);
 
             m.score += loss;
             if (m.score < 0) m.score = 0;

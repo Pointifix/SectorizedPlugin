@@ -9,6 +9,7 @@ public class Member {
     public MemberState state = MemberState.WAITING;
 
     public int wins = 0, score = 100, rank = -1;
+    public String discordTag;
 
     public Member(Player player) {
         this.player = player;

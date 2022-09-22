@@ -51,8 +51,6 @@ public class SectorizedPlugin extends Plugin {
             logic.play();
             netServer.openServer();
 
-            renderer.takeMapScreenshot();
-
             State.gameState = State.GameState.ACTIVE;
         });
     }

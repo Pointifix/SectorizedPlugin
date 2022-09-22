@@ -41,6 +41,7 @@ public class Units {
     public static float healthMultiplier = 1.0f;
 
     static {
+        mono.health *= 10;
         horizon.health *= 0.8f;
         zenith.health *= 0.6f;
         quad.health *= 0.4f;
@@ -55,6 +56,9 @@ public class Units {
         corvus.speed *= 1.3f;
         reign.speed *= 1.3f;
         toxopid.speed *= 1.1f;
+        oct.health *= 0.25f;
+        oct.speed *= 0.9f;
+        oct.payloadCapacity = 400f;
     }
 
     public static void setUnitHealthMultiplier(float multiplier) {

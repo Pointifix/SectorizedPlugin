@@ -3,6 +3,8 @@ package sectorized.faction.logic;
 import arc.struct.Seq;
 import mindustry.game.Team;
 import mindustry.gen.Player;
+import sectorized.constant.DiscordBot;
+import sectorized.constant.MessageUtils;
 import sectorized.faction.core.Member;
 import sectorized.faction.persistence.RankingPersistence;
 
@@ -34,6 +36,12 @@ public class MemberLogic {
         } else {
             member.player.team(member.faction.team);
         }
+
+        if (member.discordTag == null) {
+            MessageUtils.sendMessage(member.player, "Link your account to discord to display your rank using [purple]/register username#0000[white]!", MessageUtils.MessageLevel.INFO);
+        }
+
+        DiscordBot.assignRole(member);
 
         return member;
     }

@@ -1,5 +1,6 @@
 package sectorized.update;
 
+import arc.Core;
 import arc.Events;
 import arc.util.Timer;
 import arc.util.*;
@@ -16,6 +17,7 @@ import mindustry.type.ItemStack;
 import sectorized.Manager;
 import sectorized.SectorizedEvents;
 import sectorized.constant.*;
+import sectorized.world.map.Biomes;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -29,6 +31,10 @@ public class UpdateManager implements Manager {
     private final HashSet<String> hideHud = new HashSet<>();
 
     private int infoMessageIndex = 0;
+
+    private final HashMap<Biomes.Biome, Integer> biomeVotes = new HashMap<>();
+    private final ArrayList<String> biomeVotePlayers = new ArrayList();
+    private boolean biomeVoteFinished = false;
 
     @Override
     public void init() {
@@ -45,18 +51,19 @@ public class UpdateManager implements Manager {
                 Groups.player.each(player -> !hideHud.contains(player.uuid()), player -> {
                     int cores = player.team().cores().size - 1;
 
-                    StringBuilder infoPopupText = new StringBuilder("[cyan]Costs for next[white] \uF869\n");
+                    StringBuilder infoPopupText = new StringBuilder(MessageUtils.cInfo + "Costs for next[white] \uF869\n");
 
                     for (ItemStack itemStack : CoreCost.requirements[Math.max(Math.min(cores, CoreCost.requirements.length - 1), 0)]) {
                         int availableItems = player.team().items().get(itemStack.item);
 
                         infoPopupText
                                 .append(CoreCost.itemUnicodes.get(itemStack.item))
-                                .append(availableItems >= itemStack.amount ? itemStack.amount + "[green]\uE800[white]" : "[red]" + availableItems + "[white]/" + itemStack.amount)
+                                .append(availableItems >= itemStack.amount ? itemStack.amount + MessageUtils.cHighlight2 + "\uE800[white]" : MessageUtils.cDanger + availableItems + "[white]/" + itemStack.amount)
                                 .append("\n");
                     }
 
-                    infoPopupText.append("\n[magenta]Multipliers:[white]\n")
+                    infoPopupText.append(MessageUtils.cHighlight3)
+                            .append("\nMultipliers:[white]\n")
                             .append("\uF856 ")
                             .append(blockDamageMultiplier)
                             .append(" \uF7F4 ")
@@ -65,15 +72,16 @@ public class UpdateManager implements Manager {
                             .append(unitHealthMultiplier)
                             .append("\n");
 
-                    infoPopupText.append("\n[orange]Unit Cap: [white]")
+                    infoPopupText.append(MessageUtils.cWarning)
+                            .append("\nUnit Cap: [white]")
                             .append(mindustry.entities.Units.getCap(player.team()))
                             .append("\n");
 
                     if (State.gameState == State.GameState.LOCKED) {
-                        infoPopupText.append("\n(Re)spawning [purple]locked[white]\n");
+                        infoPopupText.append("\n(Re)spawning " + MessageUtils.cInfo + "locked[white]\n");
                     }
 
-                    infoPopupText.append("\nToggle with [teal]/hud [white]");
+                    infoPopupText.append("\nToggle with " + MessageUtils.cHighlight3 + "/hud [white]");
 
                     Call.infoPopup(player.con, infoPopupText.toString(), 5.01f, Align.topLeft, 90, 5, 0, 0);
                 });
@@ -82,19 +90,19 @@ public class UpdateManager implements Manager {
             if (interval.get(1, 60 * 60 * 8)) {
                 switch (infoMessageIndex) {
                     case 0:
-                        MessageUtils.sendMessage("Type [teal]/info" + MessageUtils.defaultColor + " for information about how to play.\n" +
-                                "You can request to join another team using [teal]/join" + MessageUtils.defaultColor + "\n" +
+                        MessageUtils.sendMessage("Type " + MessageUtils.cHighlight3 + "/info" + MessageUtils.cDefault + " for information about how to play.\n" +
+                                "You can request to join another team using " + MessageUtils.cHighlight3 + "/join" + MessageUtils.cDefault + "\n" +
                                 "Join the discord and be part of the community! \n" +
-                                "[blue]\uE80D" + MessageUtils.defaultColor + " https://discord.gg/AmdMXKkS9Q", MessageUtils.MessageLevel.INFO);
+                                MessageUtils.cPlayer + "\uE80D" + MessageUtils.cDefault + " https://discord.gg/AmdMXKkS9Q", MessageUtils.MessageLevel.INFO);
                         break;
                     case 1:
-                        MessageUtils.sendMessage("Type [teal]/score" + MessageUtils.defaultColor + " or [teal]/leaderboard" + MessageUtils.defaultColor + " to display your rank!\n" +
-                                "[blue]\uE80D" + MessageUtils.defaultColor + " https://discord.gg/AmdMXKkS9Q", MessageUtils.MessageLevel.INFO);
+                        MessageUtils.sendMessage("Type " + MessageUtils.cHighlight3 + "/score" + MessageUtils.cDefault + " or " + MessageUtils.cHighlight3 + "/leaderboard" + MessageUtils.cDefault + " to display your rank!\n" +
+                                MessageUtils.cPlayer + "\uE80D" + MessageUtils.cDefault + " https://discord.gg/AmdMXKkS9Q", MessageUtils.MessageLevel.INFO);
                         break;
                     case 2:
                         MessageUtils.sendMessage("If you are dominating the game end it as soon as possible, others want to play as well!\n" +
                                 "Also, stalling does not increase your score! \n" +
-                                "[blue]\uE80D" + MessageUtils.defaultColor + " https://discord.gg/AmdMXKkS9Q", MessageUtils.MessageLevel.INFO);
+                                MessageUtils.cPlayer + "\uE80D" + MessageUtils.cDefault + " https://discord.gg/AmdMXKkS9Q", MessageUtils.MessageLevel.INFO);
                         break;
                 }
 
@@ -156,14 +164,44 @@ public class UpdateManager implements Manager {
 
             Units.setUnitHealthMultiplier((float) (3 - (2 / (Math.pow(state.wave * 0.05, 2) + 1))));
 
+            if (state.teams.active.size < 2 && state.wave >= 5) {
+                Events.fire(new SectorizedEvents.RestartEvent("No teams left"));
+            }
+
             setServerDescription();
         });
 
         Events.on(SectorizedEvents.RestartEvent.class, event -> {
-            Log.info("Restarting: " + event.reason);
-            MessageUtils.sendMessage(event.reason + "\nServer is restarting in [gold]15" + MessageUtils.defaultColor + " seconds", MessageUtils.MessageLevel.INFO);
+            State.gameState = State.GameState.GAMEOVER;
 
-            final int seconds = 10;
+            Log.info("Restarting: " + event.reason);
+            MessageUtils.sendMessage(event.reason + "\nServer is restarting in " + MessageUtils.cInfo + "30" + MessageUtils.cDefault + " seconds", MessageUtils.MessageLevel.INFO);
+
+            StringBuilder biomeNames = new StringBuilder();
+
+            String prefix = "";
+            for (Biomes.Biome biome : Biomes.all) {
+                biomeNames.append(prefix).append(biome.toString().toLowerCase());
+                prefix = ", ";
+            }
+
+            MessageUtils.sendMessage("Vote for the next map with " + MessageUtils.cHighlight3 + "/vote <biome>" + MessageUtils.cDefault + ".\n You can vote for the following biomes: " + biomeNames, MessageUtils.MessageLevel.INFO);
+
+            Timer.schedule(() -> {
+                if (!biomeVotes.isEmpty()) {
+                    Map.Entry<Biomes.Biome, Integer> voteWinnerBiomeEntry = biomeVotes.entrySet().stream().max(Comparator.comparingInt(Map.Entry::getValue)).get();
+
+                    MessageUtils.sendMessage(MessageUtils.cHighlight1 + voteWinnerBiomeEntry.getKey() + MessageUtils.cDefault + " won with " + MessageUtils.cHighlight2 + voteWinnerBiomeEntry.getValue() + MessageUtils.cDefault + " vote(s)!", MessageUtils.MessageLevel.INFO);
+
+                    Core.settings.put("biomeVote", voteWinnerBiomeEntry.getKey().toString());
+                } else {
+                    Core.settings.put("biomeVote", "");
+                }
+                Core.settings.manualSave();
+                biomeVoteFinished = true;
+            }, 24);
+
+            final int seconds = 5;
             AtomicInteger countdown = new AtomicInteger(seconds);
             Timer.schedule(() -> {
                 if (countdown.get() == 0) {
@@ -173,8 +211,8 @@ public class UpdateManager implements Manager {
                     System.exit(1);
                 }
 
-                MessageUtils.sendMessage("Server is restarting in [gold]" + (countdown.getAndDecrement()) + MessageUtils.defaultColor + " seconds.", MessageUtils.MessageLevel.INFO);
-            }, 5, 1, seconds);
+                MessageUtils.sendMessage("Server is restarting in " + MessageUtils.cInfo + (countdown.getAndDecrement()) + MessageUtils.cDefault + " second(s).", MessageUtils.MessageLevel.INFO);
+            }, 25, 1, seconds);
         });
 
         netServer.admins.addActionFilter((action) -> {
@@ -185,8 +223,6 @@ public class UpdateManager implements Manager {
                     return false;
                 case control:
                     if (!(action.unit instanceof BlockUnitUnit) &&
-                            action.unit.type != UnitTypes.poly &&
-                            action.unit.type != UnitTypes.mono &&
                             action.unit.type != UnitTypes.oct) return false;
                     break;
             }
@@ -242,6 +278,59 @@ public class UpdateManager implements Manager {
             if (State.gameState == State.GameState.INACTIVE) return;
 
             MessageUtils.sendWelcomeMessage(player);
+        });
+
+        handler.<Player>register("vote", "[biome]", "Vote for a biome you want to play next round.", (args, player) -> {
+            if (State.gameState == State.GameState.INACTIVE) return;
+
+            if (State.gameState == State.GameState.ACTIVE) {
+                MessageUtils.sendMessage(player, "You can only vote for a biome after the round is over!", MessageUtils.MessageLevel.WARNING);
+                return;
+            }
+
+            if (biomeVoteFinished) {
+                MessageUtils.sendMessage(player, "Biome vote over!", MessageUtils.MessageLevel.WARNING);
+                return;
+            }
+
+            if (State.gameState == State.GameState.GAMEOVER) {
+                if (args.length == 0) {
+                    MessageUtils.sendMessage(player, "Vote invalid! Biome does not exists!", MessageUtils.MessageLevel.WARNING);
+                    return;
+                }
+
+                if (biomeVotePlayers.contains(player.uuid())) {
+                    MessageUtils.sendMessage(player, "Vote invalid! You already voted!", MessageUtils.MessageLevel.WARNING);
+                    return;
+                }
+
+                String biomeName = args[0];
+
+                Biomes.Biome biomeVote = Biomes.all.stream().filter(biome -> biome.toString().equalsIgnoreCase(biomeName)).findFirst().orElse(null);
+
+                if (biomeVote == null) {
+                    MessageUtils.sendMessage(player, "Vote invalid! Biome does not exists!", MessageUtils.MessageLevel.WARNING);
+                    return;
+                }
+
+                biomeVotePlayers.add(player.uuid());
+                biomeVotes.put(biomeVote, biomeVotes.getOrDefault(biomeVote, 0) + 1);
+
+                StringBuilder votes = new StringBuilder();
+                String prefix = "";
+                Iterator<Map.Entry<Biomes.Biome, Integer>> it = biomeVotes.entrySet().stream().sorted((b1, b2) -> Integer.compare(b2.getValue(), b1.getValue())).iterator();
+                boolean first = true;
+                while (it.hasNext()) {
+                    Map.Entry<Biomes.Biome, Integer> biomeIntegerEntry = it.next();
+                    votes.append(prefix).append(biomeIntegerEntry.getKey()).append(first ? MessageUtils.cHighlight2 : MessageUtils.cInfo).append("(").append(biomeIntegerEntry.getValue()).append(")").append(MessageUtils.cDefault);
+                    prefix = ", ";
+                    first = false;
+                }
+
+                MessageUtils.sendMessage(player, "Voted for " + MessageUtils.cInfo + biomeVote + MessageUtils.cDefault, MessageUtils.MessageLevel.INFO);
+
+                MessageUtils.sendMessage("Current votes: " + votes, MessageUtils.MessageLevel.INFO);
+            }
         });
     }
 
