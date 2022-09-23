@@ -59,6 +59,16 @@ public class DiscordBot {
         hallOfFame.sendMessage(message).queue();
     }
 
+    public static void editLastMessageInHallOfFame(String message) {
+        hallOfFame.getHistory().retrievePast(1).queue(messages -> {
+            if (messages.size() == 1) {
+                Message m = messages.get(0);
+
+                if (m.getAuthor().isBot()) m.editMessage(message).queue();
+            }
+        });
+    }
+
     public static void setStatus(String status) {
         DiscordBot.bot.getPresence().setActivity(Activity.playing(status));
     }

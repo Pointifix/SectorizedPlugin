@@ -67,9 +67,7 @@ public class MapGenerator implements Cons<Tiles> {
 
                 biomeDistribution.clear();
             }
-
-            System.out.println("Desired seed for biome found with " + (int) ((float) maxOccurrences / (float) (world.width() / sampleDensity * world.height() / sampleDensity) * 100) + "% coverage");
-
+            
             offsetX = maxOffsetX;
             offsetY = maxOffsetY;
         }

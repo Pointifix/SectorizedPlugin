@@ -15,6 +15,9 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.*;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
@@ -80,40 +83,46 @@ public class RankingPersistence {
 
         Date lastHallOfFameDate = new Date((long) Core.settings.get("lastHallOfFameDate", threeDaysAgo.getTime()));
 
+        String zone = ZoneOffset.systemDefault().toString();
+        String currentDate = DateTimeFormatter.ofPattern("uuuu/MM/dd - HH:mm").format(ZonedDateTime.now());
+
+        StringBuilder text = new StringBuilder(":trophy: :regional_indicator_l: :regional_indicator_e: :regional_indicator_a: :regional_indicator_d: :regional_indicator_e: :regional_indicator_r: :regional_indicator_b: :regional_indicator_o: :regional_indicator_a: :regional_indicator_r: :regional_indicator_d: :trophy:\n");
+        for (LeaderBoardEntry entry : leaderboard) {
+            text.append("\n").append(entry.rank).append(" - ");
+
+            String medal;
+            switch (entry.rank) {
+                case 1:
+                    medal = ":first_place:";
+                    break;
+                case 2:
+                    medal = ":second_place:";
+                    break;
+                case 3:
+                    medal = ":third_place:";
+                    break;
+                default:
+                    medal = ":medal:";
+            }
+
+            text.append(medal)
+                    .append("**")
+                    .append(entry.name)
+                    .append("**")
+                    .append(" - Score: ")
+                    .append(entry.score)
+                    .append(" - Wins: ")
+                    .append(entry.wins);
+        }
+        text.append("\n\n:date: *").append(currentDate).append(" - ").append(zone).append("* :clock3:");
+
         if (lastHallOfFameDate.before(twoDaysAgo)) {
             Core.settings.put("lastHallOfFameDate", today.getTime());
             Core.settings.manualSave();
 
-            StringBuilder text = new StringBuilder(":trophy: __**Leaderboard**__ :trophy:\n");
-            for (LeaderBoardEntry entry : leaderboard) {
-                text.append("\n").append(entry.rank).append(" - ");
-
-                String medal;
-                switch (entry.rank) {
-                    case 1:
-                        medal = ":first_place:";
-                        break;
-                    case 2:
-                        medal = ":second_place:";
-                        break;
-                    case 3:
-                        medal = ":third_place:";
-                        break;
-                    default:
-                        medal = ":medal:";
-                }
-
-                text.append(medal)
-                        .append("**")
-                        .append(entry.name)
-                        .append("**")
-                        .append(" - Score: ")
-                        .append(entry.score)
-                        .append(" - Wins: ")
-                        .append(entry.wins);
-            }
-
             DiscordBot.sendMessageToHallOfFame(text.toString());
+        } else {
+            DiscordBot.editLastMessageInHallOfFame(text.toString());
         }
     }
 
