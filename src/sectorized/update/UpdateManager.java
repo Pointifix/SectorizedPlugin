@@ -4,6 +4,7 @@ import arc.Core;
 import arc.Events;
 import arc.util.Timer;
 import arc.util.*;
+import mindustry.content.Planets;
 import mindustry.content.UnitTypes;
 import mindustry.game.EventType;
 import mindustry.game.Team;
@@ -13,6 +14,7 @@ import mindustry.gen.Groups;
 import mindustry.gen.Player;
 import mindustry.net.Administration;
 import mindustry.net.Packets;
+import mindustry.type.ItemSeq;
 import mindustry.type.ItemStack;
 import sectorized.Manager;
 import sectorized.SectorizedEvents;
@@ -53,7 +55,9 @@ public class UpdateManager implements Manager {
 
                     StringBuilder infoPopupText = new StringBuilder(MessageUtils.cInfo + "Costs for next[white] \uF869\n");
 
-                    for (ItemStack itemStack : CoreCost.requirements[Math.max(Math.min(cores, CoreCost.requirements.length - 1), 0)]) {
+                    ItemSeq[] requirements = State.planet.equals(Planets.serpulo.name) ? CoreCost.requirementsSerpulo : CoreCost.requirementsErekir;
+
+                    for (ItemStack itemStack : requirements[Math.max(Math.min(cores, requirements.length - 1), 0)]) {
                         int availableItems = player.team().items().get(itemStack.item);
 
                         infoPopupText
@@ -177,15 +181,23 @@ public class UpdateManager implements Manager {
             Log.info("Restarting: " + event.reason);
             MessageUtils.sendMessage(event.reason + "\nServer is restarting in " + MessageUtils.cInfo + "30" + MessageUtils.cDefault + " seconds", MessageUtils.MessageLevel.INFO);
 
-            StringBuilder biomeNames = new StringBuilder();
+            StringBuilder biomeNamesSerpulo = new StringBuilder(MessageUtils.cHighlight2 + "Serpulo" + MessageUtils.cDefault + " : ");
+            StringBuilder biomeNamesErekir = new StringBuilder(MessageUtils.cHighlight3 + "Erekir" + MessageUtils.cDefault + " : ");
 
-            String prefix = "";
-            for (Biomes.Biome biome : Biomes.all) {
-                biomeNames.append(prefix).append(biome.toString().toLowerCase());
-                prefix = ", ";
+            String prefix1 = "", prefix2 = "";
+            for (int i = 0; i < Biomes.all.size(); i++) {
+                Biomes.Biome biome = Biomes.all.get(i);
+
+                if (biome.getPlanet().equals(Planets.serpulo.name)) {
+                    biomeNamesSerpulo.append(prefix1).append("[white](").append(i).append(") ").append(MessageUtils.cDefault).append(biome);
+                    prefix1 = ", ";
+                } else if (biome.getPlanet().equals(Planets.erekir.name)) {
+                    biomeNamesErekir.append(prefix2).append("[white](").append(i).append(") ").append(MessageUtils.cDefault).append(biome);
+                    prefix2 = ", ";
+                }
             }
 
-            MessageUtils.sendMessage("Vote for the next map with " + MessageUtils.cHighlight3 + "/vote <biome>" + MessageUtils.cDefault + ".\n You can vote for the following biomes: " + biomeNames, MessageUtils.MessageLevel.INFO);
+            MessageUtils.sendMessage("Vote for the next map with " + MessageUtils.cHighlight3 + "/vote <id>" + MessageUtils.cDefault + " or " + MessageUtils.cHighlight3 + "/vote <biome>" + MessageUtils.cDefault + ".\n You can vote for the following biomes:\n" + biomeNamesSerpulo + "\n" + biomeNamesErekir, MessageUtils.MessageLevel.INFO);
 
             Timer.schedule(() -> {
                 if (!biomeVotes.isEmpty()) {
@@ -280,7 +292,7 @@ public class UpdateManager implements Manager {
             MessageUtils.sendWelcomeMessage(player);
         });
 
-        handler.<Player>register("vote", "[biome]", "Vote for a biome you want to play next round.", (args, player) -> {
+        handler.<Player>register("vote", "[id/biome]", "Vote for a biome you want to play next round.", (args, player) -> {
             if (State.gameState == State.GameState.INACTIVE) return;
 
             if (State.gameState == State.GameState.ACTIVE) {
@@ -309,8 +321,16 @@ public class UpdateManager implements Manager {
                 Biomes.Biome biomeVote = Biomes.all.stream().filter(biome -> biome.toString().equalsIgnoreCase(biomeName)).findFirst().orElse(null);
 
                 if (biomeVote == null) {
-                    MessageUtils.sendMessage(player, "Vote invalid! Biome does not exists!", MessageUtils.MessageLevel.WARNING);
-                    return;
+                    try {
+                        int biomeIndex = Integer.parseInt(biomeName);
+
+                        if (biomeIndex >= 0 && biomeIndex < Biomes.all.size()) {
+                            biomeVote = Biomes.all.get(biomeIndex);
+                        }
+                    } catch (NumberFormatException e) {
+                        MessageUtils.sendMessage(player, "Vote invalid! Biome does not exists!", MessageUtils.MessageLevel.WARNING);
+                        return;
+                    }
                 }
 
                 biomeVotePlayers.add(player.uuid());

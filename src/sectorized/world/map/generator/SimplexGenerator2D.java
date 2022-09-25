@@ -7,7 +7,7 @@ import mindustry.world.Block;
 public class SimplexGenerator2D extends Generator {
     private final Generator[][] mapping;
 
-    private final Simplex simplex1, simplex2;
+    private final int seed1 = Mathf.random(99999999), seed2 = Mathf.random(99999999);
 
     private final double octaves1, persistence1, scale1, multiplier1;
     private final double octaves2, persistence2, scale2, multiplier2;
@@ -24,9 +24,6 @@ public class SimplexGenerator2D extends Generator {
         this.persistence2 = persistence2;
         this.scale2 = scale2;
         this.multiplier2 = multiplier2;
-
-        simplex1 = new Simplex(Mathf.random(99999999));
-        simplex2 = new Simplex(Mathf.random(99999999));
     }
 
     public SimplexGenerator2D(Generator[][] mapping, double octaves1, double persistence1, double scale1, double octaves2, double persistence2, double scale2) {
@@ -34,14 +31,14 @@ public class SimplexGenerator2D extends Generator {
     }
 
     public Block sample(int x, int y) {
-        int sampleX = sampleSimplex(simplex1, octaves1, persistence1, scale1, multiplier1, x, y, mapping.length - 1);
-        int sampleY = sampleSimplex(simplex2, octaves2, persistence2, scale2, multiplier2, x, y, mapping[0].length - 1);
+        int sampleX = sampleSimplex(seed1, octaves1, persistence1, scale1, multiplier1, x, y, mapping.length - 1);
+        int sampleY = sampleSimplex(seed2, octaves2, persistence2, scale2, multiplier2, x, y, mapping[0].length - 1);
 
         return mapping[sampleX][sampleY].sample(x, y);
     }
 
-    private int sampleSimplex(Simplex simplex, double octaves, double persistence, double scale, double multiplier, int x, int y, int max) {
-        return (int) Math.max(Math.min((normalizeSimplex(simplex.octaveNoise2D(octaves, persistence, scale, x, y)) * multiplier - (multiplier / 2) + 0.5) * (max + 1), max), 0);
+    private int sampleSimplex(int seed, double octaves, double persistence, double scale, double multiplier, int x, int y, int max) {
+        return (int) Math.max(Math.min((normalizeSimplex(Simplex.noise2d(seed, octaves, persistence, scale, x, y)) * multiplier - (multiplier / 2) + 0.5) * (max + 1), max), 0);
     }
 
     private double normalizeSimplex(double value) {

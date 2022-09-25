@@ -1,15 +1,16 @@
-package sectorized.world.map.biomes.simple;
+package sectorized.world.map.biomes.serpulo;
 
 import arc.math.Mathf;
 import mindustry.content.Blocks;
 import mindustry.maps.filters.OreFilter;
 import mindustry.world.Tile;
-import sectorized.world.map.biomes.SimpleBiome;
+import sectorized.world.map.Biomes;
+import sectorized.world.map.biomes.SerpuloBiome;
 import sectorized.world.map.generator.BlockG;
 import sectorized.world.map.generator.Generator;
 import sectorized.world.map.generator.SimplexGenerator2D;
 
-public class Swamp extends SimpleBiome {
+public class Swamp extends SerpuloBiome {
     public Swamp() {
         super(new SimplexGenerator2D(new Generator[][]{
                 {BlockG.tar, BlockG.shale, BlockG.taintedWater, BlockG.grass, BlockG.grass, BlockG.grass},
@@ -31,8 +32,8 @@ public class Swamp extends SimpleBiome {
     }
 
     @Override
-    public void sample(int x, int y, Tile tile) {
-        super.sample(x, y, tile);
+    public void sample(int x, int y, Tile tile, Biomes.Biome neighbor, double proximity) {
+        super.sample(x, y, tile, neighbor, proximity);
 
         if (tile.block() == Blocks.air) {
             if (tile.floor() == Blocks.darksand && Mathf.chance(0.005)) tile.setBlock(Blocks.basaltBoulder);

@@ -8,6 +8,7 @@ import arc.util.CommandHandler;
 import arc.util.Timer;
 import mindustry.content.Blocks;
 import mindustry.content.Fx;
+import mindustry.content.Planets;
 import mindustry.content.UnitTypes;
 import mindustry.entities.units.BuildPlan;
 import mindustry.game.EventType;
@@ -50,7 +51,12 @@ public class SectorManager implements Manager {
 
                 Events.fire(new SectorizedEvents.MemberSpawnedEvent(spawnPoint, event.member));
 
-                sectorLogic.addArea(spawnPoint.x, spawnPoint.y, (CoreBlock) Blocks.coreFoundation, event.member.faction.team.id);
+                if (State.planet.equals(Planets.serpulo.name)) {
+                    sectorLogic.addArea(spawnPoint.x, spawnPoint.y, (CoreBlock) Blocks.coreFoundation, event.member.faction.team.id);
+                } else if (State.planet.equals(Planets.erekir.name)) {
+                    sectorLogic.addArea(spawnPoint.x, spawnPoint.y, (CoreBlock) Blocks.coreAcropolis, event.member.faction.team.id);
+                }
+
             } catch (SectorSpawns.NoSpawnPointAvailableException e) {
                 Events.fire(new SectorizedEvents.NoSpawnPointAvailableEvent(event.member));
             }
@@ -108,14 +114,19 @@ public class SectorManager implements Manager {
                         return false;
                     }
 
-                    if (action.block == Blocks.vault && action.tile.cblock() == Blocks.air && !VaultLogic.adjacentToCore(action.tile.x, action.tile.y, action.block)) {
+                    if ((action.block == Blocks.vault || action.block == Blocks.reinforcedVault) && action.tile.cblock() == Blocks.air && !VaultLogic.adjacentToCore(action.tile.x, action.tile.y, action.block)) {
                         if (bufferedCoresPlacement.containsKey(action.player.team().id)) {
                             int seconds = 10 - (int) Math.floor((State.time - bufferedCoresPlacement.get(action.player.team().id)) / 60);
 
                             MessageUtils.sendBufferedMessage(action.player, "Wait " + MessageUtils.cInfo + seconds + " seconds" + MessageUtils.cDefault + " to place a new core!", MessageUtils.MessageLevel.WARNING, 1);
                             action.tile.setNet(Blocks.air);
                         } else if (CoreCost.checkAndConsumeFunds(action.player.team())) {
-                            action.tile.setNet(Blocks.coreShard, action.player.team(), 0);
+                            if (State.planet.equals(Planets.serpulo.name)) {
+                                action.tile.setNet(Blocks.coreShard, action.player.team(), 0);
+                            } else if (State.planet.equals(Planets.erekir.name)) {
+                                action.tile.setNet(Blocks.coreBastion, action.player.team(), 0);
+                            }
+
                             sectorLogic.addArea(action.tile.x, action.tile.y, (CoreBlock) Blocks.coreShard, action.player.team().id);
 
                             int team = action.player.team().id;

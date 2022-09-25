@@ -37,7 +37,7 @@ public class RankingPersistence {
 
             connection = DriverManager.getConnection(dbUrl.url, dbUrl.user, dbUrl.password);
 
-            updateScoreDecay();
+            // updateScoreDecay(); TODO UNCOMMENT
             getLeaderboard();
         } catch (SQLException | IOException | ClassNotFoundException e) {
             e.printStackTrace();

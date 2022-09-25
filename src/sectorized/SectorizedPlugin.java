@@ -48,6 +48,8 @@ public class SectorizedPlugin extends Plugin {
 
             state.serverPaused = true;
 
+            Rules.setSpawnGroups(state.rules);
+
             logic.play();
             netServer.openServer();
 

@@ -2,6 +2,7 @@ package sectorized.world.map.biomes;
 
 import arc.struct.Seq;
 import mindustry.content.Blocks;
+import mindustry.content.Planets;
 import mindustry.maps.filters.GenerateFilter;
 import mindustry.world.Block;
 import mindustry.world.Tile;
@@ -12,13 +13,15 @@ import sectorized.world.map.generator.SimplexGenerator2D;
 import static mindustry.Vars.maps;
 import static mindustry.Vars.world;
 
-public class SimpleBiome implements Biomes.Biome {
+public class SerpuloBiome implements Biomes.Biome {
+    private final String planet = Planets.serpulo.name;
+
     private final SimplexGenerator2D generator;
 
     protected final Seq<GenerateFilter> ores;
     private final GenerateFilter.GenerateInput in;
 
-    public SimpleBiome(SimplexGenerator2D generator) {
+    public SerpuloBiome(SimplexGenerator2D generator) {
         this.generator = generator;
 
         ores = new Seq<>();
@@ -29,7 +32,7 @@ public class SimpleBiome implements Biomes.Biome {
     }
 
     @Override
-    public void sample(int x, int y, Tile tile) {
+    public void sample(int x, int y, Tile tile, Biomes.Biome neighbor, double proximity) {
         Block floor = generator.sample(x, y);
 
         tile.setFloor((Floor) floor);
@@ -47,5 +50,10 @@ public class SimpleBiome implements Biomes.Biome {
                 tile.setOverlay(in.overlay);
             }
         }
+    }
+
+    @Override
+    public String getPlanet() {
+        return Planets.serpulo.name;
     }
 }

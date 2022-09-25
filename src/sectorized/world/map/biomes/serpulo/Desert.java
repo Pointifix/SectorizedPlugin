@@ -1,15 +1,16 @@
-package sectorized.world.map.biomes.simple;
+package sectorized.world.map.biomes.serpulo;
 
 import arc.math.Mathf;
 import mindustry.content.Blocks;
 import mindustry.maps.filters.OreFilter;
 import mindustry.world.Tile;
-import sectorized.world.map.biomes.SimpleBiome;
+import sectorized.world.map.Biomes;
+import sectorized.world.map.biomes.SerpuloBiome;
 import sectorized.world.map.generator.BlockG;
 import sectorized.world.map.generator.Generator;
 import sectorized.world.map.generator.SimplexGenerator2D;
 
-public class Desert extends SimpleBiome {
+public class Desert extends SerpuloBiome {
     public Desert() {
         super(new SimplexGenerator2D(new Generator[][]{
                 {new SimplexGenerator2D(new Generator[][]{
@@ -30,8 +31,8 @@ public class Desert extends SimpleBiome {
     }
 
     @Override
-    public void sample(int x, int y, Tile tile) {
-        super.sample(x, y, tile);
+    public void sample(int x, int y, Tile tile, Biomes.Biome neighbor, double proximity) {
+        super.sample(x, y, tile, neighbor, proximity);
 
         if (tile.block() == Blocks.air) {
             if (tile.floor() == Blocks.sand && Mathf.chance(0.01)) tile.setBlock(Blocks.sandBoulder);
