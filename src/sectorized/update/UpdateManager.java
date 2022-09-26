@@ -53,7 +53,7 @@ public class UpdateManager implements Manager {
                 Groups.player.each(player -> !hideHud.contains(player.uuid()), player -> {
                     int cores = player.team().cores().size - 1;
 
-                    StringBuilder infoPopupText = new StringBuilder(MessageUtils.cInfo + "Costs for next[white] \uF869\n");
+                    StringBuilder infoPopupText = State.planet.equals(Planets.serpulo.name) ? new StringBuilder(MessageUtils.cInfo + "Costs for next[white] \uF869\n") : new StringBuilder(MessageUtils.cInfo + "Costs for next[white] \uF725\n");
 
                     ItemSeq[] requirements = State.planet.equals(Planets.serpulo.name) ? CoreCost.requirementsSerpulo : CoreCost.requirementsErekir;
 

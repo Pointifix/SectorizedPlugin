@@ -1,5 +1,6 @@
 package sectorized.world.map.biomes.erekir;
 
+import arc.math.Mathf;
 import mindustry.content.Blocks;
 import mindustry.world.Tile;
 import mindustry.world.blocks.environment.Floor;
@@ -20,6 +21,12 @@ public class Regolith extends ErekirBiome {
     @Override
     public void sample(int x, int y, Tile tile, Biomes.Biome neighbor, double proximity) {
         super.sample(x, y, tile, neighbor, proximity);
+
+        if (tile.block() == Blocks.air) {
+            if (tile.floor() == Blocks.yellowStone && Mathf.chance(0.008)) tile.setBlock(Blocks.yellowStoneBoulder);
+            if (tile.floor() == Blocks.yellowStonePlates && Mathf.chance(0.005)) tile.setBlock(Blocks.yellowCoral);
+            if (tile.floor() == Blocks.yellowStone && Mathf.chance(0.002)) tile.setBlock(Blocks.crystalBlocks);
+        }
     }
 
     @Override

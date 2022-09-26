@@ -26,8 +26,16 @@ public class Loadout {
             return loadout;
         } else if (State.planet.equals(Planets.erekir.name)) {
             Seq<ItemStack> loadout = ItemStack.list(
-                    Items.beryllium, 100 + (20 * wave),
-                    Items.graphite, 50 + (15 * wave));
+                    Items.beryllium, 100 + (50 * wave),
+                    Items.graphite, 50 + (25 * wave),
+                    Items.silicon, 30 + (20 * wave),
+                    Items.thorium, 150 + (10 * wave));
+
+            if (wave >= 1) loadout.add(new ItemStack(Items.tungsten, 30 * (wave)));
+            if (wave >= 3) loadout.add(new ItemStack(Items.oxide, 20 * (wave - 2)));
+            if (wave >= 5) loadout.add(new ItemStack(Items.carbide, 10 * (wave - 4)));
+            if (wave >= 7) loadout.add(new ItemStack(Items.surgeAlloy, 20 * (wave - 7)));
+            if (wave >= 9) loadout.add(new ItemStack(Items.phaseFabric, 10 * (wave - 4)));
 
             return loadout;
         }

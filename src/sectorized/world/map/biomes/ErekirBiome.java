@@ -37,7 +37,7 @@ public class ErekirBiome implements Biomes.Biome {
     private final Block wall;
 
     public ErekirBiome(SimplexGenerator2D generator, Floor vent, Block wall) {
-        this(generator, vent, wall, 0.35);
+        this(generator, vent, wall, 0.3);
     }
 
     public ErekirBiome(SimplexGenerator2D generator, Floor vent, Block wall, double ventThreshold) {
@@ -97,18 +97,18 @@ public class ErekirBiome implements Biomes.Biome {
 
         boolean wall = normalizeSimplex(Simplex.noise2d(seed1, 10, 0.4, 0.03, x, y)) < 0.5 && proximity < wallThreshold;
         if (wall) {
-            boolean carbon = normalizeSimplex(Simplex.noise2d(seed2, 10, 0.4, 0.05, x, y)) < 0.5;
+            boolean carbon = normalizeSimplex(Simplex.noise2d(seed2, 10, 0.4, 0.05, x, y)) < 0.45;
 
             tile.setBlock(carbon ? Blocks.carbonWall : this.wall);
 
             if (proximity > wallThreshold - 0.05) {
                 if (carbon)
                     tile.setBlock(Blocks.graphiticWall);
-                else if (normalizeSimplex(Simplex.noise2d(seed3, 10, 0.4, 0.05, x, y)) < 0.4)
+                else if (normalizeSimplex(Simplex.noise2d(seed3, 10, 0.4, 0.05, x, y)) < 0.6)
                     tile.setOverlay(Blocks.wallOreBeryllium);
-                else if (normalizeSimplex(Simplex.noise2d(seed4, 10, 0.4, 0.05, x, y)) < 0.3)
+                else if (normalizeSimplex(Simplex.noise2d(seed4, 10, 0.4, 0.05, x, y)) < 0.4)
                     tile.setOverlay(Blocks.wallOreThorium);
-                else if (normalizeSimplex(Simplex.noise2d(seed5, 10, 0.4, 0.05, x, y)) < 0.25)
+                else if (normalizeSimplex(Simplex.noise2d(seed5, 10, 0.4, 0.05, x, y)) < 0.3)
                     tile.setOverlay(Blocks.wallOreTungsten);
             }
         } else if (vent != null && ((Floor) floor).hasSurface()) {

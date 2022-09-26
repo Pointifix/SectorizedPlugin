@@ -110,7 +110,7 @@ public class SectorManager implements Manager {
             switch (action.type) {
                 case placeBlock:
                     if (!sectorLogic.validPlace(action.tile.x, action.tile.y, action.block, action.player.team().id)) {
-                        MessageUtils.sendBufferedMessage(action.player, "You cannot build outside your sector! To expand your sector place a " + MessageUtils.cHighlight3 + "vault" + MessageUtils.cDefault + " \uF866 within the borders of your sector!", MessageUtils.MessageLevel.WARNING);
+                        MessageUtils.sendBufferedMessage(action.player, "You cannot build outside your sector! To expand your sector place a " + MessageUtils.cHighlight3 + "vault" + MessageUtils.cDefault + " \uF866 or " + MessageUtils.cHighlight3 + "reinforced vault \uF70C" + MessageUtils.cDefault + " within the borders of your sector!", MessageUtils.MessageLevel.WARNING);
                         return false;
                     }
 

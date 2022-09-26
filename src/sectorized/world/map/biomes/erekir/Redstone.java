@@ -1,5 +1,6 @@
 package sectorized.world.map.biomes.erekir;
 
+import arc.math.Mathf;
 import mindustry.content.Blocks;
 import mindustry.world.Tile;
 import mindustry.world.blocks.environment.Floor;
@@ -21,6 +22,10 @@ public class Redstone extends ErekirBiome {
     @Override
     public void sample(int x, int y, Tile tile, Biomes.Biome neighbor, double proximity) {
         super.sample(x, y, tile, neighbor, proximity);
+
+        if (tile.block() == Blocks.air) {
+            if (tile.floor() == Blocks.redStone && Mathf.chance(0.008)) tile.setBlock(Blocks.redStoneBoulder);
+        }
     }
 
     @Override

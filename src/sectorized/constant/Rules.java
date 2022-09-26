@@ -21,7 +21,6 @@ public class Rules {
         rules.canGameOver = false;
         rules.defaultTeam = Team.derelict;
         rules.waves = true;
-        rules.waveSpacing = 60 * 60 * 2;
         rules.waitEnemies = false;
         rules.buildSpeedMultiplier = 1.5f;
         rules.blockDamageMultiplier = 2.0f;
@@ -58,6 +57,8 @@ public class Rules {
 
     public static void setSpawnGroups(mindustry.game.Rules rules) {
         if (State.planet.equals(Planets.serpulo.name)) {
+            rules.waveSpacing = 60 * 60 * 2;
+
             rules.spawns = Seq.with(
                     // T1
                     new SpawnGroup(dagger) {{
@@ -155,7 +156,7 @@ public class Rules {
                         end = 29;
                         spacing = 2;
                         unitAmount = 1;
-                        unitScaling = 0.5f;
+                        unitScaling = 2f;
                     }},
 
                     // T4
@@ -163,38 +164,38 @@ public class Rules {
                         begin = 30;
                         end = 39;
                         unitAmount = 1;
-                        unitScaling = 0.5f;
+                        unitScaling = 2f;
                     }},
                     new SpawnGroup(vela) {{
                         begin = 35;
                         end = 39;
                         unitAmount = 1;
-                        unitScaling = 0.5f;
+                        unitScaling = 2f;
                     }},
                     new SpawnGroup(arkyid) {{
                         begin = 33;
                         end = 39;
                         unitAmount = 1;
-                        unitScaling = 0.5f;
+                        unitScaling = 2f;
                     }},
                     new SpawnGroup(antumbra) {{
                         begin = 35;
                         end = 39;
                         unitAmount = 1;
-                        unitScaling = 0.5f;
+                        unitScaling = 2f;
                     }},
                     new SpawnGroup(quad) {{
                         begin = 37;
                         end = 39;
                         unitAmount = 1;
-                        unitScaling = 0.25f;
+                        unitScaling = 4f;
                     }},
                     new SpawnGroup(sei) {{
                         begin = 35;
                         end = 39;
                         spacing = 2;
                         unitAmount = 1;
-                        unitScaling = 0.25f;
+                        unitScaling = 4f;
                     }},
 
                     // T5
@@ -202,130 +203,132 @@ public class Rules {
                         begin = 40;
                         end = never;
                         unitAmount = 1;
-                        unitScaling = 0.25f;
+                        unitScaling = 4f;
                     }},
                     new SpawnGroup(corvus) {{
                         begin = 45;
                         end = never;
                         unitAmount = 1;
-                        unitScaling = 0.25f;
+                        unitScaling = 4f;
                     }},
                     new SpawnGroup(toxopid) {{
                         begin = 50;
                         end = never;
                         unitAmount = 1;
-                        unitScaling = 0.25f;
+                        unitScaling = 4f;
                     }},
                     new SpawnGroup(eclipse) {{
                         begin = 55;
                         end = never;
                         unitAmount = 1;
-                        unitScaling = 0.25f;
+                        unitScaling = 4f;
                     }},
                     new SpawnGroup(oct) {{
                         begin = 60;
                         end = never;
                         unitAmount = 1;
-                        unitScaling = 0.25f;
+                        unitScaling = 4f;
                     }},
                     new SpawnGroup(omura) {{
                         begin = 55;
                         end = never;
                         spacing = 2;
                         unitAmount = 1;
-                        unitScaling = 0.25f;
+                        unitScaling = 4f;
                     }}
             );
         } else if (State.planet.equals(Planets.erekir.name)) {
+            rules.waveSpacing = 60 * 60 * 3;
+
             rules.spawns = Seq.with(
                     // T1
                     new SpawnGroup(stell) {{
                         begin = 0;
                         end = 14;
                         unitAmount = 1;
-                        unitScaling = 0.5f;
+                        unitScaling = 3f;
                     }},
                     new SpawnGroup(merui) {{
                         begin = 5;
                         end = 7;
                         unitAmount = 1;
-                        unitScaling = 0.5f;
+                        unitScaling = 3f;
                     }},
                     new SpawnGroup(elude) {{
                         begin = 11;
                         end = 14;
                         unitAmount = 1;
-                        unitScaling = 0.5f;
+                        unitScaling = 3f;
                     }},
                     // T2
                     new SpawnGroup(locus) {{
                         begin = 15;
                         end = 29;
                         unitAmount = 1;
-                        unitScaling = 0.5f;
+                        unitScaling = 3f;
                     }},
                     new SpawnGroup(anthicus) {{
                         begin = 22;
                         end = 29;
                         unitAmount = 1;
-                        unitScaling = 0.5f;
+                        unitScaling = 3f;
                     }},
                     new SpawnGroup(avert) {{
                         begin = 26;
                         end = 29;
                         unitAmount = 1;
-                        unitScaling = 0.5f;
+                        unitScaling = 3f;
                     }},
                     // T3
                     new SpawnGroup(precept) {{
                         begin = 30;
                         end = 44;
                         unitAmount = 1;
-                        unitScaling = 0.5f;
+                        unitScaling = 3f;
                     }},
                     new SpawnGroup(tecta) {{
                         begin = 37;
                         end = 44;
                         unitAmount = 1;
-                        unitScaling = 0.5f;
+                        unitScaling = 3f;
                     }},
                     new SpawnGroup(obviate) {{
                         begin = 41;
                         end = 44;
                         unitAmount = 1;
-                        unitScaling = 0.5f;
+                        unitScaling = 3f;
                     }},
                     // T4
                     new SpawnGroup(vanquish) {{
                         begin = 45;
                         end = 59;
                         unitAmount = 1;
-                        unitScaling = 0.5f;
+                        unitScaling = 3f;
                     }},
                     new SpawnGroup(collaris) {{
                         begin = 52;
                         end = 59;
                         unitAmount = 1;
-                        unitScaling = 0.5f;
+                        unitScaling = 3f;
                     }},
                     new SpawnGroup(quell) {{
                         begin = 56;
                         end = 59;
                         unitAmount = 1;
-                        unitScaling = 0.5f;
+                        unitScaling = 3f;
                     }},
                     // T5
                     new SpawnGroup(conquer) {{
                         begin = 60;
                         end = never;
                         unitAmount = 1;
-                        unitScaling = 0.5f;
+                        unitScaling = 3f;
                     }},
                     new SpawnGroup(disrupt) {{
                         begin = 72;
                         end = never;
                         unitAmount = 1;
-                        unitScaling = 0.5f;
+                        unitScaling = 3f;
                     }}
             );
         }

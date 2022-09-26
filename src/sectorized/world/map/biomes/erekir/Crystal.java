@@ -1,5 +1,6 @@
 package sectorized.world.map.biomes.erekir;
 
+import arc.math.Mathf;
 import mindustry.content.Blocks;
 import mindustry.world.Tile;
 import sectorized.world.map.Biomes;
@@ -20,6 +21,12 @@ public class Crystal extends ErekirBiome {
     @Override
     public void sample(int x, int y, Tile tile, Biomes.Biome neighbor, double proximity) {
         super.sample(x, y, tile, neighbor, proximity);
+
+        if (tile.block() == Blocks.air) {
+            if (tile.floor() == Blocks.crystallineStone && Mathf.chance(0.001)) tile.setBlock(Blocks.crystalOrbs);
+            if (tile.floor() == Blocks.crystallineStone && Mathf.chance(0.003))
+                tile.setBlock(Blocks.vibrantCrystalCluster);
+        }
     }
 
     @Override

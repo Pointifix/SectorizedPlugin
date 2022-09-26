@@ -150,7 +150,8 @@ public class DiscordBot {
 
                 if (role != null) {
                     for (Role guildMemberRole : guildMember.getRoles()) {
-                        DiscordBot.guild.removeRoleFromMember(guildMember, guildMemberRole).queue();
+                        if (!guildMemberRole.getName().equals(roleName))
+                            DiscordBot.guild.removeRoleFromMember(guildMember, guildMemberRole).queue();
                     }
 
                     DiscordBot.guild.addRoleToMember(guildMember, role).queue();
