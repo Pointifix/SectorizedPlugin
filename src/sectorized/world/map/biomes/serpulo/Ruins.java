@@ -30,7 +30,7 @@ public class Ruins extends SerpuloBiome {
     public Ruins() {
         super(new SimplexGenerator2D(new Generator[][]{
                 {new SimplexGenerator2D(new Generator[][]{
-                        {BlockG.dirt, BlockG.darksand},
+                        {BlockG.dirt, BlockG.cryofluid},
                         {BlockG.basalt, BlockG.darksand},
                 }, 12, 0.5, 0.1, 1.15, 12, 0.5, 0.1, 1.15), BlockG.basalt, BlockG.darksand, BlockG.sand, BlockG.grass},
                 {BlockG.basalt, BlockG.darksand, BlockG.darksand, BlockG.sand, BlockG.sand},

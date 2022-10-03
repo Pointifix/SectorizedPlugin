@@ -20,7 +20,7 @@ public class ErekirBiomesGenerator implements BiomesGenerator {
                         {Biomes.regolith, Biomes.crystal, Biomes.redstone},
                         {Biomes.regolith, Biomes.rhyolite, Biomes.rhyolite},
                 }
-        }, 12, 0.35, 0.005, 3);
+        }, 10, 0.32, 0.005, 2.0);
     }
 
     public BiomeSelection sample(int x, int y) {

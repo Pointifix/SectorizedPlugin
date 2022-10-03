@@ -60,6 +60,7 @@ public class FactionLogic {
     public void changeFaction(Faction oldFaction, Faction newFaction, Member member) {
         oldFaction.removeMember(member);
         newFaction.addMember(member);
+
         member.player.unit().kill();
     }
 
@@ -89,23 +90,27 @@ public class FactionLogic {
 
         Groups.unit.each(u -> u.team == defender.team, Unit::kill);
 
-        if (attacker == null) {
-            MessageUtils.sendMessage(MessageUtils.cPlayer + defender.members.first().player.name + MessageUtils.cDefault + " got eliminated!", MessageUtils.MessageLevel.ELIMINATION);
-        } else {
-            MessageUtils.sendMessage(MessageUtils.cPlayer + defender.members.first().player.name + MessageUtils.cDefault + " got eliminated by " + MessageUtils.cDanger + attacker.members.first().player.name + MessageUtils.cDefault + "!", MessageUtils.MessageLevel.ELIMINATION);
+        if (defender.members.size > 0) {
+            if (attacker == null) {
+                MessageUtils.sendMessage(MessageUtils.cPlayer + defender.members.first().player.name + MessageUtils.cDefault + " got eliminated!", MessageUtils.MessageLevel.ELIMINATION);
+            } else {
+                MessageUtils.sendMessage(MessageUtils.cPlayer + defender.members.first().player.name + MessageUtils.cDefault + " got eliminated by " + MessageUtils.cDanger + attacker.members.first().player.name + MessageUtils.cDefault + "!", MessageUtils.MessageLevel.ELIMINATION);
+            }
         }
 
         defender.members.each(m -> {
-            m.state = Member.MemberState.ELIMINATED;
-            m.player.team(Team.derelict);
-            m.player.unit().kill();
+            if (m.faction == defender) {
+                m.state = Member.MemberState.ELIMINATED;
+                m.player.team(Team.derelict);
+                m.player.unit().kill();
 
-            Timer.schedule(() -> {
-                m.state = Member.MemberState.WAITING;
+                Timer.schedule(() -> {
+                    m.state = Member.MemberState.WAITING;
 
-                if (m.online)
-                    MessageUtils.sendMessage(m.player, MessageUtils.cInfo + "5 minutes" + MessageUtils.cDefault + " have passed, you can reconnect to spawn again!", MessageUtils.MessageLevel.INFO);
-            }, 60 * 5);
+                    if (m.online)
+                        MessageUtils.sendMessage(m.player, MessageUtils.cInfo + "5 minutes" + MessageUtils.cDefault + " have passed, you can reconnect to spawn again!", MessageUtils.MessageLevel.INFO);
+                }, 60 * 5);
+            }
         });
 
         if (Vars.state.wave < 5) return;
@@ -139,5 +144,9 @@ public class FactionLogic {
         });
 
         return info.toString();
+    }
+
+    public boolean isFactionLeaders(Member possibleLeader, Member requester) {
+        return factions.contains(f -> f.members.first().equals(possibleLeader) && !f.members.first().equals(requester));
     }
 }

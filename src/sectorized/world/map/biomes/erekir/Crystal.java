@@ -14,7 +14,7 @@ public class Crystal extends ErekirBiome {
         super(new SimplexGenerator2D(new Generator[][]{
                 {BlockG.crystallineStone, BlockG.crystalFloor, BlockG.crystallineStone},
                 {BlockG.crystallineStone, BlockG.crystalFloor, BlockG.crystalFloor},
-                {BlockG.crystalFloor, BlockG.crystalFloor, BlockG.cryofluid}
+                {BlockG.crystalFloor, BlockG.crystalFloor, BlockG.arkyciteFloor}
         }, 12, 0.3, 0.05, 1.0, 12, 0.3, 0.05, 1.0), null, Blocks.carbonWall);
     }
 

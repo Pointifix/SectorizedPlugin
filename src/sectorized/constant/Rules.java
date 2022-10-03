@@ -28,6 +28,9 @@ public class Rules {
         rules.buildCostMultiplier = 0.75f;
         rules.dropZoneRadius = 100f;
         rules.logicUnitBuild = false;
+        rules.coreIncinerates = true;
+        rules.possessionAllowed = false;
+        rules.showSpawns = true;
         rules.bannedBlocks = ObjectSet.with(
                 Blocks.shockMine,
                 Blocks.switchBlock,
@@ -40,9 +43,14 @@ public class Rules {
                 Blocks.largeLogicDisplay);
 
         rules.unitCap = 0;
+
         Blocks.coreShard.unitCapModifier = 2;
         Blocks.coreFoundation.unitCapModifier = 5;
         Blocks.coreNucleus.unitCapModifier = 8;
+
+        Blocks.coreBastion.unitCapModifier = 2;
+        Blocks.coreCitadel.unitCapModifier = 6;
+        Blocks.coreAcropolis.unitCapModifier = 8;
 
         ((ItemTurret) (Blocks.foreshadow)).ammoTypes.forEach(ammoType -> {
             ammoType.value.damage *= 0.5;
@@ -57,7 +65,7 @@ public class Rules {
 
     public static void setSpawnGroups(mindustry.game.Rules rules) {
         if (State.planet.equals(Planets.serpulo.name)) {
-            rules.waveSpacing = 60 * 60 * 2;
+            rules.waveSpacing = 60 * 60 * 3;
 
             rules.spawns = Seq.with(
                     // T1
@@ -238,7 +246,7 @@ public class Rules {
                     }}
             );
         } else if (State.planet.equals(Planets.erekir.name)) {
-            rules.waveSpacing = 60 * 60 * 3;
+            rules.waveSpacing = 60 * 60 * 4;
 
             rules.spawns = Seq.with(
                     // T1

@@ -13,9 +13,9 @@ import sectorized.world.map.generator.SimplexGenerator2D;
 public class Carbon extends ErekirBiome {
     public Carbon() {
         super(new SimplexGenerator2D(new Generator[][]{
-                {BlockG.slag, BlockG.carbonStone, BlockG.carbonStone},
-                {BlockG.carbonStone, BlockG.carbonStone, BlockG.carbonStone},
-                {BlockG.carbonStone, BlockG.carbonStone, BlockG.cryofluid}
+                {BlockG.arkyciteFloor, BlockG.carbonStone},
+                {BlockG.carbonStone, BlockG.carbonStone},
+                {BlockG.carbonStone, BlockG.carbonStone},
         }, 12, 0.45, 0.04, 1.0, 12, 0.45, 0.04, 1.0), (Floor) Blocks.carbonVent, Blocks.carbonWall);
     }
 

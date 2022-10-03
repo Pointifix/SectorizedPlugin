@@ -219,9 +219,12 @@ public class FactionManager implements Manager {
             try {
                 int id = Integer.parseInt(args[0]);
 
-                Member answerer = memberLogic.getMember(Groups.player.getByID(id));
+                Player p = Groups.player.getByID(id);
+                if (p == null) throw new NumberFormatException();
 
-                if (answerer.faction == null || answerer.faction.members.contains(requester) || answerer.faction.members.first() != answerer) {
+                Member answerer = memberLogic.getMember(p);
+
+                if (!factionLogic.isFactionLeaders(answerer, requester) || answerer.faction == null || answerer.faction.members.contains(requester) || answerer.faction.members.first() != answerer) {
                     throw new NumberFormatException();
                 }
 
@@ -254,11 +257,12 @@ public class FactionManager implements Manager {
             if (joinRequests.contains(j -> j.answerer == answerer)) {
                 JoinRequest joinRequest = joinRequests.remove(joinRequests.indexOf(j -> j.answerer == answerer));
 
-                if (joinRequest.requester.faction.members.size == 1) {
-                    factionLogic.destroyCores(joinRequest.requester.faction);
-                }
-
+                Faction oldFaction = joinRequest.requester.faction;
+                int oldFactionMembersSize = oldFaction.members.size;
                 factionLogic.changeFaction(joinRequest.requester.faction, answerer.faction, joinRequest.requester);
+                if (oldFactionMembersSize == 1) {
+                    factionLogic.destroyCores(oldFaction);
+                }
 
                 MessageUtils.sendMessage(answerer.player, MessageUtils.cPlayer + joinRequest.requester.player.name + MessageUtils.cDefault + " is now part of your team!", MessageUtils.MessageLevel.INFO);
                 MessageUtils.sendMessage(joinRequest.requester.player, "Your join request was accepted by " + MessageUtils.cPlayer + answerer.player.name + MessageUtils.cDefault + "!", MessageUtils.MessageLevel.INFO);

@@ -26,10 +26,10 @@ public class Loadout {
             return loadout;
         } else if (State.planet.equals(Planets.erekir.name)) {
             Seq<ItemStack> loadout = ItemStack.list(
-                    Items.beryllium, 100 + (50 * wave),
-                    Items.graphite, 50 + (25 * wave),
-                    Items.silicon, 30 + (20 * wave),
-                    Items.thorium, 150 + (10 * wave));
+                    Items.beryllium, 300 + (100 * wave),
+                    Items.graphite, 100 + (50 * wave),
+                    Items.silicon, 50 + (30 * wave),
+                    Items.thorium, 150 + (20 * wave));
 
             if (wave >= 1) loadout.add(new ItemStack(Items.tungsten, 30 * (wave)));
             if (wave >= 3) loadout.add(new ItemStack(Items.oxide, 20 * (wave - 2)));

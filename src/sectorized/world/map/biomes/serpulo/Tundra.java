@@ -16,7 +16,7 @@ public class Tundra extends SerpuloBiome {
                 {BlockG.sand, BlockG.sand, BlockG.sand, BlockG.sand, BlockG.snow},
                 {BlockG.sand, BlockG.sand, BlockG.snow, BlockG.iceSnow, new SimplexGenerator2D(new Generator[][]{
                         {BlockG.tar, BlockG.ice},
-                        {BlockG.ice, BlockG.tar},
+                        {BlockG.ice, BlockG.cryofluid},
                 }, 12, 0.5, 0.1, 1.15, 12, 0.5, 0.1, 1.15)},
                 {BlockG.sand, BlockG.snow, BlockG.iceSnow, BlockG.ice, BlockG.ice},
                 {BlockG.iceSnow, BlockG.iceSnow, BlockG.ice, BlockG.ice, BlockG.water},

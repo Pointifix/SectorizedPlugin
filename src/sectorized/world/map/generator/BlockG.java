@@ -32,6 +32,7 @@ public class BlockG {
     public static SimpleGenerator salt = new SimpleGenerator(Blocks.salt);
     public static SimpleGenerator metalFloorDamaged = new SimpleGenerator(Blocks.metalFloorDamaged);
     public static SimpleGenerator metalFloor = new SimpleGenerator(Blocks.metalFloor);
+    public static SimpleGenerator cryofluid = new SimpleGenerator(Blocks.cryofluid);
 
     //EREKIR
     public static SimpleGenerator crystallineStone = new SimpleGenerator(Blocks.crystallineStone);
@@ -45,7 +46,6 @@ public class BlockG {
     public static SimpleGenerator yellowStonePlates = new SimpleGenerator(Blocks.yellowStonePlates);
     public static SimpleGenerator arkyciteFloor = new SimpleGenerator(Blocks.arkyciteFloor);
     public static SimpleGenerator arkyicStone = new SimpleGenerator(Blocks.arkyicStone);
-    public static SimpleGenerator cryofluid = new SimpleGenerator(Blocks.cryofluid);
     public static SimpleGenerator redStone = new SimpleGenerator(Blocks.redStone);
     public static SimpleGenerator redIce = new SimpleGenerator(Blocks.redIce);
     public static SimpleGenerator denseRedStone = new SimpleGenerator(Blocks.denseRedStone);

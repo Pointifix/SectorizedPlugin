@@ -31,6 +31,8 @@ public class MapGenerator implements Cons<Tiles> {
     public MapGenerator() {
         String biomeVoteString = (String) Core.settings.get("biomeVote", "");
         biomeVote = Biomes.all.stream().filter(biome -> biome.toString().equals(biomeVoteString)).findFirst().orElse(null);
+        Core.settings.put("biomeVote", "");
+        Core.settings.manualSave();
     }
 
     @Override
@@ -87,31 +89,35 @@ public class MapGenerator implements Cons<Tiles> {
 
                     Tile tile = new Tile(x, y);
 
-                    if (water == null) {
-                        BiomeSelection biomeSelection = biomesGenerator.sample(x + offsetX, y + offsetY);
-
-                        biomeDistribution.put(biomeSelection.closest, biomeDistribution.getOrDefault(biomeSelection.closest, 0) + 1);
-
-                        biomeSelection.closest.sample(x + offsetX, y + offsetY, tile, biomeSelection.farthest, biomeSelection.proximity);
-                    } else {
-                        tile.setFloor((Floor) water);
-                    }
-
-                    if (x == 0 || x == world.width() - 1 || y == 0 || y == world.height() - 1)
+                    if (x == 0 || x == world.width() - 1 || y == 0 || y == world.height() - 1) {
+                        tile.setFloor((Floor) Blocks.stone);
                         tile.setBlock(Blocks.duneWall);
+                    } else {
+                        if (water == null) {
+                            BiomeSelection biomeSelection = biomesGenerator.sample(x + offsetX, y + offsetY);
+
+                            biomeDistribution.put(biomeSelection.closest, biomeDistribution.getOrDefault(biomeSelection.closest, 0) + 1);
+
+                            biomeSelection.closest.sample(x + offsetX, y + offsetY, tile, biomeSelection.farthest, biomeSelection.proximity);
+                        } else {
+                            tile.setFloor((Floor) water);
+                        }
+                    }
 
                     tiles.set(x, y, tile);
                 } else if (planet.equals(Planets.erekir.name)) {
                     Tile tile = new Tile(x, y);
 
-                    BiomeSelection biomeSelection = biomesGenerator.sample(x + offsetX, y + offsetY);
-
-                    biomeDistribution.put(biomeSelection.closest, biomeDistribution.getOrDefault(biomeSelection.closest, 0) + 1);
-
-                    biomeSelection.closest.sample(x + offsetX, y + offsetY, tile, biomeSelection.farthest, biomeSelection.proximity);
-
-                    if (x == 0 || x == world.width() - 1 || y == 0 || y == world.height() - 1)
+                    if (x <= 1 || x >= world.width() - 2 || y <= 1 || y >= world.height() - 2) {
+                        tile.setFloor((Floor) Blocks.carbonStone);
                         tile.setBlock(Blocks.carbonWall);
+                    } else {
+                        BiomeSelection biomeSelection = biomesGenerator.sample(x + offsetX, y + offsetY);
+
+                        biomeDistribution.put(biomeSelection.closest, biomeDistribution.getOrDefault(biomeSelection.closest, 0) + 1);
+
+                        biomeSelection.closest.sample(x + offsetX, y + offsetY, tile, biomeSelection.farthest, biomeSelection.proximity);
+                    }
 
                     tiles.set(x, y, tile);
                 }

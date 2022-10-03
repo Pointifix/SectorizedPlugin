@@ -3,6 +3,7 @@ package sectorized;
 import arc.Events;
 import arc.util.CommandHandler;
 import mindustry.mod.Plugin;
+import sectorized.constant.Config;
 import sectorized.constant.DiscordBot;
 import sectorized.constant.Rules;
 import sectorized.constant.State;
@@ -23,6 +24,8 @@ public class SectorizedPlugin extends Plugin {
 
     @Override
     public void init() {
+        System.out.println(Config.c.toString());
+
         DiscordBot.init();
 
         for (Manager manager : managers) {

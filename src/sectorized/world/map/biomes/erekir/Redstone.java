@@ -13,10 +13,10 @@ import sectorized.world.map.generator.SimplexGenerator2D;
 public class Redstone extends ErekirBiome {
     public Redstone() {
         super(new SimplexGenerator2D(new Generator[][]{
-                {BlockG.redStone, BlockG.denseRedStone},
+                {BlockG.redIce, BlockG.denseRedStone},
                 {BlockG.redStone, BlockG.denseRedStone},
                 {BlockG.redStone, BlockG.redIce}
-        }, 12, 0.7, 0.05, 1.0, 12, 0.7, 0.05, 1.0), (Floor) Blocks.redStoneVent, Blocks.redStoneWall, 0.15);
+        }, 12, 0.7, 0.05, 1.0, 12, 0.7, 0.05, 1.0), (Floor) Blocks.redStoneVent, Blocks.redStoneWall, 0.2);
     }
 
     @Override

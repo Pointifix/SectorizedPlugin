@@ -11,8 +11,9 @@ import sectorized.world.map.generator.SimplexGenerator2D;
 public class Beryllic extends ErekirBiome {
     public Beryllic() {
         super(new SimplexGenerator2D(new Generator[][]{
-                {BlockG.beryllicStone, BlockG.beryllicStone},
-                {BlockG.beryllicStone, BlockG.darksand}
+                {BlockG.arkyciteFloor, BlockG.beryllicStone, BlockG.darksand},
+                {BlockG.beryllicStone, BlockG.beryllicStone, BlockG.beryllicStone},
+                {BlockG.beryllicStone, BlockG.darksand, BlockG.beryllicStone}
         }, 12, 0.7, 0.006, 1.15, 12, 0.6, 0.004, 1.15), null, Blocks.beryllicStoneWall);
     }
 

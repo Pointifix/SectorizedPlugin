@@ -4,11 +4,11 @@ import arc.Core;
 import arc.Events;
 import arc.util.Timer;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.content.Planets;
 import mindustry.content.UnitTypes;
 import mindustry.game.EventType;
 import mindustry.game.Team;
-import mindustry.gen.BlockUnitUnit;
 import mindustry.gen.Call;
 import mindustry.gen.Groups;
 import mindustry.gen.Player;
@@ -37,6 +37,8 @@ public class UpdateManager implements Manager {
     private final HashMap<Biomes.Biome, Integer> biomeVotes = new HashMap<>();
     private final ArrayList<String> biomeVotePlayers = new ArrayList();
     private boolean biomeVoteFinished = false;
+
+    private int coreDominationDifference = 3;
 
     @Override
     public void init() {
@@ -121,7 +123,7 @@ public class UpdateManager implements Manager {
 
                 Team[] teams = Team.all.clone();
                 Arrays.sort(teams, Comparator.comparingInt(t -> -t.cores().size));
-                if (teams[0].cores().size >= teams[1].cores().size + 3 + (state.wave * 0.1)) {
+                if (teams[0].cores().size >= teams[1].cores().size + coreDominationDifference + (state.wave * 0.1)) {
                     dominatingTeam = teams[0];
                     lock = true;
                 }
@@ -156,6 +158,10 @@ public class UpdateManager implements Manager {
             }
         });
 
+        Events.on(SectorizedEvents.BiomesGeneratedEvent.class, event -> {
+            coreDominationDifference = State.planet.equals(Planets.serpulo.name) ? 3 : 7;
+        });
+
         Events.on(SectorizedEvents.GamemodeStartEvent.class, event -> {
             setServerDescription();
         });
@@ -169,6 +175,8 @@ public class UpdateManager implements Manager {
             Units.setUnitHealthMultiplier((float) (3 - (2 / (Math.pow(state.wave * 0.05, 2) + 1))));
 
             if (state.teams.active.size < 2 && state.wave >= 5) {
+                DiscordBot.sendMessage("**Game Over!** Crux won the game in " + Vars.state.wave + " waves.");
+
                 Events.fire(new SectorizedEvents.RestartEvent("No teams left"));
             }
 
@@ -230,15 +238,6 @@ public class UpdateManager implements Manager {
         netServer.admins.addActionFilter((action) -> {
             if (State.gameState == State.GameState.INACTIVE) return true;
 
-            switch (action.type) {
-                case command:
-                    return false;
-                case control:
-                    if (!(action.unit instanceof BlockUnitUnit) &&
-                            action.unit.type != UnitTypes.oct) return false;
-                    break;
-            }
-
             return true;
         });
     }
@@ -270,6 +269,16 @@ public class UpdateManager implements Manager {
             } else {
                 hideHud.add(uuid);
                 MessageUtils.sendMessage(player, "Hud will be hidden shortly!", MessageUtils.MessageLevel.INFO);
+            }
+        });
+
+        handler.<Player>register("restart", "Restarts the server, only available if only one player is online.", (args, player) -> {
+            if (State.gameState == State.GameState.INACTIVE) return;
+
+            if (Groups.player.size() == 1) {
+                Events.fire(new SectorizedEvents.RestartEvent("Called by player"));
+            } else {
+                MessageUtils.sendMessage(player, "You can only call a restart if no one else is online.", MessageUtils.MessageLevel.WARNING);
             }
         });
 
@@ -326,6 +335,8 @@ public class UpdateManager implements Manager {
 
                         if (biomeIndex >= 0 && biomeIndex < Biomes.all.size()) {
                             biomeVote = Biomes.all.get(biomeIndex);
+                        } else {
+                            throw new NumberFormatException();
                         }
                     } catch (NumberFormatException e) {
                         MessageUtils.sendMessage(player, "Vote invalid! Biome does not exists!", MessageUtils.MessageLevel.WARNING);

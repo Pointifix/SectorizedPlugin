@@ -50,7 +50,7 @@ public class ErekirBiome implements Biomes.Biome {
         Seq<Block> oreBlocks = Seq.with(Blocks.oreBeryllium, Blocks.oreTungsten, Blocks.oreCrystalThorium);
         for (Block block : oreBlocks) {
             OreFilter filter = new OreFilter();
-            filter.threshold = block.asFloor().oreThreshold += 0.02f;
+            filter.threshold = block.asFloor().oreThreshold += 0.005f;
             filter.scl = block.asFloor().oreScale -= 1f;
             filter.ore = block;
             ores.add(filter);
@@ -97,7 +97,7 @@ public class ErekirBiome implements Biomes.Biome {
 
         boolean wall = normalizeSimplex(Simplex.noise2d(seed1, 10, 0.4, 0.03, x, y)) < 0.5 && proximity < wallThreshold;
         if (wall) {
-            boolean carbon = normalizeSimplex(Simplex.noise2d(seed2, 10, 0.4, 0.05, x, y)) < 0.45;
+            boolean carbon = normalizeSimplex(Simplex.noise2d(seed2, 10, 0.4, 0.05, x, y)) < 0.5;
 
             tile.setBlock(carbon ? Blocks.carbonWall : this.wall);
 
@@ -116,7 +116,7 @@ public class ErekirBiome implements Biomes.Biome {
             int mx = x % 5, my = y % 5;
 
             double n = Noise.rawNoise(sx * Math.E, sy * Math.E);
-            int offset = n < 0.2 ? n < -0.2 ? -1 : 0 : 1;
+            int offset = n < 0.1 ? n < -0.1 ? -1 : 0 : 1;
 
             if (mx > offset && mx < 4 + offset && my > offset && my < 4 + offset && Noise.rawNoise(sx * Math.PI, sy * Math.PI) > ventThreshold) {
                 tile.setFloor(vent);
