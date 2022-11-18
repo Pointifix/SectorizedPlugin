@@ -5,6 +5,7 @@ import mindustry.content.Blocks;
 public class BlockG {
     public static SimpleGenerator placeholder = new SimpleGenerator(null);
 
+    //SERPULO
     public static SimpleGenerator sand = new SimpleGenerator(Blocks.sand);
     public static SimpleGenerator darksand = new SimpleGenerator(Blocks.darksand);
     public static SimpleGenerator slag = new SimpleGenerator(Blocks.slag);
@@ -31,4 +32,22 @@ public class BlockG {
     public static SimpleGenerator salt = new SimpleGenerator(Blocks.salt);
     public static SimpleGenerator metalFloorDamaged = new SimpleGenerator(Blocks.metalFloorDamaged);
     public static SimpleGenerator metalFloor = new SimpleGenerator(Blocks.metalFloor);
+    public static SimpleGenerator cryofluid = new SimpleGenerator(Blocks.cryofluid);
+
+    //EREKIR
+    public static SimpleGenerator crystallineStone = new SimpleGenerator(Blocks.crystallineStone);
+    public static SimpleGenerator crystalFloor = new SimpleGenerator(Blocks.crystalFloor);
+    public static SimpleGenerator beryllicStone = new SimpleGenerator(Blocks.beryllicStone);
+    public static SimpleGenerator rhyolite = new SimpleGenerator(Blocks.rhyolite);
+    public static SimpleGenerator rhyoliteCrater = new SimpleGenerator(Blocks.rhyoliteCrater);
+    public static SimpleGenerator roughRhyolite = new SimpleGenerator(Blocks.roughRhyolite);
+    public static SimpleGenerator regolith = new SimpleGenerator(Blocks.regolith);
+    public static SimpleGenerator yellowStone = new SimpleGenerator(Blocks.yellowStone);
+    public static SimpleGenerator yellowStonePlates = new SimpleGenerator(Blocks.yellowStonePlates);
+    public static SimpleGenerator arkyciteFloor = new SimpleGenerator(Blocks.arkyciteFloor);
+    public static SimpleGenerator arkyicStone = new SimpleGenerator(Blocks.arkyicStone);
+    public static SimpleGenerator redStone = new SimpleGenerator(Blocks.redStone);
+    public static SimpleGenerator redIce = new SimpleGenerator(Blocks.redIce);
+    public static SimpleGenerator denseRedStone = new SimpleGenerator(Blocks.denseRedStone);
+    public static SimpleGenerator carbonStone = new SimpleGenerator(Blocks.carbonStone);
 }

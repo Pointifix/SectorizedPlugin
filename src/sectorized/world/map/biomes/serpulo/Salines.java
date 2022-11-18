@@ -1,17 +1,18 @@
-package sectorized.world.map.biomes.simple;
+package sectorized.world.map.biomes.serpulo;
 
 import arc.math.Mathf;
 import arc.util.noise.Simplex;
 import mindustry.content.Blocks;
 import mindustry.maps.filters.OreFilter;
 import mindustry.world.Tile;
-import sectorized.world.map.biomes.SimpleBiome;
+import sectorized.world.map.Biomes;
+import sectorized.world.map.biomes.SerpuloBiome;
 import sectorized.world.map.generator.BlockG;
 import sectorized.world.map.generator.Generator;
 import sectorized.world.map.generator.SimplexGenerator2D;
 
-public class Salines extends SimpleBiome {
-    private final Simplex rotationSimplex;
+public class Salines extends SerpuloBiome {
+    private final int seed = Mathf.random(99999999);
 
     public Salines() {
         super(new SimplexGenerator2D(new Generator[][]{
@@ -29,18 +30,16 @@ public class Salines extends SimpleBiome {
         }, 12, 0.62, 0.01, 1.3, 12, 0.62, 0.01, 1.3));
 
         ores.each(o -> ((OreFilter) o).threshold -= 0.03f);
-
-        rotationSimplex = new Simplex(Mathf.random(99999999));
     }
 
     @Override
-    public void sample(int x, int y, Tile tile) {
-        double rotation = ((rotationSimplex.octaveNoise2D(12, 0.4, 0.0005, x, y) - 0.1) * 1.25) * Math.PI * 2;
+    public void sample(int x, int y, Tile tile, Biomes.Biome neighbor, double proximity) {
+        double rotation = ((Simplex.noise2d(seed, 12, 0.4, 0.0005, x, y) - 0.1) * 1.25) * Math.PI * 2;
 
         int rx = (int) (35 * Math.cos(rotation));
         int ry = (int) (35 * Math.sin(rotation));
 
-        super.sample(x + rx, y + ry, tile);
+        super.sample(x + rx, y + ry, tile, neighbor, proximity);
 
         if (tile.block() == Blocks.air) {
             if (tile.floor() == Blocks.sand && Mathf.chance(0.01)) tile.setBlock(Blocks.sandBoulder);

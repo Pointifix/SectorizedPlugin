@@ -5,12 +5,15 @@ import arc.math.geom.Point2;
 import arc.struct.Seq;
 import arc.util.noise.Simplex;
 import mindustry.content.Blocks;
+import mindustry.content.Planets;
 import mindustry.entities.units.BuildPlan;
 import mindustry.game.Team;
+import mindustry.world.Block;
 import mindustry.world.Tile;
 import mindustry.world.blocks.environment.Floor;
 import mindustry.world.blocks.storage.CoreBlock;
 import sectorized.constant.Constants;
+import sectorized.constant.State;
 import sectorized.sector.core.objects.Rectangle;
 import sectorized.sector.core.objects.SubRectangle;
 
@@ -24,7 +27,8 @@ public class SectorSpawns {
     public SectorSpawns(GridAccelerator gridAccelerator) {
         this.gridAccelerator = gridAccelerator;
 
-        int size = Constants.radii.get((CoreBlock) Blocks.coreNucleus);
+        final int size = Constants.radii.get((CoreBlock) Blocks.coreNucleus);
+        final int rObstacle = 5;
 
         for (int x = 0; x + Constants.spawnCellSize <= world.width(); x += Constants.spawnCellSize) {
             for (int y = 0; y + Constants.spawnCellSize <= world.height(); y += Constants.spawnCellSize) {
@@ -42,14 +46,22 @@ public class SectorSpawns {
                     }
                 }
 
-                if (hasSurfaceCount > size * size / 300) {
+                boolean obstacle = false;
+                for (int i = Math.max(rx - rObstacle, 0); i < Math.min(rx + rObstacle, world.width() - 1); i++) {
+                    for (int j = Math.max(ry - rObstacle, 0); j < Math.min(ry + rObstacle, world.height() - 1); j++) {
+                        Block block = world.tile(i, j).block();
+                        if (!world.tile(i, j).floor().hasSurface() || (block != null && block.solid)) obstacle = true;
+                    }
+                }
+
+                if (!obstacle && hasSurfaceCount > size * size / 300) {
                     spawnSeq.add(new Point2(rx, ry));
                 }
             }
         }
 
         int radius = (int) (state.rules.dropZoneRadius / tilesize);
-        Simplex simplex = new Simplex(Mathf.random(100_000));
+        final int seed = Mathf.random(100_000);
 
         int offset = Mathf.random(5) + 1;
         for (int i = 0; i < 4; i++) {
@@ -62,33 +74,41 @@ public class SectorSpawns {
 
             for (int x = Math.max(0, tile.x - radius); x <= Math.min(world.width() - 1, tile.x + radius); x++) {
                 for (int y = Math.max(0, tile.y - radius); y <= Math.min(world.height() - 1, tile.y + radius); y++) {
-                    double t = simplex.octaveNoise2D(10, 0.5, 0.1, x, y);
+                    if (State.planet.equals(Planets.serpulo.name)) {
+                        double t = Simplex.noise2d(seed, 10, 0.5, 0.1, x, y);
 
-                    if (world.tile(x, y).floor().hasSurface() ? t < 0.6 : t < 0.3) {
+                        if (world.tile(x, y).floor().hasSurface() ? t < 0.6 : t < 0.3) {
+                            int dist = (int) tile.dst(x * tilesize, y * tilesize) / tilesize;
+
+                            if (dist < radius) {
+                                int b = Mathf.random(4);
+
+                                switch (b) {
+                                    case 0:
+                                        world.tile(x, y).setFloor((Floor) Blocks.darkPanel1);
+                                        break;
+                                    case 1:
+                                        world.tile(x, y).setFloor((Floor) Blocks.darkPanel2);
+                                        break;
+                                    case 2:
+                                        world.tile(x, y).setFloor((Floor) Blocks.darkPanel3);
+                                        break;
+                                    case 3:
+                                        world.tile(x, y).setFloor((Floor) Blocks.darkPanel4);
+                                        break;
+                                    case 4:
+                                        world.tile(x, y).setFloor((Floor) Blocks.darkPanel5);
+                                        break;
+                                }
+                            } else if (dist == radius) {
+                                world.tile(x, y).setFloor((Floor) Blocks.metalFloor5);
+                            }
+                        }
+                    } else if (State.planet.equals(Planets.erekir.name)) {
                         int dist = (int) tile.dst(x * tilesize, y * tilesize) / tilesize;
 
-                        if (dist < radius) {
-                            int b = Mathf.random(4);
-
-                            switch (b) {
-                                case 0:
-                                    world.tile(x, y).setFloor((Floor) Blocks.darkPanel1);
-                                    break;
-                                case 1:
-                                    world.tile(x, y).setFloor((Floor) Blocks.darkPanel2);
-                                    break;
-                                case 2:
-                                    world.tile(x, y).setFloor((Floor) Blocks.darkPanel3);
-                                    break;
-                                case 3:
-                                    world.tile(x, y).setFloor((Floor) Blocks.darkPanel4);
-                                    break;
-                                case 4:
-                                    world.tile(x, y).setFloor((Floor) Blocks.darkPanel5);
-                                    break;
-                            }
-                        } else if (dist == radius) {
-                            world.tile(x, y).setFloor((Floor) Blocks.metalFloor5);
+                        if (dist <= radius && dist >= radius - 1) {
+                            world.tile(x, y).setFloor((Floor) Blocks.coreZone);
                         }
                     }
                 }

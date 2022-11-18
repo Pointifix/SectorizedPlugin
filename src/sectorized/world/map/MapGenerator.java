@@ -6,6 +6,7 @@ import arc.func.Cons;
 import arc.math.Mathf;
 import arc.struct.StringMap;
 import mindustry.content.Blocks;
+import mindustry.content.Planets;
 import mindustry.maps.Map;
 import mindustry.world.Block;
 import mindustry.world.Tile;
@@ -13,6 +14,9 @@ import mindustry.world.Tiles;
 import mindustry.world.blocks.environment.Floor;
 import sectorized.SectorizedEvents;
 import sectorized.constant.DiscordBot;
+import sectorized.constant.Loadout;
+import sectorized.constant.State;
+import sectorized.world.map.generator.BiomeSelection;
 
 import java.util.HashMap;
 
@@ -27,12 +31,18 @@ public class MapGenerator implements Cons<Tiles> {
     public MapGenerator() {
         String biomeVoteString = (String) Core.settings.get("biomeVote", "");
         biomeVote = Biomes.all.stream().filter(biome -> biome.toString().equals(biomeVoteString)).findFirst().orElse(null);
+        Core.settings.put("biomeVote", "");
+        Core.settings.manualSave();
     }
 
     @Override
     public void get(Tiles tiles) {
+        final String planet = biomeVote != null ? biomeVote.getPlanet() : Mathf.chance(0.7) ? Planets.serpulo.name : Planets.erekir.name;
+        State.planet = planet;
+        state.rules.loadout = Loadout.getLoadout(1);
+
         RiversGenerator riversGenerator = new RiversGenerator();
-        BiomesGenerator biomesGenerator = new BiomesGenerator();
+        BiomesGenerator biomesGenerator = planet.equals(Planets.serpulo.name) ? new SerpuloBiomesGenerator() : new ErekirBiomesGenerator();
 
         int offsetX = Mathf.random(9999999);
         int offsetY = Mathf.random(9999999);
@@ -46,7 +56,7 @@ public class MapGenerator implements Cons<Tiles> {
             for (int i = 0; i < 10; i++) {
                 for (int x = sampleDensity / 2; x < world.width(); x += sampleDensity) {
                     for (int y = sampleDensity / 2; y < world.height(); y += sampleDensity) {
-                        Biomes.Biome biome = biomesGenerator.sample(x + offsetX, y + offsetY);
+                        Biomes.Biome biome = biomesGenerator.sample(x + offsetX, y + offsetY).closest;
 
                         biomeDistribution.put(biome, biomeDistribution.getOrDefault(biome, 0) + 1);
                     }
@@ -67,31 +77,50 @@ public class MapGenerator implements Cons<Tiles> {
 
                 biomeDistribution.clear();
             }
-            
+
             offsetX = maxOffsetX;
             offsetY = maxOffsetY;
         }
 
         for (int x = 0; x < world.width(); x++) {
             for (int y = 0; y < world.height(); y++) {
-                Block water = riversGenerator.sample(x + offsetX, y + offsetY);
+                if (planet.equals(Planets.serpulo.name)) {
+                    Block water = riversGenerator.sample(x + offsetX, y + offsetY);
 
-                Tile tile = new Tile(x, y);
+                    Tile tile = new Tile(x, y);
 
-                if (water == null) {
-                    Biomes.Biome biome = biomesGenerator.sample(x + offsetX, y + offsetY);
+                    if (x == 0 || x == world.width() - 1 || y == 0 || y == world.height() - 1) {
+                        tile.setFloor((Floor) Blocks.stone);
+                        tile.setBlock(Blocks.duneWall);
+                    } else {
+                        if (water == null) {
+                            BiomeSelection biomeSelection = biomesGenerator.sample(x + offsetX, y + offsetY);
 
-                    biomeDistribution.put(biome, biomeDistribution.getOrDefault(biome, 0) + 1);
+                            biomeDistribution.put(biomeSelection.closest, biomeDistribution.getOrDefault(biomeSelection.closest, 0) + 1);
 
-                    biome.sample(x + offsetX, y + offsetY, tile);
-                } else {
-                    tile.setFloor((Floor) water);
+                            biomeSelection.closest.sample(x + offsetX, y + offsetY, tile, biomeSelection.farthest, biomeSelection.proximity);
+                        } else {
+                            tile.setFloor((Floor) water);
+                        }
+                    }
+
+                    tiles.set(x, y, tile);
+                } else if (planet.equals(Planets.erekir.name)) {
+                    Tile tile = new Tile(x, y);
+
+                    if (x <= 1 || x >= world.width() - 2 || y <= 1 || y >= world.height() - 2) {
+                        tile.setFloor((Floor) Blocks.carbonStone);
+                        tile.setBlock(Blocks.carbonWall);
+                    } else {
+                        BiomeSelection biomeSelection = biomesGenerator.sample(x + offsetX, y + offsetY);
+
+                        biomeDistribution.put(biomeSelection.closest, biomeDistribution.getOrDefault(biomeSelection.closest, 0) + 1);
+
+                        biomeSelection.closest.sample(x + offsetX, y + offsetY, tile, biomeSelection.farthest, biomeSelection.proximity);
+                    }
+
+                    tiles.set(x, y, tile);
                 }
-
-                if (x == 0 || x == world.width() - 1 || y == 0 || y == world.height() - 1)
-                    tile.setBlock(Blocks.duneWall);
-
-                tiles.set(x, y, tile);
             }
         }
 
@@ -111,6 +140,16 @@ public class MapGenerator implements Cons<Tiles> {
         Events.fire(new SectorizedEvents.BiomesGeneratedEvent());
 
         DiscordBot.sendMessage("**Server started!** Current map: " + mostFrequentBiomes);
+
+        if (planet.equals(Planets.serpulo.name)) {
+            state.rules.env = Planets.serpulo.defaultEnv;
+            state.rules.hiddenBuildItems.clear();
+            state.rules.hiddenBuildItems.addAll(Planets.serpulo.hiddenItems);
+        } else if (planet.equals(Planets.erekir.name)) {
+            state.rules.env = Planets.erekir.defaultEnv;
+            state.rules.hiddenBuildItems.clear();
+            state.rules.hiddenBuildItems.addAll(Planets.erekir.hiddenItems);
+        }
 
         state.map = new Map(StringMap.of("name", mostFrequentBiomes));
     }

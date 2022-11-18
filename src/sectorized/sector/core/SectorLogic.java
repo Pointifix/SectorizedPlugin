@@ -3,13 +3,11 @@ package sectorized.sector.core;
 import arc.graphics.Color;
 import arc.math.Mathf;
 import arc.math.geom.Point2;
-import arc.struct.Queue;
 import arc.util.Time;
 import mindustry.content.Blocks;
 import mindustry.content.Bullets;
 import mindustry.content.Fx;
 import mindustry.game.Team;
-import mindustry.game.Teams;
 import mindustry.gen.Building;
 import mindustry.gen.Call;
 import mindustry.type.Item;
@@ -121,6 +119,8 @@ public class SectorLogic {
         int size = Constants.radii.get((CoreBlock) coreTile.block());
         Rectangle removeRectangle = coreBuildRectangleMap.remove(coreTile.pos());
 
+        if (removeRectangle == null) return;
+
         gridAccelerator.removeRectangle(removeRectangle);
         SubRectangle[] subRectangles = gridAccelerator.getIntersectingRectangles(removeRectangle);
 
@@ -139,10 +139,6 @@ public class SectorLogic {
             int sector = sectors[x][y];
 
             if (!(borderX || borderY) && sector >= 0 && sector != world.tile(x, y).team().id) {
-                Queue<Teams.BlockPlan> blocks = Team.get(removeRectangle.teamId).data().blocks;
-                int removeIndex = blocks.indexOf(b -> b.x == x && b.y == y);
-                if (removeIndex >= 0) blocks.removeIndex(removeIndex);
-
                 destroyTileWithoutPolyRebuild(world.tile(x, y));
             }
         });

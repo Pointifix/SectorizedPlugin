@@ -1,4 +1,4 @@
-package sectorized.world.map.biomes.simple;
+package sectorized.world.map.biomes.serpulo;
 
 import arc.math.Mathf;
 import mindustry.content.Blocks;
@@ -7,14 +7,15 @@ import mindustry.game.Schematics;
 import mindustry.game.Team;
 import mindustry.maps.filters.OreFilter;
 import mindustry.world.Tile;
-import sectorized.world.map.biomes.SimpleBiome;
+import sectorized.world.map.Biomes;
+import sectorized.world.map.biomes.SerpuloBiome;
 import sectorized.world.map.generator.BlockG;
 import sectorized.world.map.generator.Generator;
 import sectorized.world.map.generator.SimplexGenerator2D;
 
 import static mindustry.Vars.world;
 
-public class Ruins extends SimpleBiome {
+public class Ruins extends SerpuloBiome {
     private static final Schematic[] ruins = {
             Schematics.readBase64("bXNjaAF4nEWMSwqAMBBD31h/6MaLuPBIRYsUaitV8fqOuHAR8iEJLaagjHZz1Pny8ZjoF3fM2e+nTxEMnTq7j7cNgeHXY7B5dZRLShloFBQYQVTIO1TSb+gQofrS+u18bfMAAasVAw=="),
             Schematics.readBase64("bXNjaAF4nC1N2wrDIAw9VdlG21/xpX+UrXkQnEp0lP39ElxIci7hEAR4h1DozbjJJ5V+YDu5vyS1kWoBAlZV1OJFOWPrNZPERoUz7k8ag+WLtdWLJZZ6MoAds5b/aDljxvWZEW/LGTgzvcLymFJdWFvCz7yd8QP0RxiP"),
@@ -29,7 +30,7 @@ public class Ruins extends SimpleBiome {
     public Ruins() {
         super(new SimplexGenerator2D(new Generator[][]{
                 {new SimplexGenerator2D(new Generator[][]{
-                        {BlockG.dirt, BlockG.darksand},
+                        {BlockG.dirt, BlockG.cryofluid},
                         {BlockG.basalt, BlockG.darksand},
                 }, 12, 0.5, 0.1, 1.15, 12, 0.5, 0.1, 1.15), BlockG.basalt, BlockG.darksand, BlockG.sand, BlockG.grass},
                 {BlockG.basalt, BlockG.darksand, BlockG.darksand, BlockG.sand, BlockG.sand},
@@ -46,8 +47,8 @@ public class Ruins extends SimpleBiome {
     }
 
     @Override
-    public void sample(int x, int y, Tile tile) {
-        super.sample(x, y, tile);
+    public void sample(int x, int y, Tile tile, Biomes.Biome neighbor, double proximity) {
+        super.sample(x, y, tile, neighbor, proximity);
 
         if (tile.block() == Blocks.air) {
             if (tile.floor() == Blocks.sand && Mathf.chance(0.01)) tile.setBlock(Blocks.sandBoulder);

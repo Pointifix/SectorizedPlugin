@@ -27,67 +27,84 @@ public class DiscordBot {
     private static final HashMap<String, sectorized.faction.core.Member> awaitConfirmMessage = new HashMap<>();
 
     public static void init() {
-        try {
-            Gson gson = new Gson();
-            Reader reader = Files.newBufferedReader(Paths.get("config/mods/config/discordConfig.json"));
-            DiscordConfig config = gson.fromJson(reader, DiscordConfig.class);
-            reader.close();
+        if (Config.c.discordEnabled) {
+            try {
+                Gson gson = new Gson();
+                Reader reader = Files.newBufferedReader(Paths.get("config/mods/config/discordConfig.json"));
+                DiscordConfig config = gson.fromJson(reader, DiscordConfig.class);
+                reader.close();
 
-            DiscordBot.bot = JDABuilder.createDefault(config.token)
-                    .setChunkingFilter(ChunkingFilter.ALL)
-                    .setMemberCachePolicy(MemberCachePolicy.ALL)
-                    .enableIntents(GatewayIntent.GUILD_MEMBERS)
-                    .build()
-                    .awaitReady();
+                DiscordBot.bot = JDABuilder.createDefault(config.token)
+                        .setChunkingFilter(ChunkingFilter.ALL)
+                        .setMemberCachePolicy(MemberCachePolicy.ALL)
+                        .enableIntents(GatewayIntent.GUILD_MEMBERS)
+                        .build()
+                        .awaitReady();
 
-            DiscordBot.guild = DiscordBot.bot.getGuildById(config.guildID);
+                DiscordBot.guild = DiscordBot.bot.getGuildById(config.guildID);
 
-            DiscordBot.log = DiscordBot.bot.getTextChannelById(config.logChannelID);
-            DiscordBot.hallOfFame = DiscordBot.bot.getTextChannelById(config.hallOfFameChannelID);
+                DiscordBot.log = DiscordBot.bot.getTextChannelById(config.logChannelID);
+                DiscordBot.hallOfFame = DiscordBot.bot.getTextChannelById(config.hallOfFameChannelID);
 
-            DiscordBot.bot.addEventListener(new MessageListener());
-        } catch (LoginException | InterruptedException | IOException e) {
-            e.printStackTrace();
+                DiscordBot.bot.addEventListener(new MessageListener());
+            } catch (LoginException | InterruptedException | IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     public static void sendMessage(String message) {
-        log.sendMessage(message).queue();
+        if (Config.c.discordEnabled) {
+            log.sendMessage(message).queue();
+        }
     }
 
     public static void sendMessageToHallOfFame(String message) {
-        hallOfFame.sendMessage(message).queue();
+        if (Config.c.discordEnabled) {
+            hallOfFame.sendMessage(message).queue();
+        }
     }
 
     public static void editLastMessageInHallOfFame(String message) {
-        hallOfFame.getHistory().retrievePast(1).queue(messages -> {
-            if (messages.size() == 1) {
-                Message m = messages.get(0);
+        if (Config.c.discordEnabled) {
+            hallOfFame.getHistory().retrievePast(1).queue(messages -> {
+                if (messages.size() == 1) {
+                    Message m = messages.get(0);
 
-                if (m.getAuthor().isBot()) m.editMessage(message).queue();
-            }
-        });
+                    if (m.getAuthor().isBot()) m.editMessage(message).queue();
+                }
+            });
+        }
     }
 
     public static void setStatus(String status) {
-        DiscordBot.bot.getPresence().setActivity(Activity.playing(status));
+        if (Config.c.discordEnabled) {
+            DiscordBot.bot.getPresence().setActivity(Activity.playing(status));
+        }
     }
 
     public static boolean checkIfExists(String tag) {
-        return guild.getMemberByTag(tag) != null;
+        if (Config.c.discordEnabled) {
+            return guild.getMemberByTag(tag) != null;
+        }
+        return false;
     }
 
     public static void register(String tag, sectorized.faction.core.Member sectorizedMember) {
-        Member member = guild.getMemberByTag(tag);
+        if (Config.c.discordEnabled) {
+            Member member = guild.getMemberByTag(tag);
 
-        if (member != null) {
-            awaitConfirmMessage.put(member.getUser().getAsTag(), sectorizedMember);
+            if (member != null) {
+                awaitConfirmMessage.put(member.getUser().getAsTag(), sectorizedMember);
 
-            member.getUser().openPrivateChannel().queue(privateChannel -> {
-                privateChannel.sendMessage("Was that you? \nA user named *" + Strings.stripColors(sectorizedMember.player.name).substring(1).replace("@", "at") + "* requested to link this account, type **yes** to confirm! \nIf that was not you please ignore this message!").queue();
-            });
+                member.getUser().openPrivateChannel().queue(privateChannel -> {
+                    privateChannel.sendMessage("Was that you? \nA user named *" + Strings.stripColors(sectorizedMember.player.name).substring(1).replace("@", "at") + "* requested to link this account, type **yes** to confirm! \nIf that was not you please ignore this message!").queue();
+                });
 
-            MessageUtils.sendMessage(sectorizedMember.player, "Check your Discord, you should have received a message from the " + MessageUtils.cHighlight1 + "SectorizedBot" + MessageUtils.cDefault + ". \nIf not, you probably have to adjust your settings to allow messages from other server members.", MessageUtils.MessageLevel.INFO);
+                MessageUtils.sendMessage(sectorizedMember.player, "Check your Discord, you should have received a message from the " + MessageUtils.cHighlight1 + "SectorizedBot" + MessageUtils.cDefault + ". \nIf not, you probably have to adjust your settings to allow messages from other server members.", MessageUtils.MessageLevel.INFO);
+            }
+        } else {
+            MessageUtils.sendMessage(sectorizedMember.player, "Discord currently disabled", MessageUtils.MessageLevel.WARNING);
         }
     }
 
@@ -150,7 +167,8 @@ public class DiscordBot {
 
                 if (role != null) {
                     for (Role guildMemberRole : guildMember.getRoles()) {
-                        DiscordBot.guild.removeRoleFromMember(guildMember, guildMemberRole).queue();
+                        if (!guildMemberRole.getName().equals(roleName))
+                            DiscordBot.guild.removeRoleFromMember(guildMember, guildMemberRole).queue();
                     }
 
                     DiscordBot.guild.addRoleToMember(guildMember, role).queue();

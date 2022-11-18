@@ -2,17 +2,20 @@ package sectorized.update;
 
 import arc.Core;
 import arc.Events;
+import arc.struct.Seq;
 import arc.util.Timer;
 import arc.util.*;
+import mindustry.Vars;
+import mindustry.content.Planets;
 import mindustry.content.UnitTypes;
 import mindustry.game.EventType;
 import mindustry.game.Team;
-import mindustry.gen.BlockUnitUnit;
 import mindustry.gen.Call;
 import mindustry.gen.Groups;
 import mindustry.gen.Player;
 import mindustry.net.Administration;
 import mindustry.net.Packets;
+import mindustry.type.ItemSeq;
 import mindustry.type.ItemStack;
 import sectorized.Manager;
 import sectorized.SectorizedEvents;
@@ -33,13 +36,14 @@ public class UpdateManager implements Manager {
     private int infoMessageIndex = 0;
 
     private final HashMap<Biomes.Biome, Integer> biomeVotes = new HashMap<>();
-    private final ArrayList<String> biomeVotePlayers = new ArrayList();
     private boolean biomeVoteFinished = false;
+
+    private int coreDominationDifference = 3;
 
     @Override
     public void init() {
         Events.run(EventType.Trigger.update, () -> {
-            if (State.gameState == State.GameState.INACTIVE) return;
+            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
             State.time += Time.delta;
 
@@ -51,9 +55,11 @@ public class UpdateManager implements Manager {
                 Groups.player.each(player -> !hideHud.contains(player.uuid()), player -> {
                     int cores = player.team().cores().size - 1;
 
-                    StringBuilder infoPopupText = new StringBuilder(MessageUtils.cInfo + "Costs for next[white] \uF869\n");
+                    StringBuilder infoPopupText = State.planet.equals(Planets.serpulo.name) ? new StringBuilder(MessageUtils.cInfo + "Costs for next[white] \uF869\n") : new StringBuilder(MessageUtils.cInfo + "Costs for next[white] \uF725\n");
 
-                    for (ItemStack itemStack : CoreCost.requirements[Math.max(Math.min(cores, CoreCost.requirements.length - 1), 0)]) {
+                    ItemSeq[] requirements = State.planet.equals(Planets.serpulo.name) ? CoreCost.requirementsSerpulo : CoreCost.requirementsErekir;
+
+                    for (ItemStack itemStack : requirements[Math.max(Math.min(cores, requirements.length - 1), 0)]) {
                         int availableItems = player.team().items().get(itemStack.item);
 
                         infoPopupText
@@ -110,14 +116,14 @@ public class UpdateManager implements Manager {
             }
 
             if (interval.get(2, 60 * 60 * 2)) {
-                if (Groups.player.size() < 2) return;
+                if (Groups.player.size() < 2 || state.wave < 15) return;
 
                 Team dominatingTeam = null;
                 boolean lock = false;
 
                 Team[] teams = Team.all.clone();
                 Arrays.sort(teams, Comparator.comparingInt(t -> -t.cores().size));
-                if (teams[0].cores().size >= teams[1].cores().size + 3 + (state.wave * 0.1)) {
+                if (teams[0].cores().size >= teams[1].cores().size + coreDominationDifference + (state.wave * 0.1)) {
                     dominatingTeam = teams[0];
                     lock = true;
                 }
@@ -152,23 +158,122 @@ public class UpdateManager implements Manager {
             }
         });
 
+        Events.on(SectorizedEvents.BiomesGeneratedEvent.class, event -> {
+            coreDominationDifference = State.planet.equals(Planets.serpulo.name) ? 3 : 7;
+        });
+
         Events.on(SectorizedEvents.GamemodeStartEvent.class, event -> {
             setServerDescription();
         });
 
         Events.on(EventType.WaveEvent.class, event -> {
+            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
+
             state.rules.loadout = Loadout.getLoadout(state.wave);
 
-            state.rules.blockDamageMultiplier = (float) (1 + (1 / (Math.pow(state.wave * 0.05, 2) + 1)));
-            state.rules.unitDamageMultiplier = (float) (1.5 - (1 / (Math.pow(state.wave * 0.05, 2) + 1)));
+            state.rules.blockDamageMultiplier = (float) (1 + (2 / (Math.pow(state.wave * 0.05, 2) + 1)));
+            state.rules.unitDamageMultiplier = (float) (3 - (2.5 / (Math.pow(state.wave * 0.05, 2) + 1)));
 
             Units.setUnitHealthMultiplier((float) (3 - (2 / (Math.pow(state.wave * 0.05, 2) + 1))));
 
             if (state.teams.active.size < 2 && state.wave >= 5) {
+                DiscordBot.sendMessage("**Game Over!** Crux won the game in " + Vars.state.wave + " waves.");
+
                 Events.fire(new SectorizedEvents.RestartEvent("No teams left"));
             }
 
             setServerDescription();
+        });
+
+        MenuUtils.addMenu(20, player -> {
+            return new MenuUtils.MenuContent(
+                    "GAME OVER - Planet Vote",
+                    (State.winner == null ? MessageUtils.cDanger + "Crux[white] won the game in " + MessageUtils.cInfo + Vars.state.wave + "[white] waves!\n\n" : MessageUtils.cPlayer + State.winner.player.name + "[white] won the game in " + MessageUtils.cInfo + Vars.state.wave + "[white] waves!\n\n") +
+                            "Vote for a planet or biome you want to play next game.\n\n" +
+                            "You have 25 seconds to submit your vote!",
+                    new String[][]{
+                            {MessageUtils.cHighlight2 + "Serpulo"},
+                            {MessageUtils.cHighlight3 + "Erekir"},
+                            {MessageUtils.cInfo + "Vote for a specific biome"},
+                            {MessageUtils.cDanger + "Cancel"}
+                    },
+                    new int[][]{
+                            {-1},
+                            {-1},
+                            {21},
+                            {-1}
+                    },
+                    new MenuUtils.Handler[][]{
+                            {p -> {
+                                if (!biomeVoteFinished) {
+                                    for (int i = 0; i < Biomes.all.size(); i++) {
+                                        Biomes.Biome biome = Biomes.all.get(i);
+                                        if (biome.getPlanet().equals(Planets.serpulo.name)) {
+                                            biomeVotes.put(biome, biomeVotes.getOrDefault(biome, 0) + 1);
+                                        }
+                                    }
+                                    diplayCurrentVotes(p, "Serpulo");
+                                } else {
+                                    MessageUtils.sendMessage(player, "Biome vote over!", MessageUtils.MessageLevel.WARNING);
+                                }
+                            }},
+                            {p -> {
+                                if (!biomeVoteFinished) {
+                                    for (int i = 0; i < Biomes.all.size(); i++) {
+                                        Biomes.Biome biome = Biomes.all.get(i);
+                                        if (biome.getPlanet().equals(Planets.erekir.name)) {
+                                            biomeVotes.put(biome, biomeVotes.getOrDefault(biome, 0) + 1);
+                                        }
+                                    }
+                                    diplayCurrentVotes(p, "Erekir");
+                                } else {
+                                    MessageUtils.sendMessage(player, "Biome vote over!", MessageUtils.MessageLevel.WARNING);
+                                }
+                            }},
+                            {p -> {
+
+                            }},
+                            {p -> {
+
+                            }}
+                    }
+            );
+        });
+
+        MenuUtils.addMenu(21, player -> {
+            String[][] options = new String[Biomes.all.size() + 1][1];
+            int[][] links = new int[Biomes.all.size() + 1][1];
+            MenuUtils.Handler[][] handlers = new MenuUtils.Handler[Biomes.all.size() + 1][1];
+
+            for (int i = 0; i < Biomes.all.size(); i++) {
+                Biomes.Biome biome = Biomes.all.get(i);
+
+                options[i][0] = (biome.getPlanet().equals(Planets.serpulo.name) ? MessageUtils.cHighlight2 : MessageUtils.cHighlight3) + biome;
+                links[i][0] = -1;
+                handlers[i][0] = p -> {
+                    if (!biomeVoteFinished) {
+                        biomeVotes.put(biome, biomeVotes.getOrDefault(biome, 0) + 1);
+                        diplayCurrentVotes(p, biome.toString());
+                    } else {
+                        MessageUtils.sendMessage(player, "Biome vote over!", MessageUtils.MessageLevel.WARNING);
+                    }
+                };
+            }
+            options[Biomes.all.size()][0] = MessageUtils.cDanger + "Cancel";
+            links[Biomes.all.size()][0] = -1;
+            handlers[Biomes.all.size()][0] = p -> {
+
+            };
+
+            return new MenuUtils.MenuContent(
+                    "GAME OVER - Biome Vote",
+                    (State.winner == null ? MessageUtils.cDanger + "Crux[white] won the game in " + MessageUtils.cInfo + Vars.state.wave + "[white] waves!\n\n" : MessageUtils.cPlayer + State.winner.player.name + "[white] won the game in " + MessageUtils.cInfo + Vars.state.wave + "[white] waves!\n\n") +
+                            "Vote for a biome you want to play next game.\n\n" +
+                            "You have 25 seconds to submit your vote!",
+                    options,
+                    links,
+                    handlers
+            );
         });
 
         Events.on(SectorizedEvents.RestartEvent.class, event -> {
@@ -177,19 +282,20 @@ public class UpdateManager implements Manager {
             Log.info("Restarting: " + event.reason);
             MessageUtils.sendMessage(event.reason + "\nServer is restarting in " + MessageUtils.cInfo + "30" + MessageUtils.cDefault + " seconds", MessageUtils.MessageLevel.INFO);
 
-            StringBuilder biomeNames = new StringBuilder();
-
-            String prefix = "";
-            for (Biomes.Biome biome : Biomes.all) {
-                biomeNames.append(prefix).append(biome.toString().toLowerCase());
-                prefix = ", ";
+            for (Player player : Groups.player) {
+                MenuUtils.showMenu(20, player);
             }
-
-            MessageUtils.sendMessage("Vote for the next map with " + MessageUtils.cHighlight3 + "/vote <biome>" + MessageUtils.cDefault + ".\n You can vote for the following biomes: " + biomeNames, MessageUtils.MessageLevel.INFO);
 
             Timer.schedule(() -> {
                 if (!biomeVotes.isEmpty()) {
-                    Map.Entry<Biomes.Biome, Integer> voteWinnerBiomeEntry = biomeVotes.entrySet().stream().max(Comparator.comparingInt(Map.Entry::getValue)).get();
+                    Seq<Map.Entry<Biomes.Biome, Integer>> maxEntries = new Seq<>();
+                    int maxValueInMap = (Collections.max(biomeVotes.values()));
+                    for (Map.Entry<Biomes.Biome, Integer> entry : biomeVotes.entrySet()) {
+                        if (entry.getValue() == maxValueInMap) {
+                            maxEntries.add(entry);
+                        }
+                    }
+                    Map.Entry<Biomes.Biome, Integer> voteWinnerBiomeEntry = maxEntries.random();
 
                     MessageUtils.sendMessage(MessageUtils.cHighlight1 + voteWinnerBiomeEntry.getKey() + MessageUtils.cDefault + " won with " + MessageUtils.cHighlight2 + voteWinnerBiomeEntry.getValue() + MessageUtils.cDefault + " vote(s)!", MessageUtils.MessageLevel.INFO);
 
@@ -214,21 +320,6 @@ public class UpdateManager implements Manager {
                 MessageUtils.sendMessage("Server is restarting in " + MessageUtils.cInfo + (countdown.getAndDecrement()) + MessageUtils.cDefault + " second(s).", MessageUtils.MessageLevel.INFO);
             }, 25, 1, seconds);
         });
-
-        netServer.admins.addActionFilter((action) -> {
-            if (State.gameState == State.GameState.INACTIVE) return true;
-
-            switch (action.type) {
-                case command:
-                    return false;
-                case control:
-                    if (!(action.unit instanceof BlockUnitUnit) &&
-                            action.unit.type != UnitTypes.oct) return false;
-                    break;
-            }
-
-            return true;
-        });
     }
 
     @Override
@@ -249,7 +340,7 @@ public class UpdateManager implements Manager {
     @Override
     public void registerClientCommands(CommandHandler handler) {
         handler.<Player>register("hud", "Toggles the visibility of the hud.", (args, player) -> {
-            if (State.gameState == State.GameState.INACTIVE) return;
+            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
             String uuid = player.uuid();
             if (hideHud.contains(uuid)) {
@@ -261,8 +352,18 @@ public class UpdateManager implements Manager {
             }
         });
 
+        handler.<Player>register("restart", "Restarts the server, only available if only one player is online.", (args, player) -> {
+            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
+
+            if (Groups.player.size() == 1) {
+                Events.fire(new SectorizedEvents.RestartEvent("Called by player"));
+            } else {
+                MessageUtils.sendMessage(player, "You can only call a restart if no one else is online.", MessageUtils.MessageLevel.WARNING);
+            }
+        });
+
         handler.<Player>register("time", "Display elapsed time.", (args, player) -> {
-            if (State.gameState == State.GameState.INACTIVE) return;
+            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
             int hour = (int) (State.time / 60 / 60 / 60);
             int min = (int) (State.time / 60 / 60 % 60);
@@ -275,62 +376,9 @@ public class UpdateManager implements Manager {
         });
 
         handler.<Player>register("info", "Display information about the gamemode.", (args, player) -> {
-            if (State.gameState == State.GameState.INACTIVE) return;
+            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
             MessageUtils.sendWelcomeMessage(player);
-        });
-
-        handler.<Player>register("vote", "[biome]", "Vote for a biome you want to play next round.", (args, player) -> {
-            if (State.gameState == State.GameState.INACTIVE) return;
-
-            if (State.gameState == State.GameState.ACTIVE) {
-                MessageUtils.sendMessage(player, "You can only vote for a biome after the round is over!", MessageUtils.MessageLevel.WARNING);
-                return;
-            }
-
-            if (biomeVoteFinished) {
-                MessageUtils.sendMessage(player, "Biome vote over!", MessageUtils.MessageLevel.WARNING);
-                return;
-            }
-
-            if (State.gameState == State.GameState.GAMEOVER) {
-                if (args.length == 0) {
-                    MessageUtils.sendMessage(player, "Vote invalid! Biome does not exists!", MessageUtils.MessageLevel.WARNING);
-                    return;
-                }
-
-                if (biomeVotePlayers.contains(player.uuid())) {
-                    MessageUtils.sendMessage(player, "Vote invalid! You already voted!", MessageUtils.MessageLevel.WARNING);
-                    return;
-                }
-
-                String biomeName = args[0];
-
-                Biomes.Biome biomeVote = Biomes.all.stream().filter(biome -> biome.toString().equalsIgnoreCase(biomeName)).findFirst().orElse(null);
-
-                if (biomeVote == null) {
-                    MessageUtils.sendMessage(player, "Vote invalid! Biome does not exists!", MessageUtils.MessageLevel.WARNING);
-                    return;
-                }
-
-                biomeVotePlayers.add(player.uuid());
-                biomeVotes.put(biomeVote, biomeVotes.getOrDefault(biomeVote, 0) + 1);
-
-                StringBuilder votes = new StringBuilder();
-                String prefix = "";
-                Iterator<Map.Entry<Biomes.Biome, Integer>> it = biomeVotes.entrySet().stream().sorted((b1, b2) -> Integer.compare(b2.getValue(), b1.getValue())).iterator();
-                boolean first = true;
-                while (it.hasNext()) {
-                    Map.Entry<Biomes.Biome, Integer> biomeIntegerEntry = it.next();
-                    votes.append(prefix).append(biomeIntegerEntry.getKey()).append(first ? MessageUtils.cHighlight2 : MessageUtils.cInfo).append("(").append(biomeIntegerEntry.getValue()).append(")").append(MessageUtils.cDefault);
-                    prefix = ", ";
-                    first = false;
-                }
-
-                MessageUtils.sendMessage(player, "Voted for " + MessageUtils.cInfo + biomeVote + MessageUtils.cDefault, MessageUtils.MessageLevel.INFO);
-
-                MessageUtils.sendMessage("Current votes: " + votes, MessageUtils.MessageLevel.INFO);
-            }
         });
     }
 
@@ -348,5 +396,19 @@ public class UpdateManager implements Manager {
             Administration.Config.desc.set("[white]Wave [red]" + state.wave + "[gray] |[white] Time elapsed: [goldenrod]" + (hour > 0 ? hour + "h " : "") +
                     min + "m" + (State.gameState == State.GameState.LOCKED ? "[gray] | [purple]LOCKED" : ""));
         }
+    }
+
+    private void diplayCurrentVotes(Player player, String voteName) {
+        StringBuilder votes = new StringBuilder();
+        String prefix = "";
+        int maxValueInMap = (Collections.max(biomeVotes.values()));
+        for (Map.Entry<Biomes.Biome, Integer> entry : biomeVotes.entrySet()) {
+            votes.append(prefix).append(entry.getKey()).append(entry.getValue() == maxValueInMap ? MessageUtils.cHighlight2 : MessageUtils.cInfo).append("(").append(entry.getValue()).append(")").append(MessageUtils.cDefault);
+            prefix = ", ";
+        }
+
+        MessageUtils.sendMessage(player, "Voted for " + MessageUtils.cInfo + voteName + MessageUtils.cDefault, MessageUtils.MessageLevel.INFO);
+
+        MessageUtils.sendMessage("Current votes: " + votes, MessageUtils.MessageLevel.INFO);
     }
 }

@@ -14,5 +14,8 @@ public class Constants {
         put(Blocks.coreShard, 28);
         put(Blocks.coreFoundation, 33);
         put(Blocks.coreNucleus, 38);
+        put(Blocks.coreBastion, 30);
+        put(Blocks.coreCitadel, 38);
+        put(Blocks.coreAcropolis, 42);
     }};
 }

@@ -5,19 +5,18 @@ import arc.struct.Seq;
 import arc.util.CommandHandler;
 import arc.util.Timer;
 import mindustry.content.UnitTypes;
+import mindustry.core.GameState;
 import mindustry.entities.Units;
 import mindustry.game.EventType;
 import mindustry.game.Team;
 import mindustry.gen.Groups;
 import mindustry.gen.Player;
 import mindustry.gen.Unit;
+import mindustry.gen.Unitc;
 import mindustry.world.blocks.storage.CoreBlock;
 import sectorized.Manager;
 import sectorized.SectorizedEvents;
-import sectorized.constant.DiscordBot;
-import sectorized.constant.MessageUtils;
-import sectorized.constant.StartingBase;
-import sectorized.constant.State;
+import sectorized.constant.*;
 import sectorized.faction.core.Faction;
 import sectorized.faction.core.Member;
 import sectorized.faction.logic.FactionLogic;
@@ -42,27 +41,206 @@ public class FactionManager implements Manager {
     public void init() {
         rankingPersistence.updateHallfOfFame();
 
+        MenuUtils.addMenu(0, player -> {
+            Member member = memberLogic.getMember(player);
+
+            String message;
+            String[][] options;
+            int[][] links;
+            MenuUtils.Handler[][] handler;
+
+            if (member.state == Member.MemberState.WAITING && State.gameState == State.GameState.LOCKED) {
+                message = "A player is currently dominating the game for which reason you can only " + MessageUtils.cHighlight1 + "Spectate [white], please wait until the game is" +
+                        "unlocked again or a new game starts, you can still request to join another team (using " + MessageUtils.cHighlight3 + "/join" + "[white]).";
+
+                options = new String[][]{
+                        {MessageUtils.cHighlight1 + "\uE88A Spectate"},
+                        {MessageUtils.cInfo + "\uE87C Tutorial"}
+                };
+
+                links = new int[][]{
+                        {-1},
+                        {1},
+                };
+
+                handler = new MenuUtils.Handler[][]{
+                        {p -> {
+
+                        }},
+                        {p -> {
+
+                        }}
+                };
+            } else if (member.state == Member.MemberState.ELIMINATED) {
+                message = "You recently got eliminated, you can respawn " + MessageUtils.cInfo + "5 minutes" + MessageUtils.cDefault + " after you got eliminated by rejoining the server!\n\n" +
+                        "Press " + MessageUtils.cHighlight1 + "Spectate [white]if you want to watch others play or if you want to join another team (using " + MessageUtils.cHighlight3 + "/join" + "[white]).";
+
+                options = new String[][]{
+                        {MessageUtils.cHighlight1 + "\uE88A Spectate"},
+                        {MessageUtils.cInfo + "\uE87C Tutorial"}
+                };
+
+                links = new int[][]{
+                        {-1},
+                        {1},
+                };
+
+                handler = new MenuUtils.Handler[][]{
+                        {p -> {
+
+                        }},
+                        {p -> {
+
+                        }}
+                };
+            } else {
+                message = "Press " + MessageUtils.cHighlight2 + "Play [white]to start your own base.\n\n" +
+                        "Press " + MessageUtils.cHighlight1 + "Spectate [white]if you want to watch others play or if you want to join another team (using " + MessageUtils.cHighlight3 + "/join" + "[white]).";
+
+                options = new String[][]{
+                        {MessageUtils.cHighlight2 + "\uE829 Play"},
+                        {MessageUtils.cHighlight1 + "\uE88A Spectate"},
+                        {MessageUtils.cInfo + "\uE87C Tutorial"}
+                };
+
+                links = new int[][]{
+                        {-1},
+                        {-1},
+                        {1},
+                };
+
+                handler = new MenuUtils.Handler[][]{
+                        {p -> {
+                            if (member.state == Member.MemberState.WAITING && State.gameState == State.GameState.LOCKED) {
+                                MessageUtils.sendMessage(member.player, "Spawning is currently " + MessageUtils.cInfo + "locked" + MessageUtils.cDefault + " because a player is dominating the game!", MessageUtils.MessageLevel.WARNING);
+                            } else if (member.state == Member.MemberState.WAITING) {
+                                Events.fire(new SectorizedEvents.NewMemberEvent(member));
+                            } else if (member.state == Member.MemberState.ELIMINATED) {
+                                MessageUtils.sendMessage(p, "You recently got eliminated, you can respawn " + MessageUtils.cInfo + "5 minutes" + MessageUtils.cDefault + " after you got eliminated by rejoining the server!", MessageUtils.MessageLevel.WARNING);
+                            }
+                        }},
+                        {p -> {
+
+                        }},
+                        {p -> {
+
+                        }}
+                };
+            }
+            message += "\n\nIf it is your first time on sectorized please read the " + MessageUtils.cInfo + "Tutorial [white]first!" +
+                    "\n\n[blue]\uE80D" + MessageUtils.cDefault + " https://discord.gg/AmdMXKkS9Q[white]";
+
+            return new MenuUtils.MenuContent(
+                    "Welcome to [white]\uF897[#9C4F96]S[#FF6355]E[#FBA949]C[#FAE442]T[#8BD448]O[#2AA8F2]R[#01D93F]I[#F0EC00]Z[#FF8B00]E[#DB2B28]D[white]\uF897",
+                    message,
+                    options,
+                    links,
+                    handler
+            );
+        });
+        MenuUtils.addMenu(1, player -> {
+            return new MenuUtils.MenuContent(
+                    "Tutorial - The Basics",
+                    "You start with a small base located at a random location that is not occupied by any other base. " +
+                            "Your base is surrounded by " + MessageUtils.cHighlight1 + "shock mines [white]\uF897 highlighting the borders of your sector within which you can build.\n\n" +
+                            "To expand your sector, place a " + MessageUtils.cHighlight3 + "vault[white] \uF866 or " + MessageUtils.cHighlight3 + "reinforced vault[white] \uF70C within your current sector. " +
+                            "The current cost for expanding your sector is diplayed on the info popup. " +
+                            "The building cost and time of a " + MessageUtils.cHighlight3 + "vault[white] is irrelevant for expanding your sector. " +
+                            "Placing a vault instantly turns it into a new core and moves your " + MessageUtils.cHighlight1 + "shock mines [white]border, allowing you to build in the newly acquired area.",
+                    new String[][]{
+                            {"Next"},
+                            {"Back"},
+                    },
+                    new int[][]{
+                            {2},
+                            {0}
+                    },
+                    new MenuUtils.Handler[][]{
+                            {p -> {
+
+                            }},
+                            {p -> {
+
+                            }}
+                    }
+            );
+        });
+        MenuUtils.addMenu(2, player -> {
+            return new MenuUtils.MenuContent(
+                    "Tutorial - Your goal",
+                    "This is a FFA server, you win by eliminating all other teams. " +
+                            "But be aware of the crux waves which have several spawn points across the map and may also " +
+                            "attack your base with air units spawning outside the map!\n\n" +
+                            "Unit health \uf848 and damage \uF7F4 increase over time, while turret damage \uF856 decreases. It is easier to defend early into the " +
+                            "match while units will break through even the strongest defence at some point! So make sure you win the game before the " +
+                            "crux waves conquer the map. Your units will not attack automatically but you can command them. Additionally, you can use the " +
+                            "commands " + MessageUtils.cHighlight3 + "/attack [white]and " + MessageUtils.cHighlight3 + "/defend [white]in order to command your units to automatically attack or to defend your base again.",
+                    new String[][]{
+                            {"Next"},
+                            {"Back"},
+                    },
+                    new int[][]{
+                            {3},
+                            {1}
+                    },
+                    new MenuUtils.Handler[][]{
+                            {p -> {
+
+                            }},
+                            {p -> {
+
+                            }}
+                    }
+            );
+        });
+        MenuUtils.addMenu(3, player -> {
+            return new MenuUtils.MenuContent(
+                    "Tutorial - Commands",
+                    "You can use the following commands:\n" +
+                            "\n" +
+                            MessageUtils.cHighlight3 + "/attack[white] - Units automatically attack \n" +
+                            MessageUtils.cHighlight3 + "/defend[white] - Units idle and defend the base\n" +
+                            MessageUtils.cHighlight3 + "/score[white] - Display your rank, score and wins\n" +
+                            MessageUtils.cHighlight3 + "/leaderboard[white] - Display the leaderboard\n" +
+                            MessageUtils.cHighlight3 + "/join[white] - Request to join another team\n" +
+                            MessageUtils.cHighlight3 + "/accept[white] - Accept a join request\n" +
+                            MessageUtils.cHighlight3 + "/deny[white] - Deny a join request\n" +
+                            MessageUtils.cHighlight3 + "/eliminate[white] - eliminate your base, you will loose points if spawned more than 5 minutes ago\n" +
+                            MessageUtils.cHighlight3 + "/hud[white] - toggle the info popup for core cost\n" +
+                            MessageUtils.cHighlight3 + "/restart[white] - restart the server (only works if you are alone on the server)\n" +
+                            MessageUtils.cHighlight3 + "/time[white] - Display the elapsed time",
+                    new String[][]{
+                            {"Main Menu"},
+                            {"Back"},
+                    },
+                    new int[][]{
+                            {0},
+                            {2}
+                    },
+                    new MenuUtils.Handler[][]{
+                            {p -> {
+
+                            }},
+                            {p -> {
+
+                            }}
+                    }
+            );
+        });
+
         Events.on(EventType.PlayerJoin.class, event -> {
-            if (State.gameState == State.GameState.INACTIVE) return;
-
-            if (state.isPaused()) state.serverPaused = false;
-
-            MessageUtils.sendWelcomeMessage(event.player);
+            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
             Member member = memberLogic.playerJoin(event.player);
 
-            if (State.gameState == State.GameState.LOCKED) {
-                MessageUtils.sendMessage(member.player, "Spawning is currently " + MessageUtils.cInfo + "locked" + MessageUtils.cDefault + " because a player is dominating the game!", MessageUtils.MessageLevel.WARNING);
-            } else if (member.state == Member.MemberState.WAITING) {
-                Events.fire(new SectorizedEvents.NewMemberEvent(member));
-            } else if (member.state == Member.MemberState.ELIMINATED) {
-                MessageUtils.sendMessage(event.player, "You recently got eliminated, you can respawn " + MessageUtils.cInfo + "5 minutes" + MessageUtils.cDefault + " after you got eliminated by rejoining the server!", MessageUtils.MessageLevel.WARNING);
+            if (member.state != Member.MemberState.ALIVE) {
+                MenuUtils.showMenu(0, event.player);
             }
+
+            if (state.isPaused()) state.set(GameState.State.playing);
         });
 
         Events.on(SectorizedEvents.MemberSpawnedEvent.class, event -> {
-            if (State.gameState == State.GameState.INACTIVE) return;
-
             Faction faction = factionLogic.getNewFaction();
             faction.addMember(event.member);
             faction.maxCores = 1;
@@ -71,13 +249,11 @@ public class FactionManager implements Manager {
         });
 
         Events.on(SectorizedEvents.NoSpawnPointAvailableEvent.class, event -> {
-            if (State.gameState == State.GameState.INACTIVE) return;
-
             MessageUtils.sendMessage(event.member.player, "No spawn point available, please wait!", MessageUtils.MessageLevel.WARNING);
         });
 
         Events.on(EventType.BlockDestroyEvent.class, event -> {
-            if (State.gameState == State.GameState.INACTIVE) return;
+            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
             if (event.tile.build instanceof CoreBlock.CoreBuild) {
                 CoreBlock.CoreBuild coreBuild = (CoreBlock.CoreBuild) event.tile.build;
@@ -124,16 +300,17 @@ public class FactionManager implements Manager {
         });
 
         Events.on(EventType.PlayerLeave.class, event -> {
-            if (State.gameState == State.GameState.INACTIVE) return;
+            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
-            if (!state.isPaused() && Groups.player.size() == 0) state.serverPaused = true;
+            if (!state.isPaused() && Groups.player.size() == 0) state.set(GameState.State.paused);
 
             Member member = memberLogic.playerLeave(event.player);
 
             if (member.faction != null) {
                 if (!member.faction.members.contains(m -> m.online)) {
                     Timer.schedule(() -> {
-                        if (!member.faction.members.contains(m -> m.online)) factionLogic.destroyCores(member.faction);
+                        if (!member.faction.members.contains(m -> m.online))
+                            factionLogic.destroyCores(member.faction);
                     }, 30 * member.faction.maxCores);
                 }
             }
@@ -150,6 +327,8 @@ public class FactionManager implements Manager {
         });
 
         Events.on(SectorizedEvents.NoTeamDominatingEvent.class, event -> {
+            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
+
             MessageUtils.sendMessage("(Re)spawning is now " + MessageUtils.cInfo + "unlocked" + MessageUtils.cDefault + " again!", MessageUtils.MessageLevel.INFO);
         });
     }
@@ -168,13 +347,13 @@ public class FactionManager implements Manager {
     @Override
     public void registerClientCommands(CommandHandler handler) {
         handler.<Player>register("leaderboard", "Displays the current leaderboard", (args, player) -> {
-            if (State.gameState == State.GameState.INACTIVE) return;
+            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
             MessageUtils.sendMessage(player, rankingPersistence.leaderboardText, MessageUtils.MessageLevel.INFO);
         });
 
         handler.<Player>register("score", "Displays your score and wins", (args, player) -> {
-            if (State.gameState == State.GameState.INACTIVE) return;
+            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
             Member member = memberLogic.getMember(player);
 
@@ -185,8 +364,51 @@ public class FactionManager implements Manager {
             }
         });
 
+        handler.<Player>register("defend", "Defend your base but do not automatically attack enemy bases", (args, player) -> {
+            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
+
+            Member member = memberLogic.getMember(player);
+
+            if (member.state == Member.MemberState.ALIVE) {
+                member.faction.team.rules().rtsMinSquad = Integer.MAX_VALUE;
+                for (Member m : member.faction.members) {
+                    MessageUtils.sendMessage(m.player, "Units commanded to defend!", MessageUtils.MessageLevel.INFO);
+                }
+
+                Groups.unit.each(u -> !u.isPlayer() && u.team.id == member.faction.team.id, Unitc::resetController);
+            }
+        });
+
+        handler.<Player>register("attack", "[min-squad-size]", "Automatically attack enemy bases", (args, player) -> {
+            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
+
+            Member member = memberLogic.getMember(player);
+
+            int minSquadSize = 1;
+            if (args.length == 1) {
+                try {
+                    int minSquadSizeParam = Integer.parseInt(args[0]);
+
+                    if (minSquadSizeParam > 0 && minSquadSizeParam <= 100) {
+                        minSquadSize = minSquadSizeParam;
+                    } else {
+                        MessageUtils.sendMessage(player, "Min Squad Size must be in the range 1 and 100.", MessageUtils.MessageLevel.WARNING);
+                    }
+                } catch (NumberFormatException e) {
+                    MessageUtils.sendMessage(player, "Min Squad Size must be a number in the range 1 and 100.", MessageUtils.MessageLevel.WARNING);
+                }
+            }
+
+            if (member.state == Member.MemberState.ALIVE) {
+                member.faction.team.rules().rtsMinSquad = minSquadSize;
+                for (Member m : member.faction.members) {
+                    MessageUtils.sendMessage(m.player, "Units commanded to auto-attack!", MessageUtils.MessageLevel.INFO);
+                }
+            }
+        });
+
         handler.<Player>register("eliminate", "Eliminates your team. (only if you are the team leader)", (args, player) -> {
-            if (State.gameState == State.GameState.INACTIVE) return;
+            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
             Member member = memberLogic.getMember(player);
 
@@ -201,64 +423,82 @@ public class FactionManager implements Manager {
             }
         });
 
-        handler.<Player>register("join", "[id]", "Request to join another faction.", (args, player) -> {
-            if (State.gameState == State.GameState.INACTIVE) return;
+        MenuUtils.addMenu(10, player -> {
+            Member requester = memberLogic.getMember(player);
+            Seq<Member> leaders = factionLogic.getJoinableFactionLeaders(requester);
+
+            String[][] options = new String[leaders.size + 1][1];
+            int[][] links = new int[leaders.size + 1][1];
+            MenuUtils.Handler[][] handlers = new MenuUtils.Handler[leaders.size + 1][1];
+
+            for (int i = 0; i < leaders.size; i++) {
+                Member leader = leaders.get(i);
+
+                options[i][0] = MessageUtils.cPlayer + leader.player.name;
+                links[i][0] = -1;
+                handlers[i][0] = p -> {
+                    if (joinRequests.contains(j -> j.requester == leader || j.answerer == leader)) {
+                        MessageUtils.sendMessage(requester.player, "The player you requested to join already has a pending join request!", MessageUtils.MessageLevel.WARNING);
+                    } else {
+                        joinRequests.add(new JoinRequest(requester, leader));
+
+                        Timer.schedule(() -> {
+                            if (joinRequests.remove(j -> j.requester == requester)) {
+                                MessageUtils.sendMessage(requester.player, "Your join request to " + MessageUtils.cPlayer + leader.player.name + MessageUtils.cDefault + " was not accepted!", MessageUtils.MessageLevel.INFO);
+                                MessageUtils.sendMessage(leader.player, "Join request of " + MessageUtils.cPlayer + requester.player.name + MessageUtils.cDefault + " expired!", MessageUtils.MessageLevel.INFO);
+                            }
+                        }, 30);
+
+                        MessageUtils.sendMessage(leader.player, MessageUtils.cPlayer + requester.player.name + MessageUtils.cDefault + " requested to join your team! Type " + MessageUtils.cHighlight2 + "/accept" + MessageUtils.cDefault + " to accept or " + MessageUtils.cDanger + "/deny" + MessageUtils.cDefault + " to deny the request!", MessageUtils.MessageLevel.INFO);
+                        MessageUtils.sendMessage(requester.player, "Join request sent to " + MessageUtils.cPlayer + leader.player.name + MessageUtils.cDefault + "!", MessageUtils.MessageLevel.INFO);
+                    }
+                };
+            }
+            options[leaders.size][0] = MessageUtils.cDefault + "Cancel";
+            links[leaders.size][0] = -1;
+            handlers[leaders.size][0] = p -> {
+            };
+
+            return new MenuUtils.MenuContent(
+                    "Join another Faction",
+                    (leaders.size == 0 ? "There are currently no other factions you can request to join!" : "You can request to join the following faction leader:"),
+                    options,
+                    links,
+                    handlers
+            );
+        });
+
+        handler.<Player>register("join", "Request to join another faction.", (args, player) -> {
+            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
             Member requester = memberLogic.getMember(player);
-
-            if (args.length == 0) {
-                MessageUtils.sendMessage(requester.player, factionLogic.getFactionLeaderInfo(requester), MessageUtils.MessageLevel.INFO);
-                return;
-            }
 
             if (joinRequests.contains(j -> j.requester == requester || j.answerer == requester)) {
                 MessageUtils.sendMessage(requester.player, "You already have a pending join request!", MessageUtils.MessageLevel.WARNING);
                 return;
             }
 
-            try {
-                int id = Integer.parseInt(args[0]);
-
-                Member answerer = memberLogic.getMember(Groups.player.getByID(id));
-
-                if (answerer.faction == null || answerer.faction.members.contains(requester) || answerer.faction.members.first() != answerer) {
-                    throw new NumberFormatException();
-                }
-
-                if (joinRequests.contains(j -> j.requester == answerer || j.answerer == answerer)) {
-                    MessageUtils.sendMessage(requester.player, "The player you requested to join already has a pending join request!", MessageUtils.MessageLevel.WARNING);
-                    return;
-                }
-
-                joinRequests.add(new JoinRequest(requester, answerer));
-
-                Timer.schedule(() -> {
-                    if (joinRequests.remove(j -> j.requester == requester)) {
-                        MessageUtils.sendMessage(requester.player, "Your join request to " + MessageUtils.cPlayer + answerer.player.name + MessageUtils.cDefault + " was not accepted!", MessageUtils.MessageLevel.INFO);
-                        MessageUtils.sendMessage(answerer.player, "Join request of " + MessageUtils.cPlayer + requester.player.name + MessageUtils.cDefault + " expired!", MessageUtils.MessageLevel.INFO);
-                    }
-                }, 30);
-
-                MessageUtils.sendMessage(answerer.player, MessageUtils.cPlayer + requester.player.name + MessageUtils.cDefault + " requested to join your team! Type " + MessageUtils.cHighlight2 + "/accept" + MessageUtils.cDefault + " to accept or " + MessageUtils.cDanger + "/deny" + MessageUtils.cDefault + " to deny the request!", MessageUtils.MessageLevel.INFO);
-                MessageUtils.sendMessage(requester.player, "Join request sent to " + MessageUtils.cPlayer + answerer.player.name + MessageUtils.cDefault + "!", MessageUtils.MessageLevel.INFO);
-            } catch (NumberFormatException e) {
-                MessageUtils.sendMessage(player, "Invalid ID! Type " + MessageUtils.cHighlight3 + "/join" + MessageUtils.cDefault + " without an ID to see all valid ID's.", MessageUtils.MessageLevel.WARNING);
-            }
+            MenuUtils.showMenu(10, player);
         });
 
         handler.<Player>register("accept", "Accept a pending join request.", (args, player) -> {
-            if (State.gameState == State.GameState.INACTIVE) return;
+            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
             Member answerer = memberLogic.getMember(player);
 
             if (joinRequests.contains(j -> j.answerer == answerer)) {
                 JoinRequest joinRequest = joinRequests.remove(joinRequests.indexOf(j -> j.answerer == answerer));
 
-                if (joinRequest.requester.faction.members.size == 1) {
-                    factionLogic.destroyCores(joinRequest.requester.faction);
+                Faction oldFaction = joinRequest.requester.faction;
+                if (oldFaction != null) {
+                    int oldFactionMembersSize = oldFaction.members.size;
+                    if (oldFactionMembersSize == 1) {
+                        factionLogic.destroyCores(oldFaction);
+                    }
+                    factionLogic.changeFaction(joinRequest.requester.faction, answerer.faction, joinRequest.requester);
+                } else {
+                    factionLogic.addToFaction(answerer.faction, joinRequest.requester);
                 }
-
-                factionLogic.changeFaction(joinRequest.requester.faction, answerer.faction, joinRequest.requester);
 
                 MessageUtils.sendMessage(answerer.player, MessageUtils.cPlayer + joinRequest.requester.player.name + MessageUtils.cDefault + " is now part of your team!", MessageUtils.MessageLevel.INFO);
                 MessageUtils.sendMessage(joinRequest.requester.player, "Your join request was accepted by " + MessageUtils.cPlayer + answerer.player.name + MessageUtils.cDefault + "!", MessageUtils.MessageLevel.INFO);
@@ -268,7 +508,7 @@ public class FactionManager implements Manager {
         });
 
         handler.<Player>register("deny", "Deny a pending join request.", (args, player) -> {
-            if (State.gameState == State.GameState.INACTIVE) return;
+            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
             Member answerer = memberLogic.getMember(player);
 
@@ -281,8 +521,8 @@ public class FactionManager implements Manager {
             }
         });
 
-        handler.<Player>register("register", "[tag]", "link your ingame and discord account to display your rank in discord", (args, player) -> {
-            if (State.gameState == State.GameState.INACTIVE) return;
+        handler.<Player>register("register", "[tag1] [tag2] [tag3] [tag4] [tag5]", "link your ingame and discord account to display your rank in discord", (args, player) -> {
+            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
             Member member = memberLogic.getMember(player);
 
@@ -291,7 +531,7 @@ public class FactionManager implements Manager {
                 return;
             }
 
-            String discordTag = args[0];
+            String discordTag = String.join(" ", args);
 
             if (DiscordBot.checkIfExists(discordTag)) {
                 DiscordBot.register(discordTag, member);
