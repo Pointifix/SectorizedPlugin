@@ -2,7 +2,7 @@
 
 Plugin of the Sectorized Server
 
-Join the server with `sectorized.ddns.net`
+Join the server with `sectorized.freeddns.org`
 
 Join our discord
 server: ![Discord](https://img.shields.io/discord/945026790861176932.svg?logo=discord&logoColor=white&logoWidth=20&labelColor=7289DA&label=Discord&color=17cf48)
