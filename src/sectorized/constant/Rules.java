@@ -6,9 +6,6 @@ import mindustry.content.Blocks;
 import mindustry.content.Planets;
 import mindustry.game.SpawnGroup;
 import mindustry.game.Team;
-import mindustry.world.blocks.defense.turrets.ItemTurret;
-import mindustry.world.blocks.defense.turrets.LaserTurret;
-import mindustry.world.blocks.units.Reconstructor;
 
 import static mindustry.content.UnitTypes.*;
 
@@ -22,10 +19,10 @@ public class Rules {
         rules.defaultTeam = Team.derelict;
         rules.waves = true;
         rules.waitEnemies = false;
-        rules.buildSpeedMultiplier = 1.5f;
-        rules.blockDamageMultiplier = 2.0f;
+        rules.buildSpeedMultiplier = 2.0f;
+        rules.blockDamageMultiplier = 3.0f;
         rules.unitDamageMultiplier = 0.5f;
-        rules.buildCostMultiplier = 0.75f;
+        rules.buildCostMultiplier = 1f;
         rules.dropZoneRadius = 100f;
         rules.logicUnitBuild = false;
         rules.coreIncinerates = true;
@@ -51,21 +48,11 @@ public class Rules {
         Blocks.coreBastion.unitCapModifier = 2;
         Blocks.coreCitadel.unitCapModifier = 6;
         Blocks.coreAcropolis.unitCapModifier = 8;
-
-        ((ItemTurret) (Blocks.foreshadow)).ammoTypes.forEach(ammoType -> {
-            ammoType.value.damage *= 0.5;
-        });
-        ((ItemTurret) (Blocks.spectre)).ammoTypes.forEach(ammoType -> {
-            ammoType.value.damage *= 2.0;
-        });
-        ((LaserTurret) (Blocks.meltdown)).shootType.damage *= 1.5;
-        ((Reconstructor) (Blocks.exponentialReconstructor)).constructTime = 60f * 60f * 1;
-        ((Reconstructor) (Blocks.tetrativeReconstructor)).constructTime = 60f * 60f * 2;
     }
 
     public static void setSpawnGroups(mindustry.game.Rules rules) {
         if (State.planet.equals(Planets.serpulo.name)) {
-            rules.waveSpacing = 60 * 60 * 3;
+            rules.waveSpacing = 60 * 60 * 2.5f;
 
             rules.spawns = Seq.with(
                     // T1
@@ -246,7 +233,7 @@ public class Rules {
                     }}
             );
         } else if (State.planet.equals(Planets.erekir.name)) {
-            rules.waveSpacing = 60 * 60 * 4;
+            rules.waveSpacing = 60 * 60 * 3f;
 
             rules.spawns = Seq.with(
                     // T1

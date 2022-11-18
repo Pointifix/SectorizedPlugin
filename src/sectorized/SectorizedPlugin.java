@@ -2,6 +2,8 @@ package sectorized;
 
 import arc.Events;
 import arc.util.CommandHandler;
+import arc.util.Log;
+import mindustry.core.GameState;
 import mindustry.mod.Plugin;
 import sectorized.constant.Config;
 import sectorized.constant.DiscordBot;
@@ -24,7 +26,7 @@ public class SectorizedPlugin extends Plugin {
 
     @Override
     public void init() {
-        System.out.println(Config.c.toString());
+        Log.info(Config.c.toString());
 
         DiscordBot.init();
 
@@ -49,9 +51,10 @@ public class SectorizedPlugin extends Plugin {
 
             Events.fire(new SectorizedEvents.GamemodeStartEvent());
 
-            state.serverPaused = true;
+            state.set(GameState.State.paused);
 
             Rules.setSpawnGroups(state.rules);
+            state.rules.infiniteResources = Config.c.infiniteResources;
 
             logic.play();
             netServer.openServer();

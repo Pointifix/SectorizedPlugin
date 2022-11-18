@@ -6,7 +6,6 @@ import arc.util.Strings;
 import arc.util.Timer;
 import mindustry.Vars;
 import mindustry.game.Team;
-import mindustry.gen.Call;
 import mindustry.gen.Groups;
 import mindustry.gen.Unit;
 import mindustry.world.blocks.storage.CoreBlock;
@@ -33,6 +32,13 @@ public class FactionLogic {
         available.remove(Team.sharded);
         available.remove(Team.crux);
         available.shuffle();
+
+        for (Team team : available) {
+            team.rules().aiCoreSpawn = false;
+            team.rules().rtsAi = true;
+            team.rules().rtsMinSquad = Integer.MAX_VALUE;
+            team.rules().rtsMinWeight = 1.5f;
+        }
     }
 
     public Faction getFaction(Team team) {
@@ -59,6 +65,12 @@ public class FactionLogic {
 
     public void changeFaction(Faction oldFaction, Faction newFaction, Member member) {
         oldFaction.removeMember(member);
+        newFaction.addMember(member);
+
+        member.player.unit().kill();
+    }
+
+    public void addToFaction(Faction newFaction, Member member) {
         newFaction.addMember(member);
 
         member.player.unit().kill();
@@ -117,33 +129,30 @@ public class FactionLogic {
 
         if (factions.size == 1 && State.gameState != State.GameState.GAMEOVER) {
             Member winner = factions.first().members.first();
+            State.winner = winner;
             winner.wins++;
             winner.score += Vars.state.wave * 2;
             MessageUtils.sendMessage(winner.player, "You gained " + MessageUtils.cInfo + Vars.state.wave * 2 + MessageUtils.cDefault + " for winning the game!", MessageUtils.MessageLevel.INFO);
             persistence.setRanking(winner);
 
-            Call.infoMessage("\uF7A7" + MessageUtils.cDanger + " GAME OVER [white]\uF7A7\n\n" + MessageUtils.cPlayer + winner.player.name + "[white] won the game in " + MessageUtils.cInfo + Vars.state.wave + "[white] waves!");
-
             DiscordBot.sendMessage("**Game Over!** Player *" + Strings.stripColors(winner.player.name).substring(1).replace("@", "at") + "* won the game in " + Vars.state.wave + " waves.");
 
             Events.fire(new SectorizedEvents.RestartEvent("Game over! " + MessageUtils.cPlayer + winner.player.name + MessageUtils.cDefault + " won"));
         } else if (factions.size == 0 && State.gameState != State.GameState.GAMEOVER) {
-            Call.infoMessage("\uF7A7" + MessageUtils.cDanger + " GAME OVER [white]\uF7A7\n\n" + MessageUtils.cDanger + "crux[white] won the game in " + MessageUtils.cInfo + Vars.state.wave + "[white] waves!");
-
             DiscordBot.sendMessage("**Game Over!** Crux won the game in " + Vars.state.wave + " waves.");
 
             Events.fire(new SectorizedEvents.RestartEvent("Game over! " + MessageUtils.cDanger + "crux" + MessageUtils.cDefault + " won."));
         }
     }
 
-    public String getFactionLeaderInfo(Member member) {
-        final StringBuilder info = new StringBuilder("You can request to join the following players:");
+    public Seq<Member> getJoinableFactionLeaders(Member member) {
+        Seq<Member> leaders = new Seq<>();
 
         factions.each(f -> !f.members.contains(member), f -> {
-            info.append("\n").append(MessageUtils.cPlayer).append(f.members.first().player.name).append(MessageUtils.cDefault).append(" - ").append(MessageUtils.cHighlight2).append(f.members.first().player.id);
+            leaders.add(f.members.first());
         });
 
-        return info.toString();
+        return leaders;
     }
 
     public boolean isFactionLeaders(Member possibleLeader, Member requester) {

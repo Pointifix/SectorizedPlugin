@@ -119,6 +119,8 @@ public class SectorLogic {
         int size = Constants.radii.get((CoreBlock) coreTile.block());
         Rectangle removeRectangle = coreBuildRectangleMap.remove(coreTile.pos());
 
+        if (removeRectangle == null) return;
+
         gridAccelerator.removeRectangle(removeRectangle);
         SubRectangle[] subRectangles = gridAccelerator.getIntersectingRectangles(removeRectangle);
 

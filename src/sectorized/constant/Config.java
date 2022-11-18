@@ -13,11 +13,13 @@ public class Config {
     public final boolean databaseEnabled;
     public final boolean updateScoreDecay;
     public final boolean discordEnabled;
+    public final boolean infiniteResources;
 
-    public Config(boolean databaseEnabled, boolean updateScoreDecay, boolean discordEnabled) {
+    public Config(boolean databaseEnabled, boolean updateScoreDecay, boolean discordEnabled, boolean infiniteResources) {
         this.databaseEnabled = databaseEnabled;
         this.updateScoreDecay = updateScoreDecay;
         this.discordEnabled = discordEnabled;
+        this.infiniteResources = infiniteResources;
     }
 
     static {
@@ -38,6 +40,7 @@ public class Config {
                 "databaseEnabled=" + databaseEnabled +
                 ", updateScoreDecay=" + updateScoreDecay +
                 ", discordEnabled=" + discordEnabled +
+                ", infiniteResources=" + infiniteResources +
                 '}';
     }
 }

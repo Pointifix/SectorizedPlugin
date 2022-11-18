@@ -22,6 +22,7 @@ import sectorized.constant.CoreCost;
 import sectorized.constant.MessageUtils;
 import sectorized.constant.State;
 import sectorized.constant.VaultLogic;
+import sectorized.faction.core.Member;
 import sectorized.sector.core.GridAccelerator;
 import sectorized.sector.core.SectorLogic;
 import sectorized.sector.core.SectorSpawns;
@@ -57,7 +58,6 @@ public class SectorManager implements Manager {
                 } else if (State.planet.equals(Planets.erekir.name)) {
                     sectorLogic.addArea(spawnPoint.x, spawnPoint.y, (CoreBlock) Blocks.coreAcropolis, event.member.faction.team.id);
                 }
-
             } catch (SectorSpawns.NoSpawnPointAvailableException e) {
                 Events.fire(new SectorizedEvents.NoSpawnPointAvailableEvent(event.member));
             }
@@ -102,11 +102,15 @@ public class SectorManager implements Manager {
             if (State.gameState == State.GameState.INACTIVE) return;
 
             sectorLogic.removeArea(event.coreBuild.tile.x, event.coreBuild.tile.y);
+
+            for (Member member : event.faction.members) {
+                Call.announce(member.player.con(), MessageUtils.cDanger + "You lost a core at " + MessageUtils.cHighlight1 + "[" + event.coreBuild.tile.x + " " + event.coreBuild.tile.y + "]");
+            }
         });
 
         netServer.admins.addActionFilter(action -> {
             if (State.gameState == State.GameState.GAMEOVER) return false;
-            if (State.gameState == State.GameState.INACTIVE) return true;
+            if (State.gameState == State.GameState.INACTIVE) return false;
 
             switch (action.type) {
                 case placeBlock:
