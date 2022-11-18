@@ -7,14 +7,17 @@ import mindustry.game.EventType;
 import mindustry.gen.Call;
 import mindustry.gen.Player;
 
+import java.util.HashMap;
+
 public class MenuUtils {
     static IntMap<Func<Player, MenuContent>> menus = new IntMap<>();
+
+    static HashMap<Player, MenuContent> lastContents = new HashMap<>();
 
     static {
         Events.on(EventType.MenuOptionChooseEvent.class, event -> {
             if (menus.containsKey(event.menuId)) {
-                Func<Player, MenuContent> currentMenu = menus.get(event.menuId);
-                MenuContent current = currentMenu.get(event.player);
+                MenuContent current = lastContents.get(event.player);
 
                 current.getAction(event.option).get(event.player);
 
@@ -24,6 +27,7 @@ public class MenuUtils {
                     Func<Player, MenuContent> nextMenu = menus.get(nextMenuId);
                     MenuContent next = nextMenu.get(event.player);
 
+                    lastContents.put(event.player, next);
                     Call.menu(event.player.con(), nextMenuId, next.title, next.message, next.options);
                 }
             }
@@ -38,17 +42,6 @@ public class MenuUtils {
         MenuUtils.menus.put(menuId, contentFunc);
     }
 
-    public static void showMenu(int menuId) {
-        if (!menus.containsKey(menuId)) {
-            throw new IllegalStateException("Menu ID not found!");
-        }
-
-        Func<Player, MenuContent> menu = menus.get(menuId);
-        MenuContent content = menu.get(null);
-
-        Call.menu(menuId, content.title, content.message, content.options);
-    }
-
     public static void showMenu(int menuId, Player player) {
         if (!menus.containsKey(menuId)) {
             throw new IllegalStateException("Menu ID not found!");
@@ -57,6 +50,7 @@ public class MenuUtils {
         Func<Player, MenuContent> menu = menus.get(menuId);
         MenuContent content = menu.get(player);
 
+        lastContents.put(player, content);
         Call.menu(player.con(), menuId, content.title, content.message, content.options);
     }
 
