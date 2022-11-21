@@ -35,6 +35,7 @@ public class SectorManager implements Manager {
     private SectorLogic sectorLogic;
     private SectorSpawns sectorSpawns;
 
+    private int corePlacementCooldown = 10;
     private HashMap<Integer, Double> bufferedCoresPlacement;
 
     @Override
@@ -45,6 +46,8 @@ public class SectorManager implements Manager {
             sectorSpawns = new SectorSpawns(gridAccelerator);
 
             bufferedCoresPlacement = new HashMap<>();
+
+            corePlacementCooldown = State.planet.equals(Planets.serpulo.name) ? 10 : 15;
         });
 
         Events.on(SectorizedEvents.NewMemberEvent.class, event -> {
@@ -142,7 +145,7 @@ public class SectorManager implements Manager {
                         }
 
                         if (bufferedCoresPlacement.containsKey(action.player.team().id)) {
-                            int seconds = 10 - (int) Math.floor((State.time - bufferedCoresPlacement.get(action.player.team().id)) / 60);
+                            int seconds = (action.player.team().cores().size <= 2 ? 30 : corePlacementCooldown) - (int) Math.floor((State.time - bufferedCoresPlacement.get(action.player.team().id)) / 60);
 
                             MessageUtils.sendBufferedMessage(action.player, "Wait " + MessageUtils.cInfo + seconds + " seconds" + MessageUtils.cDefault + " to place a new core!", MessageUtils.MessageLevel.WARNING, 1);
                             tile.setNet(Blocks.air);
@@ -157,7 +160,7 @@ public class SectorManager implements Manager {
 
                             int team = action.player.team().id;
                             bufferedCoresPlacement.put(team, State.time);
-                            Timer.schedule(() -> bufferedCoresPlacement.remove(team), 10);
+                            Timer.schedule(() -> bufferedCoresPlacement.remove(team), action.player.team().cores().size <= 2 ? 30 : corePlacementCooldown);
 
                             Events.fire(new SectorizedEvents.CoreBuildEvent(tile));
                         } else {

@@ -41,7 +41,7 @@ public class Units {
     public static float healthMultiplier = 1.0f;
 
     static {
-        
+        zenith.speed *= 0.7f;
     }
 
     public static void setUnitHealthMultiplier(float multiplier) {

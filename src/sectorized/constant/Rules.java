@@ -2,6 +2,7 @@ package sectorized.constant;
 
 import arc.struct.ObjectSet;
 import arc.struct.Seq;
+import mindustry.Vars;
 import mindustry.content.Blocks;
 import mindustry.content.Planets;
 import mindustry.game.SpawnGroup;
@@ -18,15 +19,17 @@ public class Rules {
         rules.canGameOver = false;
         rules.defaultTeam = Team.derelict;
         rules.waves = true;
+        rules.pvp = true;
+        Vars.state.gameOver = true;
         rules.waitEnemies = false;
         rules.buildSpeedMultiplier = 2.0f;
-        rules.blockDamageMultiplier = 3.0f;
+        rules.blockDamageMultiplier = 2.0f;
         rules.unitDamageMultiplier = 0.5f;
         rules.buildCostMultiplier = 1f;
         rules.dropZoneRadius = 100f;
         rules.logicUnitBuild = false;
         rules.coreIncinerates = true;
-        rules.possessionAllowed = false;
+        rules.possessionAllowed = true;
         rules.showSpawns = true;
         rules.bannedBlocks = ObjectSet.with(
                 Blocks.shockMine,
@@ -37,7 +40,8 @@ public class Rules {
                 Blocks.memoryCell,
                 Blocks.memoryBank,
                 Blocks.logicDisplay,
-                Blocks.largeLogicDisplay);
+                Blocks.largeLogicDisplay,
+                Blocks.canvas);
 
         rules.unitCap = 0;
 

@@ -14,8 +14,9 @@ public class Archipelago extends SerpuloBiome {
     public Archipelago() {
         super(new SimplexGenerator2D(new Generator[][]{
                 {BlockG.grass, new SimplexGenerator2D(new Generator[][]{
-                        {BlockG.tar, BlockG.sand},
-                        {BlockG.sand, BlockG.darksand},
+                        {BlockG.sand, BlockG.darksand, BlockG.sand},
+                        {BlockG.sand, BlockG.tar, BlockG.sand},
+                        {BlockG.sand, BlockG.sand, BlockG.darksand},
                 }, 12, 0.5, 0.03, 1.15, 12, 0.5, 0.03, 1.15), BlockG.sand, BlockG.water, BlockG.deepwater},
                 {BlockG.sand, BlockG.darksand, BlockG.water, BlockG.deepwater, BlockG.water},
                 {BlockG.darksand, BlockG.water, BlockG.deepwater, BlockG.water, BlockG.sand},

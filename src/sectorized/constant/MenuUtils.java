@@ -19,17 +19,22 @@ public class MenuUtils {
             if (menus.containsKey(event.menuId)) {
                 MenuContent current = lastContents.get(event.player);
 
-                current.getAction(event.option).get(event.player);
+                Handler handler = current.getAction(event.option);
 
                 int nextMenuId = current.getLink(event.option);
 
+                if (handler == null || (current.menuId / 10) != (event.menuId / 10)) return;
+                
                 if (nextMenuId >= 0) {
                     Func<Player, MenuContent> nextMenu = menus.get(nextMenuId);
                     MenuContent next = nextMenu.get(event.player);
+                    next.menuId = nextMenuId;
 
                     lastContents.put(event.player, next);
                     Call.menu(event.player.con(), nextMenuId, next.title, next.message, next.options);
                 }
+
+                handler.get(event.player);
             }
         });
     }
@@ -49,12 +54,14 @@ public class MenuUtils {
 
         Func<Player, MenuContent> menu = menus.get(menuId);
         MenuContent content = menu.get(player);
+        content.menuId = menuId;
 
         lastContents.put(player, content);
         Call.menu(player.con(), menuId, content.title, content.message, content.options);
     }
 
     public static class MenuContent {
+        public int menuId;
         public String title;
         public String message;
         public String[][] options;

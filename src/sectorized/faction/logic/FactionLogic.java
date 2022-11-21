@@ -3,8 +3,12 @@ package sectorized.faction.logic;
 import arc.Events;
 import arc.struct.Seq;
 import arc.util.Strings;
+import arc.util.Time;
 import arc.util.Timer;
 import mindustry.Vars;
+import mindustry.ai.types.FlyingAI;
+import mindustry.ai.types.GroundAI;
+import mindustry.game.EventType;
 import mindustry.game.Team;
 import mindustry.gen.Groups;
 import mindustry.gen.Unit;
@@ -16,6 +20,8 @@ import sectorized.constant.State;
 import sectorized.faction.core.Faction;
 import sectorized.faction.core.Member;
 import sectorized.faction.persistence.RankingPersistence;
+
+import static mindustry.Vars.state;
 
 public class FactionLogic {
     private final RankingPersistence persistence;
@@ -33,11 +39,25 @@ public class FactionLogic {
         available.remove(Team.crux);
         available.shuffle();
 
+        Team.crux.data().unitCap = Integer.MAX_VALUE;
+
+        Events.run(EventType.Trigger.update, () -> {
+            if (state.rules.waves && state.rules.waveTimer) {
+                if (!Vars.logic.isWaitingWave()) {
+                    state.wavetime = Math.max(state.wavetime - Time.delta, 0);
+                }
+            }
+        });
+
+        Events.on(EventType.UnitSpawnEvent.class, event -> {
+            event.unit.controller(!event.unit.isFlying() ? new GroundAI() : new FlyingAI());
+        });
+
         for (Team team : available) {
             team.rules().aiCoreSpawn = false;
-            team.rules().rtsAi = true;
+            team.rules().rtsAi = false;
             team.rules().rtsMinSquad = Integer.MAX_VALUE;
-            team.rules().rtsMinWeight = 1.5f;
+            team.rules().rtsMinWeight = Float.MAX_VALUE;
         }
     }
 
@@ -113,14 +133,18 @@ public class FactionLogic {
         defender.members.each(m -> {
             if (m.faction == defender) {
                 m.state = Member.MemberState.ELIMINATED;
+                m.faction = null;
                 m.player.team(Team.derelict);
                 m.player.unit().kill();
 
                 Timer.schedule(() -> {
-                    m.state = Member.MemberState.WAITING;
+                    if (m.faction == null) {
+                        m.state = Member.MemberState.WAITING;
 
-                    if (m.online)
-                        MessageUtils.sendMessage(m.player, MessageUtils.cInfo + "5 minutes" + MessageUtils.cDefault + " have passed, you can reconnect to spawn again!", MessageUtils.MessageLevel.INFO);
+                        if (m.online) {
+                            MessageUtils.sendMessage(m.player, MessageUtils.cInfo + "5 minutes" + MessageUtils.cDefault + " have passed, you can reconnect to spawn again!", MessageUtils.MessageLevel.INFO);
+                        }
+                    }
                 }, 60 * 5);
             }
         });

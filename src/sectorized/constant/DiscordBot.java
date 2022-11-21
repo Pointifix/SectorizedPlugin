@@ -143,35 +143,37 @@ public class DiscordBot {
     }
 
     public static void assignRole(sectorized.faction.core.Member sectorizedMember) {
-        if (sectorizedMember.discordTag != null) {
-            Member guildMember = DiscordBot.guild.getMemberByTag(sectorizedMember.discordTag);
+        if (Config.c.discordEnabled) {
+            if (sectorizedMember.discordTag != null) {
+                Member guildMember = DiscordBot.guild.getMemberByTag(sectorizedMember.discordTag);
 
-            if (guildMember != null) {
-                String roleName;
-                int rank = sectorizedMember.rank;
+                if (guildMember != null) {
+                    String roleName;
+                    int rank = sectorizedMember.rank;
 
-                if (rank > 500 || rank == -1) roleName = "other";
-                else if (rank > 200) roleName = "top 500";
-                else if (rank > 100) roleName = "top 200";
-                else if (rank > 50) roleName = "top 100";
-                else if (rank > 25) roleName = "top 50";
-                else if (rank > 10) roleName = "top 25";
-                else roleName = "top 10";
+                    if (rank > 500 || rank == -1) roleName = "other";
+                    else if (rank > 200) roleName = "top 500";
+                    else if (rank > 100) roleName = "top 200";
+                    else if (rank > 50) roleName = "top 100";
+                    else if (rank > 25) roleName = "top 50";
+                    else if (rank > 10) roleName = "top 25";
+                    else roleName = "top 10";
 
-                Role role = null;
-                for (Role r : DiscordBot.guild.getRoles()) {
-                    if (r.getName().equals(roleName)) {
-                        role = r;
-                    }
-                }
-
-                if (role != null) {
-                    for (Role guildMemberRole : guildMember.getRoles()) {
-                        if (!guildMemberRole.getName().equals(roleName))
-                            DiscordBot.guild.removeRoleFromMember(guildMember, guildMemberRole).queue();
+                    Role role = null;
+                    for (Role r : DiscordBot.guild.getRoles()) {
+                        if (r.getName().equals(roleName)) {
+                            role = r;
+                        }
                     }
 
-                    DiscordBot.guild.addRoleToMember(guildMember, role).queue();
+                    if (role != null) {
+                        for (Role guildMemberRole : guildMember.getRoles()) {
+                            if (!guildMemberRole.getName().equals(roleName))
+                                DiscordBot.guild.removeRoleFromMember(guildMember, guildMemberRole).queue();
+                        }
+
+                        DiscordBot.guild.addRoleToMember(guildMember, role).queue();
+                    }
                 }
             }
         }

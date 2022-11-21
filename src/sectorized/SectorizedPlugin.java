@@ -1,9 +1,9 @@
 package sectorized;
 
+import arc.Core;
 import arc.Events;
 import arc.util.CommandHandler;
 import arc.util.Log;
-import mindustry.core.GameState;
 import mindustry.mod.Plugin;
 import sectorized.constant.Config;
 import sectorized.constant.DiscordBot;
@@ -42,6 +42,9 @@ public class SectorizedPlugin extends Plugin {
         }
 
         handler.register("sectorized", "Hosts the sectorized gamemode.", args -> {
+            Core.settings.put("playerlimit", 50);
+            Core.settings.manualSave();
+
             logic.reset();
             state.rules = Rules.rules.copy();
 
@@ -50,9 +53,6 @@ public class SectorizedPlugin extends Plugin {
             }
 
             Events.fire(new SectorizedEvents.GamemodeStartEvent());
-
-            state.set(GameState.State.paused);
-
             Rules.setSpawnGroups(state.rules);
             state.rules.infiniteResources = Config.c.infiniteResources;
 

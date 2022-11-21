@@ -2,6 +2,7 @@ package sectorized.faction.persistence;
 
 import arc.Core;
 import arc.struct.Seq;
+import arc.util.Log;
 import arc.util.Strings;
 import com.google.gson.Gson;
 import sectorized.constant.Config;
@@ -22,13 +23,16 @@ import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Iterator;
 
 public class RankingPersistence {
-    public final Seq<LeaderBoardEntry> leaderboard = new Seq<>();
+    private final Seq<LeaderBoardEntry> leaderboard = new Seq<>();
     private final double k = 10;
     private final double offset = 10;
-    public String leaderboardText;
     private Connection connection = null;
+
+    public final String[] leaderboardTexts = new String[10];
+    public int leaderBoardPages = 0;
 
     public RankingPersistence() {
         if (Config.c.databaseEnabled) {
@@ -42,6 +46,7 @@ public class RankingPersistence {
                 updateScoreDecay();
                 getLeaderboard();
             } catch (SQLException | IOException | ClassNotFoundException e) {
+                Log.err(e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -82,12 +87,12 @@ public class RankingPersistence {
             calendar.set(Calendar.SECOND, 0);
             calendar.set(Calendar.MILLISECOND, 0);
             Date today = calendar.getTime();
-            calendar.add(Calendar.DATE, -2);
-            Date twoDaysAgo = calendar.getTime();
+            calendar.add(Calendar.DATE, -6);
+            Date sixDaysAgo = calendar.getTime();
             calendar.add(Calendar.DATE, -1);
-            Date threeDaysAgo = calendar.getTime();
+            Date sevenDaysAgo = calendar.getTime();
 
-            Date lastHallOfFameDate = new Date((long) Core.settings.get("lastHallOfFameDate", threeDaysAgo.getTime()));
+            Date lastHallOfFameDate = new Date((long) Core.settings.get("lastHallOfFameDate", sevenDaysAgo.getTime()));
 
             String zone = ZoneOffset.systemDefault().toString();
             String currentDate = DateTimeFormatter.ofPattern("uuuu/MM/dd - HH:mm").format(ZonedDateTime.now());
@@ -122,7 +127,7 @@ public class RankingPersistence {
             }
             text.append("\n\n:date: *").append(currentDate).append(" - ").append(zone).append("* :clock3:");
 
-            if (lastHallOfFameDate.before(twoDaysAgo)) {
+            if (lastHallOfFameDate.before(sixDaysAgo)) {
                 Core.settings.put("lastHallOfFameDate", today.getTime());
                 Core.settings.manualSave();
 
@@ -155,9 +160,9 @@ public class RankingPersistence {
                     ResultSet resultSet = statement.executeQuery();
 
                     if (resultSet.next()) {
-                        member.rank = resultSet.getInt("rank");
                         member.score = resultSet.getInt("score");
                         member.wins = resultSet.getInt("wins");
+                        member.rank = member.score > 0 ? resultSet.getInt("rank") : -1;
                         member.discordTag = resultSet.getString("discordTag");
                     } else {
                         setRanking(member);
@@ -175,7 +180,7 @@ public class RankingPersistence {
         if (Config.c.databaseEnabled) {
             if (connection != null) {
                 try {
-                    PreparedStatement statement = connection.prepareStatement("SELECT *, ROW_NUMBER() OVER(PARTITION BY empty ORDER BY score DESC) AS rank FROM ranking ORDER BY score DESC LIMIT 10");
+                    PreparedStatement statement = connection.prepareStatement("SELECT *, ROW_NUMBER() OVER(PARTITION BY empty ORDER BY score DESC) AS rank FROM ranking WHERE score > 0 LIMIT 100");
 
                     ResultSet rs = statement.executeQuery();
 
@@ -189,19 +194,33 @@ public class RankingPersistence {
                 }
             }
 
-            StringBuilder text = new StringBuilder("Leaderboard");
-            for (LeaderBoardEntry entry : leaderboard) {
-                text.append("\n")
-                        .append(entry.rank)
+            Iterator<LeaderBoardEntry> it = leaderboard.iterator();
+
+            int elements = 0;
+            StringBuilder text = new StringBuilder();
+
+            while (it.hasNext()) {
+                RankingPersistence.LeaderBoardEntry entry = it.next();
+
+                text.append(entry.rank)
                         .append(". [white]")
                         .append(entry.name)
                         .append(MessageUtils.cDefault + ", Score: " + MessageUtils.cHighlight2)
                         .append(entry.score)
                         .append(MessageUtils.cDefault + ", Wins: " + MessageUtils.cHighlight3)
                         .append(entry.wins)
-                        .append(MessageUtils.cDefault);
+                        .append(MessageUtils.cDefault)
+                        .append("\n");
+
+                elements++;
+
+                if (elements == 10 || !it.hasNext()) {
+                    leaderboardTexts[leaderBoardPages] = text.toString();
+                    text = new StringBuilder();
+                    leaderBoardPages++;
+                    elements = 0;
+                }
             }
-            leaderboardText = text.toString();
         }
     }
 
@@ -264,7 +283,7 @@ public class RankingPersistence {
         if (Config.c.databaseEnabled) {
             Member looser = looserFaction.members.first();
 
-            double expectedValueLooser = 1 / (1 + Math.pow(10, ((double) Math.max(Math.min(100 - looser.score, 500), -500) / 500)));
+            double expectedValueLooser = 1 / (1 + Math.pow(10, ((double) Math.max(Math.min(-looser.score, 2000), -2000) / 2000)));
             int looserScoreDiff = (int) ((looser.faction.maxCores * k + offset) * (0 - expectedValueLooser));
 
             int loss = looserScoreDiff / looserFaction.members.size;

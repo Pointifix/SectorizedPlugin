@@ -4,15 +4,12 @@ import arc.Events;
 import arc.struct.Seq;
 import arc.util.CommandHandler;
 import arc.util.Timer;
+import mindustry.ai.types.LogicAI;
 import mindustry.content.UnitTypes;
-import mindustry.core.GameState;
 import mindustry.entities.Units;
 import mindustry.game.EventType;
 import mindustry.game.Team;
-import mindustry.gen.Groups;
-import mindustry.gen.Player;
-import mindustry.gen.Unit;
-import mindustry.gen.Unitc;
+import mindustry.gen.*;
 import mindustry.world.blocks.storage.CoreBlock;
 import sectorized.Manager;
 import sectorized.SectorizedEvents;
@@ -26,7 +23,6 @@ import sectorized.faction.persistence.RankingPersistence;
 import java.util.Arrays;
 import java.util.Comparator;
 
-import static mindustry.Vars.state;
 import static mindustry.Vars.tilesize;
 
 public class FactionManager implements Manager {
@@ -50,17 +46,19 @@ public class FactionManager implements Manager {
             MenuUtils.Handler[][] handler;
 
             if (member.state == Member.MemberState.WAITING && State.gameState == State.GameState.LOCKED) {
-                message = "A player is currently dominating the game for which reason you can only " + MessageUtils.cHighlight1 + "Spectate [white], please wait until the game is" +
+                message = "A player is currently dominating the game for which reason you can only " + MessageUtils.cHighlight1 + "Spectate [white], please wait until the game is " +
                         "unlocked again or a new game starts, you can still request to join another team (using " + MessageUtils.cHighlight3 + "/join" + "[white]).";
 
                 options = new String[][]{
                         {MessageUtils.cHighlight1 + "\uE88A Spectate"},
-                        {MessageUtils.cInfo + "\uE87C Tutorial"}
+                        {MessageUtils.cInfo + "\uE87C Tutorial"},
+                        {"[blue]\uE80D [white]Discord"}
                 };
 
                 links = new int[][]{
                         {-1},
                         {1},
+                        {0}
                 };
 
                 handler = new MenuUtils.Handler[][]{
@@ -69,6 +67,9 @@ public class FactionManager implements Manager {
                         }},
                         {p -> {
 
+                        }},
+                        {p -> {
+                            Call.openURI(p.con(), "https://discord.gg/AmdMXKkS9Q");
                         }}
                 };
             } else if (member.state == Member.MemberState.ELIMINATED) {
@@ -77,12 +78,14 @@ public class FactionManager implements Manager {
 
                 options = new String[][]{
                         {MessageUtils.cHighlight1 + "\uE88A Spectate"},
-                        {MessageUtils.cInfo + "\uE87C Tutorial"}
+                        {MessageUtils.cInfo + "\uE87C Tutorial"},
+                        {"[blue]\uE80D [white]Discord"}
                 };
 
                 links = new int[][]{
                         {-1},
                         {1},
+                        {0}
                 };
 
                 handler = new MenuUtils.Handler[][]{
@@ -91,6 +94,9 @@ public class FactionManager implements Manager {
                         }},
                         {p -> {
 
+                        }},
+                        {p -> {
+                            Call.openURI(p.con(), "https://discord.gg/AmdMXKkS9Q");
                         }}
                 };
             } else {
@@ -100,13 +106,15 @@ public class FactionManager implements Manager {
                 options = new String[][]{
                         {MessageUtils.cHighlight2 + "\uE829 Play"},
                         {MessageUtils.cHighlight1 + "\uE88A Spectate"},
-                        {MessageUtils.cInfo + "\uE87C Tutorial"}
+                        {MessageUtils.cInfo + "\uE87C Tutorial"},
+                        {"[blue]\uE80D [white]Discord"}
                 };
 
                 links = new int[][]{
                         {-1},
                         {-1},
                         {1},
+                        {0}
                 };
 
                 handler = new MenuUtils.Handler[][]{
@@ -124,6 +132,9 @@ public class FactionManager implements Manager {
                         }},
                         {p -> {
 
+                        }},
+                        {p -> {
+                            Call.openURI(p.con(), "https://discord.gg/AmdMXKkS9Q");
                         }}
                 };
             }
@@ -199,7 +210,8 @@ public class FactionManager implements Manager {
                     "You can use the following commands:\n" +
                             "\n" +
                             MessageUtils.cHighlight3 + "/attack[white] - Units automatically attack \n" +
-                            MessageUtils.cHighlight3 + "/defend[white] - Units idle and defend the base\n" +
+                            MessageUtils.cHighlight3 + "/defend[white] - Units automatically defend from nearby enemies\n" +
+                            MessageUtils.cHighlight3 + "/idle[white] - Units idle\n" +
                             MessageUtils.cHighlight3 + "/score[white] - Display your rank, score and wins\n" +
                             MessageUtils.cHighlight3 + "/leaderboard[white] - Display the leaderboard\n" +
                             MessageUtils.cHighlight3 + "/join[white] - Request to join another team\n" +
@@ -236,8 +248,6 @@ public class FactionManager implements Manager {
             if (member.state != Member.MemberState.ALIVE) {
                 MenuUtils.showMenu(0, event.player);
             }
-
-            if (state.isPaused()) state.set(GameState.State.playing);
         });
 
         Events.on(SectorizedEvents.MemberSpawnedEvent.class, event -> {
@@ -302,16 +312,16 @@ public class FactionManager implements Manager {
         Events.on(EventType.PlayerLeave.class, event -> {
             if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
-            if (!state.isPaused() && Groups.player.size() == 0) state.set(GameState.State.paused);
-
             Member member = memberLogic.playerLeave(event.player);
 
             if (member.faction != null) {
                 if (!member.faction.members.contains(m -> m.online)) {
+                    Faction f = member.faction;
+
                     Timer.schedule(() -> {
-                        if (!member.faction.members.contains(m -> m.online))
-                            factionLogic.destroyCores(member.faction);
-                    }, 30 * member.faction.maxCores);
+                        if (!f.members.contains(m -> m.online))
+                            factionLogic.destroyCores(f);
+                    }, 30 * f.maxCores);
                 }
             }
         });
@@ -346,10 +356,35 @@ public class FactionManager implements Manager {
 
     @Override
     public void registerClientCommands(CommandHandler handler) {
+        for (int i = 0; i < rankingPersistence.leaderBoardPages; i++) {
+            int finalI = i;
+            MenuUtils.addMenu(40 + i, player -> {
+                return new MenuUtils.MenuContent(
+                        "LEADERBOARD - Page " + (finalI + 1) + "/" + rankingPersistence.leaderBoardPages,
+                        rankingPersistence.leaderboardTexts[finalI],
+                        new String[][]{
+                                {"\uE802", "\uE803"},
+                                {"Close"}
+                        },
+                        new int[][]{
+                                {40 + Math.max(finalI - 1, 0), 40 + Math.min(finalI + 1, rankingPersistence.leaderBoardPages - 1)},
+                                {-1}
+                        },
+                        new MenuUtils.Handler[][]{
+                                {p -> {
+                                }, p -> {
+                                }},
+                                {p -> {
+                                }}
+                        }
+                );
+            });
+        }
+
         handler.<Player>register("leaderboard", "Displays the current leaderboard", (args, player) -> {
             if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
-            MessageUtils.sendMessage(player, rankingPersistence.leaderboardText, MessageUtils.MessageLevel.INFO);
+            MenuUtils.showMenu(40, player);
         });
 
         handler.<Player>register("score", "Displays your score and wins", (args, player) -> {
@@ -364,18 +399,37 @@ public class FactionManager implements Manager {
             }
         });
 
+        handler.<Player>register("idle", "Units will idle and not move even when attacked unlike when in defend mode", (args, player) -> {
+            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
+
+            Member member = memberLogic.getMember(player);
+
+            if (member.state == Member.MemberState.ALIVE) {
+                member.faction.team.rules().rtsAi = false;
+                member.faction.team.rules().rtsMinSquad = Integer.MAX_VALUE;
+                member.faction.team.rules().rtsMinWeight = Float.MAX_VALUE;
+                for (Member m : member.faction.members) {
+                    MessageUtils.sendMessage(m.player, "Units commanded to " + MessageUtils.cInfo + "IDLE" + MessageUtils.cDefault + "!", MessageUtils.MessageLevel.IDLE);
+                }
+
+                Groups.unit.each(u -> !u.isPlayer() && u.team.id == member.faction.team.id && !(u.controller() instanceof LogicAI), Unitc::resetController);
+            }
+        });
+
         handler.<Player>register("defend", "Defend your base but do not automatically attack enemy bases", (args, player) -> {
             if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
             Member member = memberLogic.getMember(player);
 
             if (member.state == Member.MemberState.ALIVE) {
+                member.faction.team.rules().rtsAi = true;
                 member.faction.team.rules().rtsMinSquad = Integer.MAX_VALUE;
+                member.faction.team.rules().rtsMinWeight = Float.MAX_VALUE;
                 for (Member m : member.faction.members) {
-                    MessageUtils.sendMessage(m.player, "Units commanded to defend!", MessageUtils.MessageLevel.INFO);
+                    MessageUtils.sendMessage(m.player, "Units commanded to " + MessageUtils.cWarning + "DEFEND" + MessageUtils.cDefault + "!", MessageUtils.MessageLevel.DEFEND);
                 }
 
-                Groups.unit.each(u -> !u.isPlayer() && u.team.id == member.faction.team.id, Unitc::resetController);
+                Groups.unit.each(u -> !u.isPlayer() && u.team.id == member.faction.team.id && !(u.controller() instanceof LogicAI), Unitc::resetController);
             }
         });
 
@@ -400,9 +454,11 @@ public class FactionManager implements Manager {
             }
 
             if (member.state == Member.MemberState.ALIVE) {
+                member.faction.team.rules().rtsAi = true;
                 member.faction.team.rules().rtsMinSquad = minSquadSize;
+                member.faction.team.rules().rtsMinWeight = 1.2f;
                 for (Member m : member.faction.members) {
-                    MessageUtils.sendMessage(m.player, "Units commanded to auto-attack!", MessageUtils.MessageLevel.INFO);
+                    MessageUtils.sendMessage(m.player, "Units commanded to " + MessageUtils.cDanger + "ATTACK" + MessageUtils.cDefault + "!", MessageUtils.MessageLevel.ATTACK);
                 }
             }
         });
@@ -495,7 +551,7 @@ public class FactionManager implements Manager {
                     if (oldFactionMembersSize == 1) {
                         factionLogic.destroyCores(oldFaction);
                     }
-                    factionLogic.changeFaction(joinRequest.requester.faction, answerer.faction, joinRequest.requester);
+                    factionLogic.changeFaction(oldFaction, answerer.faction, joinRequest.requester);
                 } else {
                     factionLogic.addToFaction(answerer.faction, joinRequest.requester);
                 }
@@ -533,11 +589,16 @@ public class FactionManager implements Manager {
 
             String discordTag = String.join(" ", args);
 
-            if (DiscordBot.checkIfExists(discordTag)) {
-                DiscordBot.register(discordTag, member);
-            } else {
-                MessageUtils.sendMessage(member.player, "Couln´t find " + MessageUtils.cPlayer + discordTag + MessageUtils.cDefault + " on the Sectorized Discord, please check if you wrote your name and id correctly!", MessageUtils.MessageLevel.INFO);
+            try {
+                if (DiscordBot.checkIfExists(discordTag)) {
+                    DiscordBot.register(discordTag, member);
+                } else {
+                    MessageUtils.sendMessage(member.player, "Couln´t find " + MessageUtils.cPlayer + discordTag + MessageUtils.cDefault + " on the Sectorized Discord, please check if you wrote your name and id correctly!", MessageUtils.MessageLevel.INFO);
+                }
+            } catch (IllegalArgumentException e) {
+                MessageUtils.sendMessage(member.player, "Invalid Tag format, a Discord Tag looks like this: username#0000", MessageUtils.MessageLevel.INFO);
             }
+
         });
     }
 
