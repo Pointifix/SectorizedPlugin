@@ -22,6 +22,7 @@ import sectorized.SectorizedEvents;
 import sectorized.constant.*;
 import sectorized.world.map.Biomes;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -39,6 +40,8 @@ public class UpdateManager implements Manager {
     private boolean biomeVoteFinished = false;
 
     private int coreDominationDifference = 3;
+
+    private boolean successfullyRestarted = false;
 
     @Override
     public void init() {
@@ -363,9 +366,26 @@ public class UpdateManager implements Manager {
                 }
                 Core.settings.manualSave();
                 biomeVoteFinished = true;
-            }, 21);
 
-            final int seconds = 5;
+                String os = System.getProperty("os.name").toLowerCase();
+
+                ProcessBuilder processBuilder = new ProcessBuilder("sh", System.getProperty("user.dir") + "/run_server.sh").inheritIO();
+                if (os.contains("win")) {
+                    processBuilder = new ProcessBuilder(System.getProperty("user.dir") + "/run_server_repeat.bat", "sectorized").inheritIO();
+                }
+
+                try {
+                    processBuilder.start();
+
+                    Log.info("Successfully restarted server");
+
+                    successfullyRestarted = true;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }, 20);
+
+            final int seconds = 10;
             AtomicInteger countdown = new AtomicInteger(seconds);
             Timer.schedule(() -> {
                 if (countdown.get() == 0) {
@@ -374,7 +394,7 @@ public class UpdateManager implements Manager {
 
                     Events.fire(new SectorizedEvents.ShutdownEvent());
 
-                    System.exit(1);
+                    System.exit(successfullyRestarted ? 0 : 1);
                 }
 
                 MessageUtils.sendMessage("Server is restarting in " + MessageUtils.cInfo + (countdown.getAndDecrement()) + MessageUtils.cDefault + " second(s).", MessageUtils.MessageLevel.INFO);
@@ -393,6 +413,8 @@ public class UpdateManager implements Manager {
     @Override
     public void registerServerCommands(CommandHandler handler) {
         handler.register("restart", "Restarts the server.", args -> {
+            DiscordBot.sendMessage("**Game Over!** Restart called from console");
+
             Events.fire(new SectorizedEvents.RestartEvent("Called from console"));
         });
     }
@@ -422,6 +444,8 @@ public class UpdateManager implements Manager {
             }
 
             if (Groups.player.size() == 1) {
+                DiscordBot.sendMessage("**Game Over!** Restart called by player *" + player.name + "*");
+
                 Events.fire(new SectorizedEvents.RestartEvent("Called by player"));
             } else {
                 MessageUtils.sendMessage(player, "You can only call a restart if no one else is online.", MessageUtils.MessageLevel.WARNING);

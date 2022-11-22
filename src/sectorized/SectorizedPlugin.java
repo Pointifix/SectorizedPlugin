@@ -4,7 +4,9 @@ import arc.Core;
 import arc.Events;
 import arc.util.CommandHandler;
 import arc.util.Log;
+import mindustry.core.GameState;
 import mindustry.mod.Plugin;
+import mindustry.net.Administration;
 import sectorized.constant.Config;
 import sectorized.constant.DiscordBot;
 import sectorized.constant.Rules;
@@ -13,6 +15,10 @@ import sectorized.faction.FactionManager;
 import sectorized.sector.SectorManager;
 import sectorized.update.UpdateManager;
 import sectorized.world.WorldManager;
+
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.util.concurrent.TimeUnit;
 
 import static mindustry.Vars.*;
 
@@ -42,9 +48,6 @@ public class SectorizedPlugin extends Plugin {
         }
 
         handler.register("sectorized", "Hosts the sectorized gamemode.", args -> {
-            Core.settings.put("playerlimit", 50);
-            Core.settings.manualSave();
-
             logic.reset();
             state.rules = Rules.rules.copy();
 
@@ -56,7 +59,21 @@ public class SectorizedPlugin extends Plugin {
             Rules.setSpawnGroups(state.rules);
             state.rules.infiniteResources = Config.c.infiniteResources;
 
+            while (true) {
+                try {
+                    TimeUnit.SECONDS.sleep(1);
+
+                    ServerSocket serverSocket = new ServerSocket(Administration.Config.port.num());
+                    serverSocket.close();
+                    break;
+                } catch (IOException | InterruptedException e) {
+                    Log.err("Unable to host: Port " + Administration.Config.port.num() + " already in use! Make sure no other servers are running on the same port in your network.");
+                    state.set(GameState.State.menu);
+                }
+            }
+
             logic.play();
+            Core.settings.put("playerlimit", 50);
             netServer.openServer();
 
             State.gameState = State.GameState.ACTIVE;

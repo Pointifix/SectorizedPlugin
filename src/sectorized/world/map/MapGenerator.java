@@ -32,7 +32,6 @@ public class MapGenerator implements Cons<Tiles> {
         String biomeVoteString = (String) Core.settings.get("biomeVote", "");
         biomeVote = Biomes.all.stream().filter(biome -> biome.toString().equals(biomeVoteString)).findFirst().orElse(null);
         Core.settings.put("biomeVote", "");
-        Core.settings.manualSave();
     }
 
     @Override
@@ -53,7 +52,7 @@ public class MapGenerator implements Cons<Tiles> {
             int maxOccurrences = 0;
             int maxOffsetX = offsetX, maxOffsetY = offsetY;
 
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 25; i++) {
                 for (int x = sampleDensity / 2; x < world.width(); x += sampleDensity) {
                     for (int y = sampleDensity / 2; y < world.height(); y += sampleDensity) {
                         Biomes.Biome biome = biomesGenerator.sample(x + offsetX, y + offsetY).closest;

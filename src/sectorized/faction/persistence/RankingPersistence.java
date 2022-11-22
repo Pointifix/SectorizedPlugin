@@ -66,7 +66,6 @@ public class RankingPersistence {
             Date lastScoreDecayDate = new Date((long) Core.settings.get("lastScoreDecayDate", yesterday.getTime()));
 
             Core.settings.put("lastScoreDecayDate", today.getTime());
-            Core.settings.manualSave();
 
             if (lastScoreDecayDate.before(today)) {
                 try {
@@ -98,6 +97,7 @@ public class RankingPersistence {
             String currentDate = DateTimeFormatter.ofPattern("uuuu/MM/dd - HH:mm").format(ZonedDateTime.now());
 
             StringBuilder text = new StringBuilder(":trophy: :regional_indicator_l: :regional_indicator_e: :regional_indicator_a: :regional_indicator_d: :regional_indicator_e: :regional_indicator_r: :regional_indicator_b: :regional_indicator_o: :regional_indicator_a: :regional_indicator_r: :regional_indicator_d: :trophy:\n");
+            int i = 0;
             for (LeaderBoardEntry entry : leaderboard) {
                 text.append("\n").append(entry.rank).append(" - ");
 
@@ -124,12 +124,14 @@ public class RankingPersistence {
                         .append(entry.score)
                         .append(" - Wins: ")
                         .append(entry.wins);
+
+                i++;
+                if (i == 10) break;
             }
             text.append("\n\n:date: *").append(currentDate).append(" - ").append(zone).append("* :clock3:");
 
             if (lastHallOfFameDate.before(sixDaysAgo)) {
                 Core.settings.put("lastHallOfFameDate", today.getTime());
-                Core.settings.manualSave();
 
                 DiscordBot.sendMessageToHallOfFame(text.toString());
             } else {
