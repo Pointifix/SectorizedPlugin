@@ -152,9 +152,11 @@ public class UpdateManager implements Manager {
 
                 if (State.gameState == State.GameState.ACTIVE && lock) {
                     State.gameState = State.GameState.LOCKED;
+                    state.rules.waveSpacing = state.rules.waveSpacing / 2;
                     Events.fire(new SectorizedEvents.TeamDominatingEvent(dominatingTeam));
                 } else if (State.gameState == State.GameState.LOCKED && !lock) {
                     State.gameState = State.GameState.ACTIVE;
+                    state.rules.waveSpacing = state.rules.waveSpacing * 2;
                     Events.fire(new SectorizedEvents.NoTeamDominatingEvent());
                 }
             }

@@ -17,9 +17,11 @@ import sectorized.update.UpdateManager;
 import sectorized.world.WorldManager;
 
 import java.io.IOException;
-import java.net.ServerSocket;
+import java.net.BindException;
 import java.util.concurrent.TimeUnit;
 
+import static arc.util.Log.err;
+import static arc.util.Log.info;
 import static mindustry.Vars.*;
 
 public class SectorizedPlugin extends Plugin {
@@ -59,22 +61,29 @@ public class SectorizedPlugin extends Plugin {
             Rules.setSpawnGroups(state.rules);
             state.rules.infiniteResources = Config.c.infiniteResources;
 
+            Core.settings.put("playerlimit", 50);
+
             while (true) {
                 try {
-                    TimeUnit.SECONDS.sleep(1);
-
-                    ServerSocket serverSocket = new ServerSocket(Administration.Config.port.num());
-                    serverSocket.close();
+                    net.host(Administration.Config.port.num());
+                    info("Opened a server on port @.", Administration.Config.port.num());
                     break;
-                } catch (IOException | InterruptedException e) {
-                    Log.err("Unable to host: Port " + Administration.Config.port.num() + " already in use! Make sure no other servers are running on the same port in your network.");
+                } catch (BindException e) {
+                    err("Unable to host: Port " + Administration.Config.port.num() + " already in use! Make sure no other servers are running on the same port in your network.");
+                    state.set(GameState.State.menu);
+                } catch (IOException e) {
+                    err(e);
                     state.set(GameState.State.menu);
                 }
-            }
 
+                try {
+                    TimeUnit.SECONDS.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            
             logic.play();
-            Core.settings.put("playerlimit", 50);
-            netServer.openServer();
 
             State.gameState = State.GameState.ACTIVE;
         });

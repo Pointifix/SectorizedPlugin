@@ -7,6 +7,9 @@ import mindustry.content.Blocks;
 import mindustry.content.Planets;
 import mindustry.game.SpawnGroup;
 import mindustry.game.Team;
+import mindustry.world.blocks.defense.turrets.ItemTurret;
+import mindustry.world.blocks.defense.turrets.LaserTurret;
+import mindustry.world.blocks.units.Reconstructor;
 
 import static mindustry.content.UnitTypes.*;
 
@@ -43,15 +46,25 @@ public class Rules {
                 Blocks.largeLogicDisplay,
                 Blocks.canvas);
 
+        ((ItemTurret) (Blocks.foreshadow)).ammoTypes.forEach(ammoType -> {
+            ammoType.value.damage *= 0.75;
+        });
+        ((ItemTurret) (Blocks.spectre)).ammoTypes.forEach(ammoType -> {
+            ammoType.value.damage *= 2.0;
+        });
+        ((LaserTurret) (Blocks.meltdown)).shootType.damage *= 1.5;
+        ((Reconstructor) (Blocks.exponentialReconstructor)).constructTime *= 0.75;
+        ((Reconstructor) (Blocks.tetrativeReconstructor)).constructTime *= 0.75;
+
         rules.unitCap = 0;
 
         Blocks.coreShard.unitCapModifier = 2;
-        Blocks.coreFoundation.unitCapModifier = 5;
-        Blocks.coreNucleus.unitCapModifier = 8;
+        Blocks.coreFoundation.unitCapModifier = 4;
+        Blocks.coreNucleus.unitCapModifier = 7;
 
         Blocks.coreBastion.unitCapModifier = 2;
-        Blocks.coreCitadel.unitCapModifier = 6;
-        Blocks.coreAcropolis.unitCapModifier = 8;
+        Blocks.coreCitadel.unitCapModifier = 4;
+        Blocks.coreAcropolis.unitCapModifier = 7;
     }
 
     public static void setSpawnGroups(mindustry.game.Rules rules) {
