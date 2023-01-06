@@ -58,12 +58,12 @@ public class Rules {
 
         rules.unitCap = 0;
 
-        Blocks.coreShard.unitCapModifier = 2;
-        Blocks.coreFoundation.unitCapModifier = 4;
-        Blocks.coreNucleus.unitCapModifier = 7;
+        Blocks.coreShard.unitCapModifier = 4;
+        Blocks.coreFoundation.unitCapModifier = 6;
+        Blocks.coreNucleus.unitCapModifier = 8;
 
-        Blocks.coreBastion.unitCapModifier = 2;
-        Blocks.coreCitadel.unitCapModifier = 4;
+        Blocks.coreBastion.unitCapModifier = 3;
+        Blocks.coreCitadel.unitCapModifier = 5;
         Blocks.coreAcropolis.unitCapModifier = 7;
     }
 

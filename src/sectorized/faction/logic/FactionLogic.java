@@ -8,6 +8,7 @@ import arc.util.Timer;
 import mindustry.Vars;
 import mindustry.ai.types.FlyingAI;
 import mindustry.ai.types.GroundAI;
+import mindustry.core.GameState;
 import mindustry.game.EventType;
 import mindustry.game.Team;
 import mindustry.gen.Groups;
@@ -64,8 +65,6 @@ public class FactionLogic {
     public Faction getFaction(Team team) {
         Faction faction = factions.find(f -> f.team == team);
 
-        assert faction != null;
-
         return faction;
     }
 
@@ -73,6 +72,7 @@ public class FactionLogic {
         Faction faction = new Faction(available.pop(), State.time);
 
         factions.add(faction);
+        state.set(GameState.State.playing);
 
         return faction;
     }
@@ -96,8 +96,9 @@ public class FactionLogic {
         member.player.unit().kill();
     }
 
-    public void removeFaction(Faction defender, Faction attacker) {
+    public void removeFaction(Faction defender, Faction attacker, boolean fallback) {
         factions.remove(defender);
+        if (factions.size == 0) state.set(GameState.State.paused);
         available.insert(0, defender.team);
 
         defender.members.each(m -> {
@@ -125,6 +126,8 @@ public class FactionLogic {
         if (defender.members.size > 0) {
             if (attacker == null) {
                 MessageUtils.sendMessage(MessageUtils.cPlayer + defender.members.first().player.name + MessageUtils.cDefault + " got eliminated!", MessageUtils.MessageLevel.ELIMINATION);
+            } else if (fallback) {
+                MessageUtils.sendMessage(MessageUtils.cPlayer + defender.members.first().player.name + MessageUtils.cDefault + " got eliminated! Points awarded to " + MessageUtils.cDanger + attacker.members.first().player.name + MessageUtils.cDefault + "!", MessageUtils.MessageLevel.ELIMINATION);
             } else {
                 MessageUtils.sendMessage(MessageUtils.cPlayer + defender.members.first().player.name + MessageUtils.cDefault + " got eliminated by " + MessageUtils.cDanger + attacker.members.first().player.name + MessageUtils.cDefault + "!", MessageUtils.MessageLevel.ELIMINATION);
             }

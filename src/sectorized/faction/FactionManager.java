@@ -269,38 +269,49 @@ public class FactionManager implements Manager {
                 CoreBlock.CoreBuild coreBuild = (CoreBlock.CoreBuild) event.tile.build;
                 Faction faction = factionLogic.getFaction(event.tile.team());
 
-                Events.fire(new SectorizedEvents.CoreDestroyEvent(faction, coreBuild));
+                if (coreBuild.equals(Building.bulletDamageEvent.build) && Building.bulletDamageEvent.source.team() != faction.team) {
+                    faction.lastAttacker = Building.bulletDamageEvent.source.team();
+                }
+
+                Events.fire(new SectorizedEvents.CoreDestroyEvent(coreBuild, faction));
 
                 if (faction.team.cores().isEmpty()) {
-                    int radius = 60 * tilesize;
+                    Faction attacker = faction.lastAttacker == null ? null : factionLogic.getFaction(faction.lastAttacker);
 
-                    final Unit[] mostHealthUnit = {null};
-                    Units.nearbyEnemies(faction.team, event.tile.getX() - radius, event.tile.getY() - radius, radius * 2, radius * 2, unit -> {
-                        if (!unit.isPlayer() && unit.type() != UnitTypes.mono && unit.team != Team.crux) {
-                            if (mostHealthUnit[0] == null) mostHealthUnit[0] = unit;
-                            else if (unit.health() > mostHealthUnit[0].health()) mostHealthUnit[0] = unit;
+                    boolean fallback = false;
+                    if (attacker == null) {
+                        final int radius = 60 * tilesize;
+
+                        final Unit[] mostHealthUnit = {null};
+                        Units.nearbyEnemies(faction.team, event.tile.getX() - radius, event.tile.getY() - radius, radius * 2, radius * 2, unit -> {
+                            if (!unit.isPlayer() && unit.team != faction.team && unit.type() != UnitTypes.mono && unit.team != Team.crux) {
+                                if (mostHealthUnit[0] == null) mostHealthUnit[0] = unit;
+                                else if (unit.health() > mostHealthUnit[0].health()) mostHealthUnit[0] = unit;
+                            }
+                        });
+
+                        if (mostHealthUnit[0] != null) attacker = factionLogic.getFaction(mostHealthUnit[0].team);
+                        else if (faction.maxCores >= 5) {
+                            Team dominatingTeam;
+                            Team[] teams = Team.all.clone();
+                            Arrays.sort(teams, Comparator.comparingInt(t -> -t.cores().size));
+                            dominatingTeam = teams[0];
+                            Faction dominatingFaction = factionLogic.getFaction(dominatingTeam);
+
+                            if (dominatingFaction != null && dominatingFaction.maxCores >= 5) {
+                                fallback = true;
+                                attacker = dominatingFaction;
+                            }
                         }
-                    });
-
-                    Faction attacker = null;
-                    if (mostHealthUnit[0] != null) attacker = factionLogic.getFaction(mostHealthUnit[0].team);
-                    else if (faction.maxCores >= 5) {
-                        Team dominatingTeam;
-                        Team[] teams = Team.all.clone();
-                        Arrays.sort(teams, Comparator.comparingInt(t -> -t.cores().size));
-                        dominatingTeam = teams[0];
-                        Faction dominatingFaction = factionLogic.getFaction(dominatingTeam);
-
-                        if (dominatingFaction.maxCores >= 5) attacker = dominatingFaction;
                     }
 
-                    Events.fire(new SectorizedEvents.EliminateFactionEvent(faction, attacker));
+                    Events.fire(new SectorizedEvents.EliminateFactionEvent(faction, attacker, fallback));
                 }
             }
         });
 
         Events.on(SectorizedEvents.EliminateFactionEvent.class, event -> {
-            factionLogic.removeFaction(event.defender, event.attacker);
+            factionLogic.removeFaction(event.defender, event.attacker, event.fallback);
         });
 
         Events.on(SectorizedEvents.CoreBuildEvent.class, event -> {

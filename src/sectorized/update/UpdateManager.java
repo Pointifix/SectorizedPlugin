@@ -41,8 +41,6 @@ public class UpdateManager implements Manager {
 
     private int coreDominationDifference = 3;
 
-    private boolean successfullyRestarted = false;
-
     @Override
     public void init() {
         Events.run(EventType.Trigger.update, () -> {
@@ -55,14 +53,14 @@ public class UpdateManager implements Manager {
                 double unitDamageMultiplier = Math.round(state.rules.unitDamageMultiplier * 10.0) / 10.0;
                 double unitHealthMultiplier = Math.round(Units.healthMultiplier * 10.0) / 10.0;
 
-                Groups.player.each(player -> !hideHud.contains(player.uuid()), player -> {
+                Groups.player.each(player -> (!hideHud.contains(player.uuid()) && player.team() != Team.derelict), player -> {
                     int cores = player.team().cores().size - 1;
 
                     StringBuilder infoPopupText = State.planet.equals(Planets.serpulo.name) ? new StringBuilder(MessageUtils.cInfo + "Costs for next[white] \uF869\n") : new StringBuilder(MessageUtils.cInfo + "Costs for next[white] \uF725\n");
 
-                    ItemSeq[] requirements = State.planet.equals(Planets.serpulo.name) ? CoreCost.requirementsSerpulo : CoreCost.requirementsErekir;
+                    ItemSeq requirements = CoreCost.getRequirements(player.team());
 
-                    for (ItemStack itemStack : requirements[Math.max(Math.min(cores, requirements.length - 1), 0)]) {
+                    for (ItemStack itemStack : requirements) {
                         int availableItems = player.team().items().get(itemStack.item);
 
                         infoPopupText
@@ -175,10 +173,10 @@ public class UpdateManager implements Manager {
 
             state.rules.loadout = Loadout.getLoadout(state.wave);
 
-            state.rules.blockDamageMultiplier = (float) (1 + (2 / (Math.pow(state.wave * 0.05, 5) + 1)));
-            state.rules.unitDamageMultiplier = (float) (3 - (2.5 / (Math.pow(state.wave * 0.05, 5) + 1)));
+            state.rules.blockDamageMultiplier = (float) (1 + (2 / (Math.pow(state.wave * 0.05, 4) + 1)));
+            state.rules.unitDamageMultiplier = (float) (3 - (2.5 / (Math.pow(state.wave * 0.05, 4) + 1)));
 
-            Units.setUnitHealthMultiplier((float) (6 - (5 / (Math.pow(state.wave * 0.05, 5) + 1))));
+            Units.setUnitHealthMultiplier((float) (6 - (5 / (Math.pow(state.wave * 0.05, 4) + 1))));
 
             if (state.teams.active.size < 2 && state.wave >= 5) {
                 DiscordBot.sendMessage("**Game Over!** Crux won the game in " + Vars.state.wave + " waves.");
@@ -380,8 +378,6 @@ public class UpdateManager implements Manager {
                     processBuilder.start();
 
                     Log.info("Successfully restarted server");
-
-                    successfullyRestarted = true;
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -396,7 +392,7 @@ public class UpdateManager implements Manager {
 
                     Events.fire(new SectorizedEvents.ShutdownEvent());
 
-                    System.exit(successfullyRestarted ? 0 : 1);
+                    System.exit(1);
                 }
 
                 MessageUtils.sendMessage("Server is restarting in " + MessageUtils.cInfo + (countdown.getAndDecrement()) + MessageUtils.cDefault + " second(s).", MessageUtils.MessageLevel.INFO);

@@ -13,6 +13,8 @@ public class Faction {
 
     public final double time;
 
+    public Team lastAttacker;
+
     public Faction(Team team, double time) {
         this.team = team;
         this.time = time;

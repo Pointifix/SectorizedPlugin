@@ -60,6 +60,7 @@ public class SectorizedPlugin extends Plugin {
             Events.fire(new SectorizedEvents.GamemodeStartEvent());
             Rules.setSpawnGroups(state.rules);
             state.rules.infiniteResources = Config.c.infiniteResources;
+            state.set(GameState.State.paused);
 
             Core.settings.put("playerlimit", 50);
 
@@ -82,7 +83,7 @@ public class SectorizedPlugin extends Plugin {
                     e.printStackTrace();
                 }
             }
-            
+
             logic.play();
 
             State.gameState = State.GameState.ACTIVE;

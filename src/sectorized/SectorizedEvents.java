@@ -15,11 +15,11 @@ public class SectorizedEvents {
         new RestartEvent("");
         new ShutdownEvent();
         new NewMemberEvent(null);
-        new CoreDestroyEvent(null, null);
         new CoreBuildEvent(null);
+        new CoreDestroyEvent(null, null);
         new MemberSpawnedEvent(null, null);
         new NoSpawnPointAvailableEvent(null);
-        new EliminateFactionEvent(null, null);
+        new EliminateFactionEvent(null, null, false);
         new TeamDominatingEvent(null);
         new NoTeamDominatingEvent();
     }
@@ -57,21 +57,21 @@ public class SectorizedEvents {
         }
     }
 
-    public static class CoreDestroyEvent {
-        public final Faction faction;
-        public final CoreBlock.CoreBuild coreBuild;
-
-        public CoreDestroyEvent(Faction faction, CoreBlock.CoreBuild coreBuild) {
-            this.faction = faction;
-            this.coreBuild = coreBuild;
-        }
-    }
-
     public static class CoreBuildEvent {
         public final Tile tile;
 
         public CoreBuildEvent(Tile tile) {
             this.tile = tile;
+        }
+    }
+
+    public static class CoreDestroyEvent {
+        public final CoreBlock.CoreBuild coreBuild;
+        public final Faction faction;
+
+        public CoreDestroyEvent(CoreBlock.CoreBuild coreBuild, Faction faction) {
+            this.coreBuild = coreBuild;
+            this.faction = faction;
         }
     }
 
@@ -95,10 +95,12 @@ public class SectorizedEvents {
 
     public static class EliminateFactionEvent {
         public final Faction defender, attacker;
+        public final boolean fallback;
 
-        public EliminateFactionEvent(Faction defender, Faction attacker) {
+        public EliminateFactionEvent(Faction defender, Faction attacker, boolean fallback) {
             this.defender = defender;
             this.attacker = attacker;
+            this.fallback = fallback;
         }
     }
 
