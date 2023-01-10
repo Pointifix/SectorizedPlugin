@@ -1,26 +1,19 @@
 package sectorized.world.map;
 
 import arc.Core;
-import arc.Events;
 import arc.func.Cons;
 import arc.math.Mathf;
-import arc.struct.StringMap;
 import mindustry.content.Blocks;
 import mindustry.content.Planets;
-import mindustry.maps.Map;
 import mindustry.world.Block;
 import mindustry.world.Tile;
 import mindustry.world.Tiles;
 import mindustry.world.blocks.environment.Floor;
-import sectorized.SectorizedEvents;
-import sectorized.constant.DiscordBot;
-import sectorized.constant.Loadout;
 import sectorized.constant.State;
 import sectorized.world.map.generator.BiomeSelection;
 
 import java.util.HashMap;
 
-import static mindustry.Vars.state;
 import static mindustry.Vars.world;
 
 public class MapGenerator implements Cons<Tiles> {
@@ -28,20 +21,16 @@ public class MapGenerator implements Cons<Tiles> {
 
     private final Biomes.Biome biomeVote;
 
-    public MapGenerator() {
-        String biomeVoteString = (String) Core.settings.get("biomeVote", "");
-        biomeVote = Biomes.all.stream().filter(biome -> biome.toString().equals(biomeVoteString)).findFirst().orElse(null);
-        Core.settings.put("biomeVote", "");
+    public StringBuilder mostFrequentBiomes = new StringBuilder();
+
+    public MapGenerator(Biomes.Biome biomeVote) {
+        this.biomeVote = biomeVote;
     }
 
     @Override
     public void get(Tiles tiles) {
-        final String planet = biomeVote != null ? biomeVote.getPlanet() : Mathf.chance(0.7) ? Planets.serpulo.name : Planets.erekir.name;
-        State.planet = planet;
-        state.rules.loadout = Loadout.getLoadout(1);
-
         RiversGenerator riversGenerator = new RiversGenerator();
-        BiomesGenerator biomesGenerator = planet.equals(Planets.serpulo.name) ? new SerpuloBiomesGenerator() : new ErekirBiomesGenerator();
+        BiomesGenerator biomesGenerator = State.planet.equals(Planets.serpulo.name) ? new SerpuloBiomesGenerator() : new ErekirBiomesGenerator();
 
         int offsetX = Mathf.random(9999999);
         int offsetY = Mathf.random(9999999);
@@ -83,7 +72,7 @@ public class MapGenerator implements Cons<Tiles> {
 
         for (int x = 0; x < world.width(); x++) {
             for (int y = 0; y < world.height(); y++) {
-                if (planet.equals(Planets.serpulo.name)) {
+                if (State.planet.equals(Planets.serpulo.name)) {
                     Block water = riversGenerator.sample(x + offsetX, y + offsetY);
 
                     Tile tile = new Tile(x, y);
@@ -104,7 +93,7 @@ public class MapGenerator implements Cons<Tiles> {
                     }
 
                     tiles.set(x, y, tile);
-                } else if (planet.equals(Planets.erekir.name)) {
+                } else if (State.planet.equals(Planets.erekir.name)) {
                     Tile tile = new Tile(x, y);
 
                     if (x <= 1 || x >= world.width() - 2 || y <= 1 || y >= world.height() - 2) {
@@ -123,7 +112,6 @@ public class MapGenerator implements Cons<Tiles> {
             }
         }
 
-        StringBuilder mostFrequentBiomes = new StringBuilder();
         int threshold = (int) (world.width() * world.height() * 0.1);
         final int[] count = {0};
 
@@ -136,20 +124,6 @@ public class MapGenerator implements Cons<Tiles> {
 
         mostFrequentBiomes.deleteCharAt(mostFrequentBiomes.length() - 1);
 
-        Events.fire(new SectorizedEvents.BiomesGeneratedEvent());
-
-        DiscordBot.sendMessage("**Server started!** Current map: " + mostFrequentBiomes);
-
-        if (planet.equals(Planets.serpulo.name)) {
-            state.rules.env = Planets.serpulo.defaultEnv;
-            state.rules.hiddenBuildItems.clear();
-            state.rules.hiddenBuildItems.addAll(Planets.serpulo.hiddenItems);
-        } else if (planet.equals(Planets.erekir.name)) {
-            state.rules.env = Planets.erekir.defaultEnv;
-            state.rules.hiddenBuildItems.clear();
-            state.rules.hiddenBuildItems.addAll(Planets.erekir.hiddenItems);
-        }
-
-        state.map = new Map(StringMap.of("name", mostFrequentBiomes));
+        Core.settings.put("mostFrequentBiomes", mostFrequentBiomes.toString());
     }
 }

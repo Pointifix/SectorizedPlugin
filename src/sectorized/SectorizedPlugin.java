@@ -4,9 +4,7 @@ import arc.Core;
 import arc.Events;
 import arc.util.CommandHandler;
 import arc.util.Log;
-import mindustry.core.GameState;
 import mindustry.mod.Plugin;
-import mindustry.net.Administration;
 import sectorized.constant.Config;
 import sectorized.constant.DiscordBot;
 import sectorized.constant.Rules;
@@ -16,12 +14,6 @@ import sectorized.sector.SectorManager;
 import sectorized.update.UpdateManager;
 import sectorized.world.WorldManager;
 
-import java.io.IOException;
-import java.net.BindException;
-import java.util.concurrent.TimeUnit;
-
-import static arc.util.Log.err;
-import static arc.util.Log.info;
 import static mindustry.Vars.*;
 
 public class SectorizedPlugin extends Plugin {
@@ -50,6 +42,9 @@ public class SectorizedPlugin extends Plugin {
         }
 
         handler.register("sectorized", "Hosts the sectorized gamemode.", args -> {
+            Core.settings.put("playerlimit", 50);
+            Core.settings.manualSave();
+
             logic.reset();
             state.rules = Rules.rules.copy();
 
@@ -60,31 +55,9 @@ public class SectorizedPlugin extends Plugin {
             Events.fire(new SectorizedEvents.GamemodeStartEvent());
             Rules.setSpawnGroups(state.rules);
             state.rules.infiniteResources = Config.c.infiniteResources;
-            state.set(GameState.State.paused);
-
-            Core.settings.put("playerlimit", 50);
-
-            while (true) {
-                try {
-                    net.host(Administration.Config.port.num());
-                    info("Opened a server on port @.", Administration.Config.port.num());
-                    break;
-                } catch (BindException e) {
-                    err("Unable to host: Port " + Administration.Config.port.num() + " already in use! Make sure no other servers are running on the same port in your network.");
-                    state.set(GameState.State.menu);
-                } catch (IOException e) {
-                    err(e);
-                    state.set(GameState.State.menu);
-                }
-
-                try {
-                    TimeUnit.SECONDS.sleep(1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
 
             logic.play();
+            netServer.openServer();
 
             State.gameState = State.GameState.ACTIVE;
         });

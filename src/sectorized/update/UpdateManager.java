@@ -22,7 +22,6 @@ import sectorized.SectorizedEvents;
 import sectorized.constant.*;
 import sectorized.world.map.Biomes;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -347,6 +346,9 @@ public class UpdateManager implements Manager {
             }
 
             Timer.schedule(() -> {
+                Biomes.Biome winnerBiome = null;
+                int winnerBiomeVotes = 0;
+
                 if (!biomeVotes.isEmpty()) {
                     Seq<Map.Entry<Biomes.Biome, Integer>> maxEntries = new Seq<>();
                     int maxValueInMap = (Collections.max(biomeVotes.values()));
@@ -360,27 +362,16 @@ public class UpdateManager implements Manager {
                     MessageUtils.sendMessage(MessageUtils.cHighlight1 + voteWinnerBiomeEntry.getKey() + " (" + Strings.capitalize(voteWinnerBiomeEntry.getKey().getPlanet()) + ")" + MessageUtils.cDefault + " won with " + MessageUtils.cHighlight2 + voteWinnerBiomeEntry.getValue() + MessageUtils.cDefault + " vote(s)!", MessageUtils.MessageLevel.INFO);
                     Call.announce(MessageUtils.cHighlight1 + voteWinnerBiomeEntry.getKey() + " (" + Strings.capitalize(voteWinnerBiomeEntry.getKey().getPlanet()) + ")" + MessageUtils.cDefault + " won with " + MessageUtils.cHighlight2 + voteWinnerBiomeEntry.getValue() + MessageUtils.cDefault + " vote(s)!");
 
+                    winnerBiome = voteWinnerBiomeEntry.getKey();
+                    winnerBiomeVotes = voteWinnerBiomeEntry.getValue();
+
                     Core.settings.put("biomeVote", voteWinnerBiomeEntry.getKey().toString());
                 } else {
                     Core.settings.put("biomeVote", "");
                 }
+                Events.fire(new SectorizedEvents.BiomeVoteFinishedEvent(winnerBiome, winnerBiomeVotes));
                 Core.settings.manualSave();
                 biomeVoteFinished = true;
-
-                String os = System.getProperty("os.name").toLowerCase();
-
-                ProcessBuilder processBuilder = new ProcessBuilder("sh", System.getProperty("user.dir") + "/run_server.sh").inheritIO();
-                if (os.contains("win")) {
-                    processBuilder = new ProcessBuilder(System.getProperty("user.dir") + "/run_server_repeat.bat", "sectorized").inheritIO();
-                }
-
-                try {
-                    processBuilder.start();
-
-                    Log.info("Successfully restarted server");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
             }, 20);
 
             final int seconds = 10;

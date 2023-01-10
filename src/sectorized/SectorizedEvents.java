@@ -6,6 +6,7 @@ import mindustry.world.Tile;
 import mindustry.world.blocks.storage.CoreBlock;
 import sectorized.faction.core.Faction;
 import sectorized.faction.core.Member;
+import sectorized.world.map.Biomes;
 
 public class SectorizedEvents {
     static {
@@ -114,6 +115,16 @@ public class SectorizedEvents {
 
     public static class NoTeamDominatingEvent {
         public NoTeamDominatingEvent() {
+        }
+    }
+
+    public static class BiomeVoteFinishedEvent {
+        Biomes.Biome biome;
+        int votes;
+
+        public BiomeVoteFinishedEvent(Biomes.Biome biome, int votes) {
+            this.biome = biome;
+            this.votes = votes;
         }
     }
 }
