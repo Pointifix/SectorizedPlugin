@@ -22,7 +22,6 @@ import sectorized.SectorizedEvents;
 import sectorized.constant.*;
 import sectorized.world.map.Biomes;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -366,21 +365,6 @@ public class UpdateManager implements Manager {
                 }
                 Core.settings.manualSave();
                 biomeVoteFinished = true;
-
-                String os = System.getProperty("os.name").toLowerCase();
-
-                ProcessBuilder processBuilder = new ProcessBuilder("sh", System.getProperty("user.dir") + "/run_server.sh").inheritIO();
-                if (os.contains("win")) {
-                    processBuilder = new ProcessBuilder(System.getProperty("user.dir") + "/run_server_repeat.bat", "sectorized").inheritIO();
-                }
-
-                try {
-                    processBuilder.start();
-
-                    Log.info("Successfully restarted server");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
             }, 20);
 
             final int seconds = 10;
