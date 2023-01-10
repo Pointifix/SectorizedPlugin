@@ -69,7 +69,7 @@ public class SectorSpawns {
 
             spawnSeq.sort((Point2 a, Point2 b) -> (Math.abs(center.x - b.x) + Math.abs(center.y - b.y)) - (Math.abs(center.x - a.x) + Math.abs(center.y - a.y)));
 
-            Tile tile = world.tile(spawnSeq.get(offset).pack());
+            Tile tile = world.tile(spawnSeq.get(Math.min(offset, spawnSeq.size - 1)).pack());
             spawnSeq.remove(offset);
 
             for (int x = Math.max(0, tile.x - radius); x <= Math.min(world.width() - 1, tile.x + radius); x++) {

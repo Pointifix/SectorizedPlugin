@@ -214,39 +214,39 @@ public class Rules {
                     new SpawnGroup(reign) {{
                         begin = 40;
                         end = never;
-                        unitAmount = 1;
-                        unitScaling = 4f;
+                        unitAmount = 2;
+                        unitScaling = 2f;
                     }},
                     new SpawnGroup(corvus) {{
                         begin = 45;
                         end = never;
-                        unitAmount = 1;
-                        unitScaling = 4f;
+                        unitAmount = 2;
+                        unitScaling = 2f;
                     }},
                     new SpawnGroup(toxopid) {{
                         begin = 50;
                         end = never;
-                        unitAmount = 1;
-                        unitScaling = 4f;
+                        unitAmount = 2;
+                        unitScaling = 2f;
                     }},
                     new SpawnGroup(eclipse) {{
                         begin = 55;
                         end = never;
-                        unitAmount = 1;
-                        unitScaling = 4f;
+                        unitAmount = 2;
+                        unitScaling = 2f;
                     }},
                     new SpawnGroup(oct) {{
                         begin = 60;
                         end = never;
-                        unitAmount = 1;
-                        unitScaling = 4f;
+                        unitAmount = 2;
+                        unitScaling = 2f;
                     }},
                     new SpawnGroup(omura) {{
                         begin = 55;
                         end = never;
                         spacing = 2;
-                        unitAmount = 1;
-                        unitScaling = 4f;
+                        unitAmount = 2;
+                        unitScaling = 2f;
                     }}
             );
         } else if (State.planet.equals(Planets.erekir.name)) {
@@ -324,20 +324,20 @@ public class Rules {
                         unitScaling = 3f;
                     }},
                     new SpawnGroup(quell) {{
-                        begin = 56;
+                        begin = 54;
                         end = 59;
                         unitAmount = 1;
                         unitScaling = 3f;
                     }},
                     // T5
                     new SpawnGroup(conquer) {{
-                        begin = 60;
+                        begin = 56;
                         end = never;
                         unitAmount = 1;
                         unitScaling = 3f;
                     }},
                     new SpawnGroup(disrupt) {{
-                        begin = 72;
+                        begin = 58;
                         end = never;
                         unitAmount = 1;
                         unitScaling = 3f;

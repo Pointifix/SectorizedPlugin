@@ -4,6 +4,7 @@ import arc.Events;
 import arc.struct.Seq;
 import arc.util.CommandHandler;
 import arc.util.Timer;
+import mindustry.Vars;
 import mindustry.ai.types.LogicAI;
 import mindustry.content.UnitTypes;
 import mindustry.entities.Units;
@@ -351,6 +352,29 @@ public class FactionManager implements Manager {
             if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
             MessageUtils.sendMessage("(Re)spawning is now " + MessageUtils.cInfo + "unlocked" + MessageUtils.cDefault + " again!", MessageUtils.MessageLevel.INFO);
+        });
+
+        Events.on(EventType.WaveEvent.class, event -> {
+            if (Vars.state.wave == 45) {
+                MessageUtils.sendMessage("Everyone with more than 5 cores will loose 1% of their score per wave after wave 50! Stop camping, start fighting!", MessageUtils.MessageLevel.WARNING);
+            }
+
+            if (Vars.state.wave == 50) {
+                MessageUtils.sendMessage("Everyone with more than 5 cores will now loose 1% of their score per wave! Stop camping, start fighting!", MessageUtils.MessageLevel.WARNING);
+            }
+
+            if (Vars.state.wave > 50) {
+                for (Player player : Groups.player) {
+                    Member member = memberLogic.getMember(player);
+
+                    if (member.faction.team.cores().size >= 5) {
+                        int loss = (int) (member.score * 0.01f);
+                        member.score *= 0.99f;
+
+                        MessageUtils.sendMessage(member.player, "You lost" + loss + " points! Stop camping, start fighting!", MessageUtils.MessageLevel.WARNING);
+                    }
+                }
+            }
         });
     }
 

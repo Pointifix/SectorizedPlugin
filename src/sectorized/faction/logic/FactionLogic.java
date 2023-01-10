@@ -158,8 +158,6 @@ public class FactionLogic {
             Member winner = factions.first().members.first();
             State.winner = winner;
             winner.wins++;
-            winner.score += Vars.state.wave * 2;
-            MessageUtils.sendMessage(winner.player, "You gained " + MessageUtils.cInfo + Vars.state.wave * 2 + MessageUtils.cDefault + " for winning the game!", MessageUtils.MessageLevel.INFO);
             persistence.setRanking(winner);
 
             DiscordBot.sendMessage("**Game Over!** Player *" + Strings.stripColors(winner.player.name).substring(1).replace("@", "at") + "* won the game in " + Vars.state.wave + " waves.");
