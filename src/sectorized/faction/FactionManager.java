@@ -367,7 +367,7 @@ public class FactionManager implements Manager {
                 for (Player player : Groups.player) {
                     Member member = memberLogic.getMember(player);
 
-                    if (member.faction.team.cores().size >= 5) {
+                    if (member.faction != null && member.faction.team.cores().size >= 5) {
                         int loss = (int) (member.score * 0.01f);
                         member.score *= 0.99f;
 

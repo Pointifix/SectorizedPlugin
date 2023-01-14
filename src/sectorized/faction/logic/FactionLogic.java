@@ -38,6 +38,7 @@ public class FactionLogic {
         available.remove(Team.derelict);
         available.remove(Team.sharded);
         available.remove(Team.crux);
+        available.remove(Team.malis);
         available.shuffle();
 
         Team.crux.data().unitCap = Integer.MAX_VALUE;
