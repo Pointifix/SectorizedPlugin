@@ -8,7 +8,8 @@ public class Member {
     public boolean online = false;
     public MemberState state = MemberState.WAITING;
 
-    public int wins = 0, score = 0, rank = -1;
+    public int wins = 0, losses = 0, score = 0, rank = -1;
+    public float ratio = 0;
     public String discordTag;
 
     public Member(Player player) {

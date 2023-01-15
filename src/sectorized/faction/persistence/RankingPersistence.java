@@ -164,8 +164,11 @@ public class RankingPersistence {
                     if (resultSet.next()) {
                         member.score = resultSet.getInt("score");
                         member.wins = resultSet.getInt("wins");
+                        member.losses = resultSet.getInt("losses");
                         member.rank = member.score > 0 ? resultSet.getInt("rank") : -1;
                         member.discordTag = resultSet.getString("discordTag");
+
+                        member.ratio = (float) member.wins / (float) member.losses;
                     } else {
                         setRanking(member);
                     }
@@ -230,16 +233,18 @@ public class RankingPersistence {
         if (Config.c.databaseEnabled) {
             if (connection != null) {
                 try {
-                    PreparedStatement statement = connection.prepareStatement("INSERT INTO ranking (uuid, name, score, wins, discordTag) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name = ?, score = ?, wins = ?, discordTag = ?");
+                    PreparedStatement statement = connection.prepareStatement("INSERT INTO ranking (uuid, name, score, wins, losses, discordTag) VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name = ?, score = ?, wins = ?, losses = ?, discordTag = ?");
                     statement.setString(1, member.player.uuid());
                     statement.setString(2, Strings.stripColors(member.player.name).substring(1));
                     statement.setInt(3, member.score);
                     statement.setInt(4, member.wins);
-                    statement.setString(5, member.discordTag);
-                    statement.setString(6, Strings.stripColors(member.player.name).substring(1));
-                    statement.setInt(7, member.score);
-                    statement.setInt(8, member.wins);
-                    statement.setString(9, member.discordTag);
+                    statement.setInt(5, member.losses);
+                    statement.setString(6, member.discordTag);
+                    statement.setString(7, Strings.stripColors(member.player.name).substring(1));
+                    statement.setInt(8, member.score);
+                    statement.setInt(9, member.wins);
+                    statement.setInt(10, member.losses);
+                    statement.setString(11, member.discordTag);
 
                     statement.executeQuery();
                 } catch (SQLException e) {
@@ -274,6 +279,7 @@ public class RankingPersistence {
             looserFaction.members.each(m -> {
                 MessageUtils.sendMessage(m.player, "You lost " + MessageUtils.cDanger + Math.abs(loss) + MessageUtils.cDefault + " points", MessageUtils.MessageLevel.INFO);
 
+                m.losses++;
                 m.score += loss;
                 if (m.score < 0) m.score = 0;
                 this.setRanking(m);
@@ -293,6 +299,7 @@ public class RankingPersistence {
             looserFaction.members.each(m -> {
                 MessageUtils.sendMessage(m.player, "You lost " + MessageUtils.cDanger + Math.abs(loss) + MessageUtils.cDefault + " points", MessageUtils.MessageLevel.INFO);
 
+                m.losses++;
                 m.score += loss;
                 if (m.score < 0) m.score = 0;
                 this.setRanking(m);
