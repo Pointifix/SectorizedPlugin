@@ -13,7 +13,7 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 17
-          gradle-version: 7.6
+          distribution: 'adopt'
       - name: Build plugin jar
         run: ./gradlew jar
       - name: Upload built jar file
