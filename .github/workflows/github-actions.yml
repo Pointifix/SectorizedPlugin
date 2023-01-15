@@ -1,0 +1,8 @@
+name: GitHub Actions
+run-name: Build and Deploy
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "run build"

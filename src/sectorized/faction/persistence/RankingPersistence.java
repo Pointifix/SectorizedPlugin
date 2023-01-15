@@ -168,7 +168,7 @@ public class RankingPersistence {
                         member.rank = member.score > 0 ? resultSet.getInt("rank") : -1;
                         member.discordTag = resultSet.getString("discordTag");
 
-                        member.ratio = (float) member.wins / (float) member.losses;
+                        member.ratio = (float) member.wins / Math.max((float) member.losses, 1);
                     } else {
                         setRanking(member);
                     }
