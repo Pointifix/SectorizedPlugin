@@ -12,7 +12,7 @@ jobs:
           java-version: 17
       - uses: gradle/gradle-build-action@v2
         with:
-          gradle-version: 7.6
+          gradle-version: 7.3
       - name: Build plugin jar
         run: ./gradlew jar
       - name: Upload built jar file
