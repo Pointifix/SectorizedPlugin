@@ -4,7 +4,6 @@ import arc.Events;
 import arc.struct.Seq;
 import arc.util.CommandHandler;
 import arc.util.Timer;
-import mindustry.Vars;
 import mindustry.ai.types.LogicAI;
 import mindustry.content.UnitTypes;
 import mindustry.entities.Units;
@@ -353,29 +352,6 @@ public class FactionManager implements Manager {
 
             MessageUtils.sendMessage("(Re)spawning is now " + MessageUtils.cInfo + "unlocked" + MessageUtils.cDefault + " again!", MessageUtils.MessageLevel.INFO);
         });
-
-        Events.on(EventType.WaveEvent.class, event -> {
-            if (Vars.state.wave == 45) {
-                MessageUtils.sendMessage("Everyone with more than 5 cores will loose 1% of their score per wave after wave 50! Stop camping, start fighting!", MessageUtils.MessageLevel.WARNING);
-            }
-
-            if (Vars.state.wave == 50) {
-                MessageUtils.sendMessage("Everyone with more than 5 cores will now loose 1% of their score per wave! Stop camping, start fighting!", MessageUtils.MessageLevel.WARNING);
-            }
-
-            if (Vars.state.wave > 50) {
-                for (Player player : Groups.player) {
-                    Member member = memberLogic.getMember(player);
-
-                    if (member.faction != null && member.faction.team.cores().size >= 5) {
-                        int loss = (int) (member.score * 0.01f);
-                        member.score *= 0.99f;
-
-                        MessageUtils.sendMessage(member.player, "You lost" + loss + " points! Stop camping, start fighting!", MessageUtils.MessageLevel.WARNING);
-                    }
-                }
-            }
-        });
     }
 
     @Override
@@ -430,7 +406,7 @@ public class FactionManager implements Manager {
             if (member.rank == 0) {
                 MessageUtils.sendMessage(player, "You are not ranked yet. Play a game to get ranked!", MessageUtils.MessageLevel.INFO);
             } else {
-                MessageUtils.sendMessage(player, "Rank: " + MessageUtils.cHighlight1 + (member.rank < 0 ? "unranked" : member.rank) + MessageUtils.cDefault + ", Score: " + MessageUtils.cHighlight2 + member.score + MessageUtils.cDefault + ", Wins: " + MessageUtils.cHighlight3 + member.wins, MessageUtils.MessageLevel.INFO);
+                MessageUtils.sendMessage(player, "Rank: " + MessageUtils.cHighlight1 + (member.rank < 0 ? "unranked" : member.rank) + MessageUtils.cDefault + ", Score: " + MessageUtils.cHighlight2 + member.score + MessageUtils.cDefault + ", Wins: " + MessageUtils.cHighlight3 + member.wins + MessageUtils.cDefault + ", Losses: " + MessageUtils.cDanger + member.losses, MessageUtils.MessageLevel.INFO);
             }
         });
 

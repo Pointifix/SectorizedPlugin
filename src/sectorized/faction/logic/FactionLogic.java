@@ -155,7 +155,7 @@ public class FactionLogic {
 
         if (Vars.state.wave < 5) return;
 
-        if (factions.size == 1 && State.gameState != State.GameState.GAMEOVER) {
+        if (factions.size == 1 && !(defender.maxCores <= 3 && timeSinceSpawned < 60 * 60 * 5) && State.gameState != State.GameState.GAMEOVER) {
             Member winner = factions.first().members.first();
             State.winner = winner;
             winner.wins++;

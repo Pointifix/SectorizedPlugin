@@ -2,7 +2,7 @@ apply plugin: "java"
 
 version '1.0'
 
-sourceCompatibility = 1.9
+sourceCompatibility = JavaVersion.VERSION_16
 
 sourceSets.main.java.srcDirs = ["src"]
 
@@ -11,18 +11,28 @@ compileTestJava.options.encoding = "UTF-8"
 
 repositories {
     mavenCentral()
+    maven { url "https://raw.githubusercontent.com/Zelaux/MindustryRepo/master/repository" }
     maven { url 'https://www.jitpack.io' }
 }
 
 ext {
     //the build number that this plugin is made for
-    mindustryVersion = 'v140.2'
+    mindustryVersion = 'v145'
+    jabelVersion = "93fde537c7"
+}
+
+//java 8 backwards compatibility flag
+allprojects {
+    tasks.withType(JavaCompile) {
+        options.compilerArgs.addAll(['--release', '8'])
+    }
 }
 
 dependencies {
     implementation 'org.jetbrains:annotations:20.1.0'
     compileOnly "com.github.Anuken.Arc:arc-core:$mindustryVersion"
     compileOnly "com.github.Anuken.Mindustry:core:$mindustryVersion"
+    annotationProcessor "com.github.Anuken:jabel:$jabelVersion"
     implementation 'org.mariadb.jdbc:mariadb-java-client:2.1.2'
     implementation 'com.google.code.gson:gson:2.9.0'
     implementation 'net.dv8tion:JDA:5.0.0-alpha.17'

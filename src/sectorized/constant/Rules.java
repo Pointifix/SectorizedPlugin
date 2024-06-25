@@ -47,7 +47,7 @@ public class Rules {
                 Blocks.canvas);
 
         ((ItemTurret) (Blocks.foreshadow)).ammoTypes.forEach(ammoType -> {
-            ammoType.value.damage *= 0.75;
+            ammoType.value.damage *= 1.5;
         });
         ((ItemTurret) (Blocks.spectre)).ammoTypes.forEach(ammoType -> {
             ammoType.value.damage *= 2.0;
@@ -69,7 +69,7 @@ public class Rules {
 
     public static void setSpawnGroups(mindustry.game.Rules rules) {
         if (State.planet.equals(Planets.serpulo.name)) {
-            rules.waveSpacing = 60 * 60 * 2.5f;
+            rules.waveSpacing = 60 * 60 * 3.0f;
 
             rules.spawns = Seq.with(
                     // T1
@@ -215,38 +215,31 @@ public class Rules {
                         begin = 40;
                         end = never;
                         unitAmount = 2;
-                        unitScaling = 2f;
+                        unitScaling = 5f;
                     }},
                     new SpawnGroup(corvus) {{
                         begin = 45;
                         end = never;
                         unitAmount = 2;
-                        unitScaling = 2f;
+                        unitScaling = 5f;
                     }},
                     new SpawnGroup(toxopid) {{
                         begin = 50;
                         end = never;
                         unitAmount = 2;
-                        unitScaling = 2f;
+                        unitScaling = 5f;
                     }},
                     new SpawnGroup(eclipse) {{
                         begin = 55;
                         end = never;
                         unitAmount = 2;
-                        unitScaling = 2f;
-                    }},
-                    new SpawnGroup(oct) {{
-                        begin = 60;
-                        end = never;
-                        unitAmount = 2;
-                        unitScaling = 2f;
+                        unitScaling = 5f;
                     }},
                     new SpawnGroup(omura) {{
                         begin = 55;
                         end = never;
-                        spacing = 2;
                         unitAmount = 2;
-                        unitScaling = 2f;
+                        unitScaling = 5f;
                     }}
             );
         } else if (State.planet.equals(Planets.erekir.name)) {
@@ -334,13 +327,13 @@ public class Rules {
                         begin = 56;
                         end = never;
                         unitAmount = 1;
-                        unitScaling = 3f;
+                        unitScaling = 5f;
                     }},
                     new SpawnGroup(disrupt) {{
                         begin = 58;
                         end = never;
                         unitAmount = 1;
-                        unitScaling = 3f;
+                        unitScaling = 5f;
                     }}
             );
         }

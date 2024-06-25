@@ -123,7 +123,9 @@ public class RankingPersistence {
                         .append(" - Score: ")
                         .append(entry.score)
                         .append(" - Wins: ")
-                        .append(entry.wins);
+                        .append(entry.wins)
+                        .append(" - Losses: ")
+                        .append(entry.losses);
 
                 i++;
                 if (i == 10) break;
@@ -190,7 +192,7 @@ public class RankingPersistence {
                     ResultSet rs = statement.executeQuery();
 
                     while (rs.next()) {
-                        LeaderBoardEntry leaderBoardEntry = new LeaderBoardEntry(rs.getString("name"), rs.getInt("rank"), rs.getInt("score"), rs.getInt("wins"));
+                        LeaderBoardEntry leaderBoardEntry = new LeaderBoardEntry(rs.getString("name"), rs.getInt("rank"), rs.getInt("score"), rs.getInt("wins"), rs.getInt("losses"));
 
                         leaderboard.add(leaderBoardEntry);
                     }
@@ -214,6 +216,8 @@ public class RankingPersistence {
                         .append(entry.score)
                         .append(MessageUtils.cDefault + ", Wins: " + MessageUtils.cHighlight3)
                         .append(entry.wins)
+                        .append(MessageUtils.cDefault + ", Losses: " + MessageUtils.cDanger)
+                        .append(entry.losses)
                         .append(MessageUtils.cDefault)
                         .append("\n");
 
@@ -332,12 +336,14 @@ public class RankingPersistence {
         public final int rank;
         public final int score;
         public final int wins;
+        public final int losses;
 
-        public LeaderBoardEntry(String name, int rank, int score, int wins) {
+        public LeaderBoardEntry(String name, int rank, int score, int wins, int losses) {
             this.name = name;
             this.rank = rank;
             this.score = score;
             this.wins = wins;
+            this.losses = losses;
         }
     }
 }

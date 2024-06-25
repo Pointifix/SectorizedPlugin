@@ -172,10 +172,10 @@ public class UpdateManager implements Manager {
 
             state.rules.loadout = Loadout.getLoadout(state.wave);
 
-            state.rules.blockDamageMultiplier = (float) (1 + (2 / (Math.pow(state.wave * 0.05, 4) + 1)));
-            state.rules.unitDamageMultiplier = (float) (3 - (2.5 / (Math.pow(state.wave * 0.05, 4) + 1)));
+            state.rules.blockDamageMultiplier = (float) (1 + (1 / (Math.pow(state.wave * 0.05, 4) + 1)));
+            state.rules.unitDamageMultiplier = (float) (3 - (2 / (Math.pow(state.wave * 0.02, 4) + 1)));
 
-            Units.setUnitHealthMultiplier((float) (6 - (5 / (Math.pow(state.wave * 0.05, 4) + 1))));
+            Units.setUnitHealthMultiplier((float) (6 - (5 / (Math.pow(state.wave * 0.02, 4) + 1))));
 
             if (state.teams.active.size < 2 && state.wave >= 5) {
                 DiscordBot.sendMessage("**Game Over!** Crux won the game in " + Vars.state.wave + " waves.");
