@@ -15,6 +15,7 @@ import mindustry.game.EventType;
 import mindustry.game.Team;
 import mindustry.gen.Call;
 import mindustry.world.Tile;
+import mindustry.world.blocks.ConstructBlock;
 import mindustry.world.blocks.storage.CoreBlock;
 import sectorized.Manager;
 import sectorized.SectorizedEvents;
@@ -81,8 +82,10 @@ public class SectorManager implements Manager {
                 event.tile.setNet(Blocks.air);
             }
 
-            if (event.tile.block() == Blocks.coreFoundation || event.tile.block() == Blocks.coreNucleus) {
-                sectorLogic.upgradeArea(event.tile.x, event.tile.y, (CoreBlock) event.tile.block(), event.team.id);
+            if (event.tile.build instanceof ConstructBlock.ConstructBuild constructBuild) {
+                if (constructBuild.current == Blocks.coreFoundation || constructBuild.current == Blocks.coreNucleus) {
+                    sectorLogic.upgradeArea(event.tile.x, event.tile.y, (CoreBlock) constructBuild.current, event.team.id);
+                }
             }
         });
 
