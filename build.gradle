@@ -17,8 +17,8 @@ repositories {
 
 ext {
     //the build number that this plugin is made for
-    mindustryVersion = 'v145'
-    jabelVersion = "93fde537c7"
+    mindustryVersion = 'v151.1'
+    jabelVersion = "0.9.0"
 }
 
 //java 8 backwards compatibility flag
