@@ -142,12 +142,8 @@ public class MapGenerator implements Cons<Tiles> {
 
         if (planet.equals(Planets.serpulo.name)) {
             state.rules.env = Planets.serpulo.defaultEnv;
-            state.rules.hiddenBuildItems.clear();
-            state.rules.hiddenBuildItems.addAll(Planets.serpulo.hiddenItems);
         } else if (planet.equals(Planets.erekir.name)) {
             state.rules.env = Planets.erekir.defaultEnv;
-            state.rules.hiddenBuildItems.clear();
-            state.rules.hiddenBuildItems.addAll(Planets.erekir.hiddenItems);
         }
 
         state.map = new Map(StringMap.of("name", mostFrequentBiomes));

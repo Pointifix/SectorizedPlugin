@@ -32,7 +32,7 @@ public class MemberLogic {
 
         if (member.faction == null) {
             member.player.team(Team.derelict);
-            member.player.unit().kill();
+            //member.player.unit().kill();
         } else {
             member.player.team(member.faction.team);
         }

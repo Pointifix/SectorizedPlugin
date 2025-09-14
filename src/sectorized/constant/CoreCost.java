@@ -75,8 +75,8 @@ public class CoreCost {
 
         ItemSeq requirement = State.planet.equals(Planets.serpulo.name) ? requirementsSerpulo[core][size] : requirementsErekir[core][size];
 
-        if (team.core().items().has(requirement)) {
-            team.core().items().remove(requirement);
+        if (team.core().items.has(requirement)) {
+            team.core().items.remove(requirement);
             return true;
         }
 
