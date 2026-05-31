@@ -54,14 +54,6 @@ public class SectorizedPlugin extends Plugin {
             logic.reset();
             state.rules = Rules.rules.copy();
 
-            // Reveal campaign-only blocks (e.g. Erekir blocks) so they show up in the build menu
-            for (var block : content.blocks()) {
-                if (block.buildVisibility == BuildVisibility.campaignOnly) {
-                    state.rules.revealedBlocks.add(block);
-                }
-            }
-            info("Revealed @ campaign-only blocks for build menu.", state.rules.revealedBlocks.size);
-
             for (Manager manager : this.managers) {
                 manager.reset();
             }
