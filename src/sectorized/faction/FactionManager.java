@@ -395,6 +395,11 @@ public class FactionManager implements Manager {
         handler.<Player>register("leaderboard", "Displays the current leaderboard", (args, player) -> {
             if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
+            if (rankingPersistence.leaderBoardPages == 0) {
+                MessageUtils.sendMessage(player, "No rankings available yet. Play a game to get ranked!", MessageUtils.MessageLevel.INFO);
+                return;
+            }
+
             MenuUtils.showMenu(40, player);
         });
 
