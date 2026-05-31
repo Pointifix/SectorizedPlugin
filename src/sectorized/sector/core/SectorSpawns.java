@@ -3,6 +3,7 @@ package sectorized.sector.core;
 import arc.math.Mathf;
 import arc.math.geom.Point2;
 import arc.struct.Seq;
+import arc.util.Log;
 import arc.util.noise.Simplex;
 import mindustry.content.Blocks;
 import mindustry.content.Planets;
@@ -30,14 +31,15 @@ public class SectorSpawns {
         final int size = Constants.radii.get((CoreBlock) Blocks.coreNucleus);
         final int rObstacle = 5;
 
+        Block placeableBlock = State.planet.equals(Planets.serpulo.name) ? Blocks.multiplicativeReconstructor : Blocks.titan;
+
         for (int x = 0; x + Constants.spawnCellSize <= world.width(); x += Constants.spawnCellSize) {
             for (int y = 0; y + Constants.spawnCellSize <= world.height(); y += Constants.spawnCellSize) {
                 int rx = Mathf.random(Constants.spawnCellSize / 2) - Constants.spawnCellSize / 4 + x + Constants.spawnCellSize / 2;
                 int ry = Mathf.random(Constants.spawnCellSize / 2) - Constants.spawnCellSize / 4 + y + Constants.spawnCellSize / 2;
 
-                BuildPlan buildPlan = new BuildPlan(rx, ry, 0, Blocks.multiplicativeReconstructor);
-                if (!buildPlan.placeable(Team.sharded))
-                    continue;
+                BuildPlan buildPlan = new BuildPlan(rx, ry, 0, placeableBlock);
+                if (!buildPlan.placeable(Team.sharded)) continue;
 
                 int hasSurfaceCount = 0;
                 for (int i = Math.max(rx - size, 0); i < Math.min(rx + size, world.width() - 1); i += 10) {
@@ -59,6 +61,9 @@ public class SectorSpawns {
                 }
             }
         }
+
+        Log.info("World generated: planet=@ size=@x@ spawns=@",
+                State.planet, world.width(), world.height(), spawnSeq.size);
 
         int radius = (int) (state.rules.dropZoneRadius / tilesize);
         final int seed = Mathf.random(100_000);
