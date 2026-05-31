@@ -29,7 +29,7 @@ import static mindustry.Vars.netServer;
 import static mindustry.Vars.state;
 
 public class UpdateManager implements Manager {
-    private final Interval interval = new Interval(3);
+    private final Interval interval = new Interval(4);
 
     private final HashSet<String> hideHud = new HashSet<>();
 
@@ -129,6 +129,53 @@ public class UpdateManager implements Manager {
                 }
 
                 infoMessageIndex = (infoMessageIndex + 1) % 3;
+            }
+
+            if (interval.get(3, 60 * 60 * 5)) {
+                int h = (int) (State.time / 60 / 60 / 60);
+                int m = (int) (State.time / 60 / 60 % 60);
+                int s = (int) (State.time / 60 % 60);
+
+                StringBuilder gameStateLog = new StringBuilder();
+                gameStateLog.append("Time: ").append(h > 0 ? h + "h " : "").append(m > 0 ? m + "m " : "").append(s).append("s");
+
+                for (mindustry.game.Teams.TeamData teamData : state.teams.active) {
+                    Team team = teamData.team;
+                    if (team == Team.crux || team == Team.derelict) continue;
+
+                    gameStateLog.append(" | Team ").append(team.id).append(": cores=").append(team.cores().size);
+
+                    gameStateLog.append(" players=[");
+                    boolean first = true;
+                    for (Player player : Groups.player) {
+                        if (player.team() == team) {
+                            if (!first) gameStateLog.append(",");
+                            gameStateLog.append(player.name);
+                            first = false;
+                        }
+                    }
+                    gameStateLog.append("]");
+
+                    HashMap<String, Integer> unitCounts = new HashMap<>();
+                    for (mindustry.gen.Unit unit : Groups.unit) {
+                        if (unit.team == team) {
+                            String typeName = unit.type.name;
+                            unitCounts.put(typeName, unitCounts.getOrDefault(typeName, 0) + 1);
+                        }
+                    }
+                    if (!unitCounts.isEmpty()) {
+                        gameStateLog.append(" units=[");
+                        first = true;
+                        for (HashMap.Entry<String, Integer> ue : unitCounts.entrySet()) {
+                            if (!first) gameStateLog.append(",");
+                            gameStateLog.append(ue.getKey()).append(":").append(ue.getValue());
+                            first = false;
+                        }
+                        gameStateLog.append("]");
+                    }
+                }
+
+                Log.info("[SectorizedPlugin] @", gameStateLog.toString());
             }
 
             if (interval.get(2, 60 * 60 * 2)) {
@@ -347,7 +394,7 @@ public class UpdateManager implements Manager {
         Events.on(SectorizedEvents.RestartEvent.class, event -> {
             State.gameState = State.GameState.GAMEOVER;
 
-            Log.info("Restarting: " + event.reason);
+            Log.info("[SectorizedPlugin] Restarting: @", event.reason);
             MessageUtils.sendMessage(event.reason + "\nServer is restarting in " + MessageUtils.cInfo + "30"
                     + MessageUtils.cDefault + " seconds", MessageUtils.MessageLevel.INFO);
 
@@ -409,6 +456,13 @@ public class UpdateManager implements Manager {
                     }
                     Map.Entry<Biomes.Biome, Integer> voteWinnerBiomeEntry = maxEntries.random();
 
+                    StringBuilder voteResults = new StringBuilder();
+                    voteResults.append(voteWinnerBiomeEntry.getKey()).append(" (").append(Strings.capitalize(voteWinnerBiomeEntry.getKey().getPlanet())).append(") won with ").append(voteWinnerBiomeEntry.getValue()).append(" vote(s).");
+                    biomeVotes.entrySet().stream()
+                            .sorted((a, b) -> b.getValue() - a.getValue())
+                            .forEach(e -> voteResults.append(" ").append(e.getKey()).append("=").append(e.getValue()));
+                    Log.info("[SectorizedPlugin] Vote results: @", voteResults.toString());
+
                     MessageUtils.sendMessage(
                             MessageUtils.cHighlight1 + voteWinnerBiomeEntry.getKey() + " ("
                                     + Strings.capitalize(voteWinnerBiomeEntry.getKey().getPlanet()) + ")"
@@ -432,7 +486,7 @@ public class UpdateManager implements Manager {
             AtomicInteger countdown = new AtomicInteger(seconds);
             Timer.schedule(() -> {
                 if (countdown.get() == 0) {
-                    Log.info("Restarting server ...");
+                    Log.info("[SectorizedPlugin] Restarting server ...");
                     netServer.kickAll(Packets.KickReason.serverRestarting);
 
                     Events.fire(new SectorizedEvents.ShutdownEvent());

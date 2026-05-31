@@ -7,6 +7,7 @@ public class State {
     public static double time = 0;
     public static String planet;
     public static Member winner = null;
+    public static String biomeInfo = "";
 
     public enum GameState {
         ACTIVE,

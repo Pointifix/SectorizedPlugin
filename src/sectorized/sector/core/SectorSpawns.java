@@ -62,8 +62,8 @@ public class SectorSpawns {
             }
         }
 
-        Log.info("World generated: planet=@ size=@x@ spawns=@",
-                State.planet, world.width(), world.height(), spawnSeq.size);
+        Log.info("[SectorizedPlugin] World generated: planet=@ size=@x@ biomes=[@] spawns=@",
+                State.planet, world.width(), world.height(), State.biomeInfo, spawnSeq.size);
 
         int radius = (int) (state.rules.dropZoneRadius / tilesize);
         final int seed = Mathf.random(100_000);

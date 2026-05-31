@@ -5,6 +5,7 @@ import arc.Events;
 import arc.func.Cons;
 import arc.math.Mathf;
 import arc.struct.StringMap;
+import arc.util.Log;
 import mindustry.content.Blocks;
 import mindustry.content.Planets;
 import mindustry.maps.Map;
@@ -18,7 +19,8 @@ import sectorized.constant.Loadout;
 import sectorized.constant.State;
 import sectorized.world.map.generator.BiomeSelection;
 
-import java.util.HashMap;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static mindustry.Vars.state;
 import static mindustry.Vars.world;
@@ -143,6 +145,13 @@ public class MapGenerator implements Cons<Tiles> {
         });
 
         mostFrequentBiomes.deleteCharAt(mostFrequentBiomes.length() - 1);
+
+        int totalTiles = world.width() * world.height();
+        State.biomeInfo = biomeDistribution.entrySet().stream()
+                .sorted((a, b) -> b.getValue() - a.getValue())
+                .map(e -> e.getKey() + "(" + (e.getValue() * 100 / totalTiles) + "%)")
+                .collect(Collectors.joining(", "));
+        Log.info("[SectorizedPlugin] World generated: planet=@ size=@x@ biomes=[@]", planet, world.width(), world.height(), State.biomeInfo);
 
         Events.fire(new SectorizedEvents.BiomesGeneratedEvent());
 

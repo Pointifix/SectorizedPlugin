@@ -35,7 +35,7 @@ public class SectorizedPlugin extends Plugin {
 
     @Override
     public void init() {
-        Log.info(Config.c.toString());
+        Log.info("[SectorizedPlugin] @", Config.c.toString());
 
         DiscordBot.init();
 
@@ -68,10 +68,10 @@ public class SectorizedPlugin extends Plugin {
             while (true) {
                 try {
                     net.host(Administration.Config.port.num());
-                    info("Opened a server on port @.", Administration.Config.port.num());
+                    info("[SectorizedPlugin] Opened a server on port @.", Administration.Config.port.num());
                     break;
                 } catch (BindException e) {
-                    err("Unable to host: Port " + Administration.Config.port.num() + " already in use! Make sure no other servers are running on the same port in your network.");
+                    err("[SectorizedPlugin] Unable to host: Port @ already in use! Make sure no other servers are running on the same port in your network.", Administration.Config.port.num());
                     state.set(GameState.State.menu);
                 } catch (IOException e) {
                     err(e);

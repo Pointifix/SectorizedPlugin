@@ -51,7 +51,7 @@ public class RankingPersistence {
                         if (retries == 0) {
                             throw e;
                         }
-                        Log.warn("Failed to connect to database at " + dbUrl.url + ". Retrying in 3 seconds... (" + retries + " retries left)");
+                        Log.warn("[SectorizedPlugin] Failed to connect to database at @. Retrying in 3 seconds... (@ retries left)", dbUrl.url, retries);
                         try {
                             Thread.sleep(3000);
                         } catch (InterruptedException ie) {
@@ -63,7 +63,7 @@ public class RankingPersistence {
                 updateScoreDecay();
                 getLeaderboard();
             } catch (SQLException | IOException | ClassNotFoundException e) {
-                Log.err("Database connection failed completely: " + e.getMessage());
+                Log.err("[SectorizedPlugin] Database connection failed completely: @", e.getMessage());
                 e.printStackTrace();
             }
         }
