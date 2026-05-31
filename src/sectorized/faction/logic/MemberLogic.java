@@ -32,13 +32,14 @@ public class MemberLogic {
 
         if (member.faction == null) {
             member.player.team(Team.derelict);
-            member.player.unit().kill();
         } else {
             member.player.team(member.faction.team);
         }
 
         if (member.discordTag == null) {
-            MessageUtils.sendMessage(member.player, "Link your account to discord to display your rank using [purple]/register username#0000[white]!", MessageUtils.MessageLevel.INFO);
+            MessageUtils.sendMessage(member.player,
+                    "Link your account to discord to display your rank using [purple]/register username#0000[white]!",
+                    MessageUtils.MessageLevel.INFO);
         }
 
         DiscordBot.assignRole(member);

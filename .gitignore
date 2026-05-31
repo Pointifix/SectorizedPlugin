@@ -4,3 +4,7 @@
 /mindustry-server
 /misc
 /mindustry-server-v7/
+/.vscode/
+# deploy.sh moved to scripts/
+/mindustry-server-v7/config/mods/config/
+/bin/

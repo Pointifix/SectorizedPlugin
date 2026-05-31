@@ -17,7 +17,7 @@ repositories {
 
 ext {
     //the build number that this plugin is made for
-    mindustryVersion = 'v145'
+    mindustryVersion = 'v158.1'
     jabelVersion = "93fde537c7"
 }
 
@@ -51,4 +51,50 @@ jar {
     destinationDirectory.set(file("$buildDir/../mindustry-server-v7/config/mods"))
 
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+task deploy {
+    dependsOn jar
+    doLast {
+        def deployPath = System.getenv("MINDUSTRY_DEPLOY_PATH")
+        if (!deployPath) {
+            println "MINDUSTRY_DEPLOY_PATH environment variable is not set. Skipping deployment copy."
+            return
+        }
+        
+        def nasDir = file(deployPath)
+        if (!nasDir.exists()) {
+            println "Deployment target directory ${deployPath} does not exist. Attempting to mount via gio..."
+            try {
+                def process = "gio mount smb://nas-simon.local/docker".execute()
+                process.waitFor()
+                if (process.exitValue() == 0) {
+                    println "Successfully mounted NAS!"
+                } else {
+                    println "Failed to mount NAS automatically: " + process.err.text
+                }
+            } catch (Exception e) {
+                println "Failed to run gio mount: " + e.message
+            }
+        }
+        
+        def modsDir = file("${deployPath}/config/mods")
+        if (modsDir.exists() || modsDir.mkdirs()) {
+            try {
+                def srcPath = jar.archiveFile.get().asFile.absolutePath
+                def destPath = file("${modsDir.absolutePath}/${jar.archiveFileName.get()}").absolutePath
+                def cpProcess = ["cp", srcPath, destPath].execute()
+                cpProcess.waitFor()
+                if (cpProcess.exitValue() == 0) {
+                    println "Successfully deployed ${jar.archiveFileName.get()} to ${modsDir.absolutePath}!"
+                } else {
+                    throw new GradleException("Failed to copy jar via cp command: " + cpProcess.err.text)
+                }
+            } catch (Exception e) {
+                throw new GradleException("Failed to deploy jar: " + e.message, e)
+            }
+        } else {
+            throw new GradleException("Could not access or create mods folder at ${modsDir.absolutePath}")
+        }
+    }
 }

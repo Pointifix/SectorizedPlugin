@@ -65,6 +65,8 @@ public class SectorSpawns {
 
         int offset = Mathf.random(5) + 1;
         for (int i = 0; i < 4; i++) {
+            if (spawnSeq.size == 0) continue;
+
             Point2 center = new Point2(i % 4 >= 2 ? world.width() : 0, i % 2 == 1 ? world.height() : 0);
 
             spawnSeq.sort((Point2 a, Point2 b) -> (Math.abs(center.x - b.x) + Math.abs(center.y - b.y)) - (Math.abs(center.x - a.x) + Math.abs(center.y - a.y)));

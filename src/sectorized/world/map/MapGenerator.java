@@ -40,6 +40,14 @@ public class MapGenerator implements Cons<Tiles> {
         State.planet = planet;
         state.rules.loadout = Loadout.getLoadout(1);
 
+        if (planet.equals(Planets.serpulo.name)) {
+            state.rules.env = Planets.serpulo.defaultEnv;
+            state.rules.planet = Planets.serpulo;
+        } else if (planet.equals(Planets.erekir.name)) {
+            state.rules.env = Planets.erekir.defaultEnv;
+            state.rules.planet = Planets.erekir;
+        }
+
         RiversGenerator riversGenerator = new RiversGenerator();
         BiomesGenerator biomesGenerator = planet.equals(Planets.serpulo.name) ? new SerpuloBiomesGenerator() : new ErekirBiomesGenerator();
 
@@ -139,16 +147,6 @@ public class MapGenerator implements Cons<Tiles> {
         Events.fire(new SectorizedEvents.BiomesGeneratedEvent());
 
         DiscordBot.sendMessage("**Server started!** Current map: " + mostFrequentBiomes);
-
-        if (planet.equals(Planets.serpulo.name)) {
-            state.rules.env = Planets.serpulo.defaultEnv;
-            state.rules.hiddenBuildItems.clear();
-            state.rules.hiddenBuildItems.addAll(Planets.serpulo.hiddenItems);
-        } else if (planet.equals(Planets.erekir.name)) {
-            state.rules.env = Planets.erekir.defaultEnv;
-            state.rules.hiddenBuildItems.clear();
-            state.rules.hiddenBuildItems.addAll(Planets.erekir.hiddenItems);
-        }
 
         state.map = new Map(StringMap.of("name", mostFrequentBiomes));
     }

@@ -41,12 +41,29 @@ public class RankingPersistence {
 
                 DBUrl dbUrl = readConfig();
 
-                connection = DriverManager.getConnection(dbUrl.url, dbUrl.user, dbUrl.password);
+                int retries = 5;
+                while (retries > 0) {
+                    try {
+                        connection = DriverManager.getConnection(dbUrl.url, dbUrl.user, dbUrl.password);
+                        break;
+                    } catch (SQLException e) {
+                        retries--;
+                        if (retries == 0) {
+                            throw e;
+                        }
+                        Log.warn("Failed to connect to database at " + dbUrl.url + ". Retrying in 3 seconds... (" + retries + " retries left)");
+                        try {
+                            Thread.sleep(3000);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                }
 
                 updateScoreDecay();
                 getLeaderboard();
             } catch (SQLException | IOException | ClassNotFoundException e) {
-                Log.err(e.getMessage());
+                Log.err("Database connection failed completely: " + e.getMessage());
                 e.printStackTrace();
             }
         }
