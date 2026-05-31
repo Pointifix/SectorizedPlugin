@@ -19,6 +19,7 @@ import mindustry.world.blocks.ConstructBlock;
 import mindustry.world.blocks.storage.CoreBlock;
 import sectorized.Manager;
 import sectorized.SectorizedEvents;
+import sectorized.constant.Config;
 import sectorized.constant.CoreCost;
 import sectorized.constant.MessageUtils;
 import sectorized.constant.State;
@@ -36,7 +37,7 @@ public class SectorManager implements Manager {
     private SectorLogic sectorLogic;
     private SectorSpawns sectorSpawns;
 
-    private int corePlacementCooldown = 10;
+    private int corePlacementCooldown = Config.c.getInt("game.corePlacementCooldown.serpulo");
     private HashMap<Integer, Double> bufferedCoresPlacement;
 
     @Override
@@ -48,7 +49,7 @@ public class SectorManager implements Manager {
 
             bufferedCoresPlacement = new HashMap<>();
 
-            corePlacementCooldown = State.planet.equals(Planets.serpulo.name) ? 10 : 15;
+            corePlacementCooldown = State.planet.equals(Planets.serpulo.name) ? Config.c.getInt("game.corePlacementCooldown.serpulo") : Config.c.getInt("game.corePlacementCooldown.erekir");
         });
 
         Events.on(SectorizedEvents.NewMemberEvent.class, event -> {
@@ -100,7 +101,7 @@ public class SectorManager implements Manager {
                         Call.effectReliable(Fx.tapBlock, event.tile.getX(), event.tile.getY(), 0, Color.red);
                         event.tile.setNet(Blocks.shockMine, team, 0);
                     }
-                }, Mathf.random(10.0f, 15.0f));
+                }, Mathf.random(Config.c.getInt("game.shockMineReArmDelayMin"), Config.c.getInt("game.shockMineReArmDelayMax")));
             }
         });
 
@@ -148,7 +149,8 @@ public class SectorManager implements Manager {
                         }
 
                         if (bufferedCoresPlacement.containsKey(action.player.team().id)) {
-                            int seconds = (action.player.team().cores().size <= 2 ? 30 : corePlacementCooldown) - (int) Math.floor((State.time - bufferedCoresPlacement.get(action.player.team().id)) / 60);
+                            int initialCooldown = Config.c.getInt("game.corePlacementCooldown.initial");
+                            int seconds = (action.player.team().cores().size <= 2 ? initialCooldown : corePlacementCooldown) - (int) Math.floor((State.time - bufferedCoresPlacement.get(action.player.team().id)) / 60);
 
                             MessageUtils.sendBufferedMessage(action.player, "Wait " + MessageUtils.cInfo + seconds + " seconds" + MessageUtils.cDefault + " to place a new core!", MessageUtils.MessageLevel.WARNING, 1);
                             tile.setNet(Blocks.air);
@@ -163,7 +165,7 @@ public class SectorManager implements Manager {
 
                             int team = action.player.team().id;
                             bufferedCoresPlacement.put(team, State.time);
-                            Timer.schedule(() -> bufferedCoresPlacement.remove(team), action.player.team().cores().size <= 2 ? 30 : corePlacementCooldown);
+                            Timer.schedule(() -> bufferedCoresPlacement.remove(team), action.player.team().cores().size <= 2 ? Config.c.getInt("game.corePlacementCooldown.initial") : corePlacementCooldown);
 
                             Events.fire(new SectorizedEvents.CoreBuildEvent(tile));
                         } else {

@@ -27,21 +27,19 @@ import java.util.Iterator;
 
 public class RankingPersistence {
     private final Seq<LeaderBoardEntry> leaderboard = new Seq<>();
-    private final double k = 10;
-    private final double offset = 10;
     private Connection connection = null;
 
     public final String[] leaderboardTexts = new String[10];
     public int leaderBoardPages = 0;
 
     public RankingPersistence() {
-        if (Config.c.databaseEnabled) {
+        if (Config.c.getBool("database.enabled")) {
             try {
-                Class.forName("org.mariadb.jdbc.Driver");
+                Class.forName(Config.c.getString("database.driver"));
 
                 DBUrl dbUrl = readConfig();
 
-                int retries = 5;
+                int retries = Config.c.getInt("database.retries");
                 while (retries > 0) {
                     try {
                         connection = DriverManager.getConnection(dbUrl.url, dbUrl.user, dbUrl.password);
@@ -51,9 +49,10 @@ public class RankingPersistence {
                         if (retries == 0) {
                             throw e;
                         }
-                        Log.warn("[SectorizedPlugin] Failed to connect to database at @. Retrying in 3 seconds... (@ retries left)", dbUrl.url, retries);
+                        int retryDelay = Config.c.getInt("database.retryDelayMs");
+                        Log.warn("[SectorizedPlugin] Failed to connect to database at @. Retrying in @ ms... (@ retries left)", dbUrl.url, retryDelay, retries);
                         try {
-                            Thread.sleep(3000);
+                            Thread.sleep(retryDelay);
                         } catch (InterruptedException ie) {
                             Thread.currentThread().interrupt();
                         }
@@ -70,7 +69,7 @@ public class RankingPersistence {
     }
 
     private void updateScoreDecay() {
-        if (Config.c.updateScoreDecay) {
+        if (Config.c.getBool("database.updateScoreDecay")) {
             Calendar calendar = Calendar.getInstance();
             calendar.set(Calendar.HOUR_OF_DAY, 0);
             calendar.set(Calendar.MINUTE, 0);
@@ -86,7 +85,9 @@ public class RankingPersistence {
 
             if (lastScoreDecayDate.before(today)) {
                 try {
-                    PreparedStatement statement = connection.prepareStatement("UPDATE ranking SET score = score * 0.99 WHERE score > 100");
+                    double decayMult = Config.c.getDouble("scoring.decayMultiplier");
+                    int decayThreshold = Config.c.getInt("scoring.decayThreshold");
+                    PreparedStatement statement = connection.prepareStatement("UPDATE ranking SET score = score * " + decayMult + " WHERE score > " + decayThreshold);
                     statement.executeQuery();
                 } catch (SQLException e) {
                     e.printStackTrace();
@@ -96,7 +97,7 @@ public class RankingPersistence {
     }
 
     public void updateHallfOfFame() {
-        if (Config.c.databaseEnabled) {
+        if (Config.c.getBool("database.enabled")) {
             Calendar calendar = Calendar.getInstance();
             calendar.set(Calendar.HOUR_OF_DAY, 0);
             calendar.set(Calendar.MINUTE, 0);
@@ -145,7 +146,7 @@ public class RankingPersistence {
                         .append(entry.losses);
 
                 i++;
-                if (i == 10) break;
+                if (i == Config.c.getInt("scoring.leaderboardPageSize")) break;
             }
             text.append("\n\n:date: *").append(currentDate).append(" - ").append(zone).append("* :clock3:");
 
@@ -160,7 +161,7 @@ public class RankingPersistence {
     }
 
     public void closeConnection() {
-        if (Config.c.databaseEnabled) {
+        if (Config.c.getBool("database.enabled")) {
             try {
                 if (connection != null) connection.close();
             } catch (SQLException e) {
@@ -170,7 +171,7 @@ public class RankingPersistence {
     }
 
     public void getRanking(Member member) {
-        if (Config.c.databaseEnabled) {
+        if (Config.c.getBool("database.enabled")) {
             member.player.name = "." + member.player.name;
 
             if (connection != null) {
@@ -201,10 +202,10 @@ public class RankingPersistence {
     }
 
     private void getLeaderboard() {
-        if (Config.c.databaseEnabled) {
+        if (Config.c.getBool("database.enabled")) {
             if (connection != null) {
                 try {
-                    PreparedStatement statement = connection.prepareStatement("SELECT *, ROW_NUMBER() OVER(PARTITION BY empty ORDER BY score DESC) AS rank FROM ranking WHERE score > 0 LIMIT 100");
+                    PreparedStatement statement = connection.prepareStatement("SELECT *, ROW_NUMBER() OVER(PARTITION BY empty ORDER BY score DESC) AS rank FROM ranking WHERE score > 0 LIMIT " + Config.c.getInt("scoring.leaderboardLimit"));
 
                     ResultSet rs = statement.executeQuery();
 
@@ -240,7 +241,7 @@ public class RankingPersistence {
 
                 elements++;
 
-                if (elements == 10 || !it.hasNext()) {
+                if (elements == Config.c.getInt("scoring.leaderboardPageSize") || !it.hasNext()) {
                     leaderboardTexts[leaderBoardPages] = text.toString();
                     text = new StringBuilder();
                     leaderBoardPages++;
@@ -251,7 +252,7 @@ public class RankingPersistence {
     }
 
     public void setRanking(Member member) {
-        if (Config.c.databaseEnabled) {
+        if (Config.c.getBool("database.enabled")) {
             if (connection != null) {
                 try {
                     PreparedStatement statement = connection.prepareStatement("INSERT INTO ranking (uuid, name, score, wins, losses, discordTag) VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name = ?, score = ?, wins = ?, losses = ?, discordTag = ?");
@@ -276,14 +277,18 @@ public class RankingPersistence {
     }
 
     public void calculateNewRankings(Faction winnerFaction, Faction looserFaction) {
-        if (Config.c.databaseEnabled) {
+        if (Config.c.getBool("database.enabled")) {
             Member winner = winnerFaction.members.copy().sort(Comparator.comparingInt(a -> -a.score)).first();
             Member looser = looserFaction.members.copy().sort(Comparator.comparingInt(a -> -a.score)).first();
 
-            double expectedValueWinner = 1 / (1 + Math.pow(10, ((double) Math.max(Math.min(looser.score - winner.score, 2000), -2000) / 2000)));
-            double expectedValueLooser = 1 / (1 + Math.pow(10, ((double) Math.max(Math.min(winner.score - looser.score, 2000), -2000) / 2000)));
+            int eloClamp = Config.c.getInt("scoring.eloDiffClamp");
+            double k = Config.c.getDouble("scoring.k");
+            double offset = Config.c.getDouble("scoring.offset");
 
-            int winnerScoreDiff = (int) ((looser.faction.maxCores * k + offset) * (1 - expectedValueWinner) * 1.5);
+            double expectedValueWinner = 1 / (1 + Math.pow(10, ((double) Math.max(Math.min(looser.score - winner.score, eloClamp), -eloClamp) / eloClamp)));
+            double expectedValueLooser = 1 / (1 + Math.pow(10, ((double) Math.max(Math.min(winner.score - looser.score, eloClamp), -eloClamp) / eloClamp)));
+
+            int winnerScoreDiff = (int) ((looser.faction.maxCores * k + offset) * (1 - expectedValueWinner) * Config.c.getDouble("scoring.winnerMultiplier"));
             int looserScoreDiff = (int) ((looser.faction.maxCores * k + offset) * (0 - expectedValueLooser));
 
             int win = winnerScoreDiff / winnerFaction.members.size;
@@ -309,10 +314,14 @@ public class RankingPersistence {
     }
 
     public void calculateNewRankings(Faction looserFaction) {
-        if (Config.c.databaseEnabled) {
+        if (Config.c.getBool("database.enabled")) {
             Member looser = looserFaction.members.first();
 
-            double expectedValueLooser = 1 / (1 + Math.pow(10, ((double) Math.max(Math.min(-looser.score, 2000), -2000) / 2000)));
+            int eloClamp = Config.c.getInt("scoring.eloDiffClamp");
+            double k = Config.c.getDouble("scoring.k");
+            double offset = Config.c.getDouble("scoring.offset");
+
+            double expectedValueLooser = 1 / (1 + Math.pow(10, ((double) Math.max(Math.min(-looser.score, eloClamp), -eloClamp) / eloClamp)));
             int looserScoreDiff = (int) ((looser.faction.maxCores * k + offset) * (0 - expectedValueLooser));
 
             int loss = looserScoreDiff / looserFaction.members.size;

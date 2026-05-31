@@ -25,11 +25,11 @@ public class Rules {
         rules.pvp = true;
         Vars.state.gameOver = true;
         rules.waitEnemies = false;
-        rules.buildSpeedMultiplier = 2.0f;
-        rules.blockDamageMultiplier = 2.0f;
-        rules.unitDamageMultiplier = 0.5f;
-        rules.buildCostMultiplier = 1f;
-        rules.dropZoneRadius = 100f;
+        rules.buildSpeedMultiplier = (float) Config.c.getDouble("multiplier.buildSpeed");
+        rules.blockDamageMultiplier = (float) Config.c.getDouble("multiplier.blockDamage");
+        rules.unitDamageMultiplier = (float) Config.c.getDouble("multiplier.unitDamage");
+        rules.buildCostMultiplier = (float) Config.c.getDouble("multiplier.buildCost");
+        rules.dropZoneRadius = (float) Config.c.getDouble("world.dropZoneRadius");
         rules.logicUnitBuild = false;
         rules.coreIncinerates = true;
         rules.possessionAllowed = true;
@@ -47,29 +47,31 @@ public class Rules {
                 Blocks.canvas);
 
         ((ItemTurret) (Blocks.foreshadow)).ammoTypes.forEach(ammoType -> {
-            ammoType.value.damage *= 1.5;
+            ammoType.value.damage *= Config.c.getDouble("turret.foreshadowAmmoDamage");
         });
         ((ItemTurret) (Blocks.spectre)).ammoTypes.forEach(ammoType -> {
-            ammoType.value.damage *= 2.0;
+            ammoType.value.damage *= Config.c.getDouble("turret.spectreAmmoDamage");
         });
-        ((LaserTurret) (Blocks.meltdown)).shootType.damage *= 1.5;
-        ((Reconstructor) (Blocks.exponentialReconstructor)).constructTime *= 0.75;
-        ((Reconstructor) (Blocks.tetrativeReconstructor)).constructTime *= 0.75;
+        ((LaserTurret) (Blocks.meltdown)).shootType.damage *= Config.c.getDouble("turret.meltdownShootTypeDamage");
+        ((Reconstructor) (Blocks.exponentialReconstructor)).constructTime *= Config.c.getDouble("turret.reconstructorConstructTime");
+        ((Reconstructor) (Blocks.tetrativeReconstructor)).constructTime *= Config.c.getDouble("turret.reconstructorConstructTime");
 
-        rules.unitCap = 0;
+        rules.unitCap = Config.c.getInt("unitCap.initial");
 
-        Blocks.coreShard.unitCapModifier = 4;
-        Blocks.coreFoundation.unitCapModifier = 6;
-        Blocks.coreNucleus.unitCapModifier = 8;
+        Blocks.coreShard.unitCapModifier = Config.c.getInt("unitCap.modifier.coreShard");
+        Blocks.coreFoundation.unitCapModifier = Config.c.getInt("unitCap.modifier.coreFoundation");
+        Blocks.coreNucleus.unitCapModifier = Config.c.getInt("unitCap.modifier.coreNucleus");
 
-        Blocks.coreBastion.unitCapModifier = 3;
-        Blocks.coreCitadel.unitCapModifier = 5;
-        Blocks.coreAcropolis.unitCapModifier = 7;
+        Blocks.coreBastion.unitCapModifier = Config.c.getInt("unitCap.modifier.coreBastion");
+        Blocks.coreCitadel.unitCapModifier = Config.c.getInt("unitCap.modifier.coreCitadel");
+        Blocks.coreAcropolis.unitCapModifier = Config.c.getInt("unitCap.modifier.coreAcropolis");
     }
 
     public static void setSpawnGroups(mindustry.game.Rules rules) {
+        float waveSpacing = Config.c.getInt("game.waveSpacing");
+
         if (State.planet.equals(Planets.serpulo.name)) {
-            rules.waveSpacing = 60 * 60 * 3.0f;
+            rules.waveSpacing = waveSpacing;
 
             rules.spawns = Seq.with(
                     // T1
@@ -243,7 +245,7 @@ public class Rules {
                     }}
             );
         } else if (State.planet.equals(Planets.erekir.name)) {
-            rules.waveSpacing = 60 * 60 * 3f;
+            rules.waveSpacing = waveSpacing;
 
             rules.spawns = Seq.with(
                     // T1

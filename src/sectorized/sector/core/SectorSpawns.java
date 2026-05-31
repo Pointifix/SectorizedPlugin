@@ -13,6 +13,7 @@ import mindustry.world.Block;
 import mindustry.world.Tile;
 import mindustry.world.blocks.environment.Floor;
 import mindustry.world.blocks.storage.CoreBlock;
+import sectorized.constant.Config;
 import sectorized.constant.Constants;
 import sectorized.constant.State;
 import sectorized.sector.core.objects.Rectangle;
@@ -29,7 +30,7 @@ public class SectorSpawns {
         this.gridAccelerator = gridAccelerator;
 
         final int size = Constants.radii.get((CoreBlock) Blocks.coreNucleus);
-        final int rObstacle = 5;
+        final int rObstacle = Config.c.getInt("world.obstacleCheckRadius");
 
         Block placeableBlock = State.planet.equals(Planets.serpulo.name) ? Blocks.multiplicativeReconstructor : Blocks.titan;
 
@@ -56,7 +57,7 @@ public class SectorSpawns {
                     }
                 }
 
-                if (!obstacle && hasSurfaceCount > size * size / 300) {
+                if (!obstacle && hasSurfaceCount > size * size / Config.c.getInt("world.spawnSurfaceDivisor")) {
                     spawnSeq.add(new Point2(rx, ry));
                 }
             }

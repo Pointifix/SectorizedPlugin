@@ -1,5 +1,6 @@
 package sectorized.sector.core;
 
+import sectorized.constant.Config;
 import sectorized.sector.core.objects.Rectangle;
 import sectorized.sector.core.objects.SubRectangle;
 
@@ -8,7 +9,7 @@ import java.util.*;
 import static mindustry.Vars.world;
 
 public class GridAccelerator {
-    private final static int cellSize = 100;
+    private final static int cellSize = Config.c.getInt("world.gridCellSize");
 
     private final ArrayList<Rectangle>[][] grid;
 

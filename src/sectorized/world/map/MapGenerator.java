@@ -14,6 +14,7 @@ import mindustry.world.Tile;
 import mindustry.world.Tiles;
 import mindustry.world.blocks.environment.Floor;
 import sectorized.SectorizedEvents;
+import sectorized.constant.Config;
 import sectorized.constant.DiscordBot;
 import sectorized.constant.Loadout;
 import sectorized.constant.State;
@@ -26,7 +27,7 @@ import static mindustry.Vars.state;
 import static mindustry.Vars.world;
 
 public class MapGenerator implements Cons<Tiles> {
-    private static final int sampleDensity = 50;
+    private static final int sampleDensity = Config.c.getInt("world.biomeSampleDensity");
 
     private final Biomes.Biome biomeVote;
 
@@ -38,7 +39,7 @@ public class MapGenerator implements Cons<Tiles> {
 
     @Override
     public void get(Tiles tiles) {
-        final String planet = biomeVote != null ? biomeVote.getPlanet() : Mathf.chance(0.7) ? Planets.serpulo.name : Planets.erekir.name;
+        final String planet = biomeVote != null ? biomeVote.getPlanet() : Mathf.chance(Config.c.getFloat("game.planetChanceSerpulo")) ? Planets.serpulo.name : Planets.erekir.name;
         State.planet = planet;
         state.rules.loadout = Loadout.getLoadout(1);
 
@@ -62,7 +63,7 @@ public class MapGenerator implements Cons<Tiles> {
             int maxOccurrences = 0;
             int maxOffsetX = offsetX, maxOffsetY = offsetY;
 
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < Config.c.getInt("world.voteOptimizationRetries"); i++) {
                 for (int x = sampleDensity / 2; x < world.width(); x += sampleDensity) {
                     for (int y = sampleDensity / 2; y < world.height(); y += sampleDensity) {
                         Biomes.Biome biome = biomesGenerator.sample(x + offsetX, y + offsetY).closest;
@@ -134,11 +135,11 @@ public class MapGenerator implements Cons<Tiles> {
         }
 
         StringBuilder mostFrequentBiomes = new StringBuilder();
-        int threshold = (int) (world.width() * world.height() * 0.1);
+        int threshold = (int) (world.width() * world.height() * Config.c.getDouble("world.biomeDisplayThreshold"));
         final int[] count = {0};
 
         biomeDistribution.forEach((key, value) -> {
-            if (value >= threshold && count[0] < 3) {
+            if (value >= threshold && count[0] < Config.c.getInt("world.biomeDisplayMaxCount")) {
                 mostFrequentBiomes.append(key.toString()).append("-");
                 count[0]++;
             }

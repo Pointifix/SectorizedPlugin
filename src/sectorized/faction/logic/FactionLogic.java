@@ -15,6 +15,7 @@ import mindustry.gen.Groups;
 import mindustry.gen.Unit;
 import mindustry.world.blocks.storage.CoreBlock;
 import sectorized.SectorizedEvents;
+import sectorized.constant.Config;
 import sectorized.constant.DiscordBot;
 import sectorized.constant.MessageUtils;
 import sectorized.constant.State;
@@ -100,7 +101,7 @@ public class FactionLogic {
         available.insert(0, defender.team);
 
         double timeSinceSpawned = State.time - defender.time;
-        if (defender.maxCores <= 3 && timeSinceSpawned < 60 * 60 * 5) {
+        if (defender.maxCores <= Config.c.getInt("game.factionGracePeriodMaxCores") && timeSinceSpawned < Config.c.getInt("game.gracePeriod")) {
             defender.members.each(m -> {
                 MessageUtils.sendMessage(m.player, "No points lost because you spawned less than " + MessageUtils.cInfo
                         + "5 minutes" + MessageUtils.cDefault + " ago", MessageUtils.MessageLevel.INFO);
@@ -160,14 +161,14 @@ public class FactionLogic {
                                     MessageUtils.MessageLevel.INFO);
                         }
                     }
-                }, 60 * 5);
+                }, Config.c.getInt("game.respawnCooldown"));
             }
         });
 
-        if (Vars.state.wave < 5)
+        if (Vars.state.wave < Config.c.getInt("game.gameOverStartWave"))
             return;
 
-        if (factions.size == 1 && !(defender.maxCores <= 3 && timeSinceSpawned < 60 * 60 * 5)
+        if (factions.size == 1 && !(defender.maxCores <= Config.c.getInt("game.factionGracePeriodMaxCores") && timeSinceSpawned < Config.c.getInt("game.gracePeriod"))
                 && State.gameState != State.GameState.GAMEOVER) {
             Member winner = factions.first().members.first();
             State.winner = winner;

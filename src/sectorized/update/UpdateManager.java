@@ -38,7 +38,7 @@ public class UpdateManager implements Manager {
     private final HashMap<Biomes.Biome, Integer> biomeVotes = new HashMap<>();
     private boolean biomeVoteFinished = false;
 
-    private int coreDominationDifference = 3;
+    private int coreDominationDifference = Config.c.getInt("game.domination.coreLead.serpulo");
 
     @Override
     public void init() {
@@ -48,7 +48,7 @@ public class UpdateManager implements Manager {
 
             State.time += Time.delta;
 
-            if (interval.get(0, 60 * 5)) {
+            if (interval.get(0, Config.c.getInt("interval.hudPopup"))) {
                 double blockDamageMultiplier = Math.round(state.rules.blockDamageMultiplier * 10.0) / 10.0;
                 double unitDamageMultiplier = Math.round(state.rules.unitDamageMultiplier * 10.0) / 10.0;
                 double unitHealthMultiplier = Math.round(Units.healthMultiplier * 10.0) / 10.0;
@@ -100,7 +100,7 @@ public class UpdateManager implements Manager {
                         });
             }
 
-            if (interval.get(1, 60 * 60 * 8)) {
+            if (interval.get(1, Config.c.getInt("interval.infoMessage"))) {
                 switch (infoMessageIndex) {
                     case 0:
                         MessageUtils.sendMessage("In addition to commanding your units you can also use "
@@ -131,7 +131,7 @@ public class UpdateManager implements Manager {
                 infoMessageIndex = (infoMessageIndex + 1) % 3;
             }
 
-            if (interval.get(3, 60 * 60 * 5)) {
+            if (interval.get(3, Config.c.getInt("interval.gameStateLog"))) {
                 int h = (int) (State.time / 60 / 60 / 60);
                 int m = (int) (State.time / 60 / 60 % 60);
                 int s = (int) (State.time / 60 % 60);
@@ -178,8 +178,8 @@ public class UpdateManager implements Manager {
                 Log.info("[SectorizedPlugin] @", gameStateLog.toString());
             }
 
-            if (interval.get(2, 60 * 60 * 2)) {
-                if (Groups.player.size() < 2 || state.wave < 15)
+            if (interval.get(2, Config.c.getInt("interval.dominationCheck"))) {
+                if (Groups.player.size() < Config.c.getInt("game.domination.checkMinPlayers") || state.wave < Config.c.getInt("game.domination.checkStartWave"))
                     return;
 
                 Team dominatingTeam = null;
@@ -187,7 +187,8 @@ public class UpdateManager implements Manager {
 
                 Team[] teams = Team.all.clone();
                 Arrays.sort(teams, Comparator.comparingInt(t -> -t.cores().size));
-                if (teams[0].cores().size >= teams[1].cores().size + coreDominationDifference + (state.wave * 0.1)) {
+                int domCoreLead = State.planet.equals(Planets.serpulo.name) ? Config.c.getInt("game.domination.coreLead.serpulo") : Config.c.getInt("game.domination.coreLead.erekir");
+                if (teams[0].cores().size >= teams[1].cores().size + domCoreLead + (state.wave * 0.1)) {
                     dominatingTeam = teams[0];
                     lock = true;
                 }
@@ -207,7 +208,7 @@ public class UpdateManager implements Manager {
                             Map.Entry<Team, Float> b) -> (int) (b.getValue() - a.getValue()));
 
                     if (healthPerTeamEntries.size() > 1 && healthPerTeamEntries.get(0)
-                            .getValue() >= healthPerTeamEntries.get(1).getValue() + 10000 + 1000 * state.wave) {
+                            .getValue() >= healthPerTeamEntries.get(1).getValue() + Config.c.getInt("game.domination.healthThreshold") + Config.c.getInt("game.domination.healthPerWave") * state.wave) {
                         dominatingTeam = healthPerTeamEntries.get(0).getKey();
                         lock = true;
                     }
@@ -226,7 +227,7 @@ public class UpdateManager implements Manager {
         });
 
         Events.on(SectorizedEvents.BiomesGeneratedEvent.class, event -> {
-            coreDominationDifference = State.planet.equals(Planets.serpulo.name) ? 3 : 5;
+            coreDominationDifference = State.planet.equals(Planets.serpulo.name) ? Config.c.getInt("game.domination.coreLead.serpulo") : Config.c.getInt("game.domination.coreLead.erekir");
         });
 
         Events.on(SectorizedEvents.GamemodeStartEvent.class, event -> {
@@ -239,12 +240,12 @@ public class UpdateManager implements Manager {
 
             state.rules.loadout = Loadout.getLoadout(state.wave);
 
-            state.rules.blockDamageMultiplier = (float) (1 + (1 / (Math.pow(state.wave * 0.05, 4) + 1)));
-            state.rules.unitDamageMultiplier = (float) (3 - (2 / (Math.pow(state.wave * 0.02, 4) + 1)));
+            state.rules.blockDamageMultiplier = (float) (Config.c.getDouble("multiplier.blockDamageFormulaA") + (Config.c.getDouble("multiplier.blockDamageFormulaC") / (Math.pow(state.wave * Config.c.getDouble("multiplier.blockDamageFormulaB"), 4) + 1)));
+            state.rules.unitDamageMultiplier = (float) (Config.c.getDouble("multiplier.unitDamageFormulaA") - (Config.c.getDouble("multiplier.unitDamageFormulaB") / (Math.pow(state.wave * Config.c.getDouble("multiplier.unitDamageFormulaC"), 4) + 1)));
 
-            Units.setUnitHealthMultiplier((float) (6 - (5 / (Math.pow(state.wave * 0.02, 4) + 1))));
+            Units.setUnitHealthMultiplier((float) (Config.c.getDouble("multiplier.unitHealthFormulaA") - (Config.c.getDouble("multiplier.unitHealthFormulaB") / (Math.pow(state.wave * Config.c.getDouble("multiplier.unitHealthFormulaC"), 4) + 1))));
 
-            if (state.teams.active.size < 2 && state.wave >= 5) {
+            if (state.teams.active.size < 2 && state.wave >= Config.c.getInt("game.gameOverStartWave")) {
                 DiscordBot.sendMessage("**Game Over!** Crux won the game in " + Vars.state.wave + " waves.");
 
                 Events.fire(new SectorizedEvents.RestartEvent("No teams left"));
@@ -401,6 +402,7 @@ public class UpdateManager implements Manager {
             for (Player player : Groups.player) {
                 MenuUtils.showMenu(20, player);
 
+                int voteDisplayPeriod = Config.c.getInt("vote.displayPeriodSec");
                 Timer.schedule(() -> {
                     if (biomeVotes.isEmpty() || biomeVoteFinished)
                         return;
@@ -442,9 +444,10 @@ public class UpdateManager implements Manager {
 
                     Call.infoPopupReliable(MessageUtils.cHighlight1 + "Votes:" + MessageUtils.cDefault + votes, 3.01f,
                             Align.topLeft, 90, 5, 0, 0);
-                }, 0, 3);
+                }, 0, voteDisplayPeriod);
             }
 
+            int voteDuration = Config.c.getInt("vote.displayDurationSec");
             Timer.schedule(() -> {
                 if (!biomeVotes.isEmpty()) {
                     Seq<Map.Entry<Biomes.Biome, Integer>> maxEntries = new Seq<>();
@@ -480,10 +483,11 @@ public class UpdateManager implements Manager {
                 }
                 Core.settings.manualSave();
                 biomeVoteFinished = true;
-            }, 20);
+            }, voteDuration);
 
-            final int seconds = 10;
-            AtomicInteger countdown = new AtomicInteger(seconds);
+            int restartDelay = Config.c.getInt("vote.restartCountdownDelaySec");
+            int restartTicks = Config.c.getInt("vote.restartCountdownTicks");
+            AtomicInteger countdown = new AtomicInteger(restartTicks);
             Timer.schedule(() -> {
                 if (countdown.get() == 0) {
                     Log.info("[SectorizedPlugin] Restarting server ...");
@@ -496,7 +500,7 @@ public class UpdateManager implements Manager {
 
                 MessageUtils.sendMessage("Server is restarting in " + MessageUtils.cInfo + (countdown.getAndDecrement())
                         + MessageUtils.cDefault + " second(s).", MessageUtils.MessageLevel.INFO);
-            }, 25, 1, seconds);
+            }, restartDelay, 1, restartTicks);
         });
     }
 
