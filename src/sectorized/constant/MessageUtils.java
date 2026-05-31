@@ -49,7 +49,7 @@ public class MessageUtils {
     }
 
     public static void sendBufferedMessage(Player player, String message, MessageLevel level) {
-        sendBufferedMessage(player, message, level, Config.c.getInt("misc.messageBufferDuration"));
+        sendBufferedMessage(player, message, level, Config.c.misc.messageBufferDuration);
     }
 
     public enum MessageLevel {

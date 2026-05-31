@@ -332,7 +332,7 @@ public class FactionManager implements Manager {
                     Timer.schedule(() -> {
                         if (!f.members.contains(m -> m.online))
                             factionLogic.destroyCores(f);
-                    }, Config.c.getInt("game.playerDisconnectCoreDestroyDelay") * f.maxCores);
+                    }, Config.c.game.playerDisconnectCoreDestroyDelay * f.maxCores);
                 }
             }
         });
@@ -459,20 +459,20 @@ public class FactionManager implements Manager {
                 try {
                     int minSquadSizeParam = Integer.parseInt(args[0]);
 
-                    if (minSquadSizeParam >= Config.c.getInt("game.attack.squadMinSize") && minSquadSizeParam <= Config.c.getInt("game.attack.squadMaxSize")) {
+                    if (minSquadSizeParam >= Config.c.game.attack.squadMinSize && minSquadSizeParam <= Config.c.game.attack.squadMaxSize) {
                         minSquadSize = minSquadSizeParam;
                     } else {
-                        MessageUtils.sendMessage(player, "Min Squad Size must be in the range " + Config.c.getInt("game.attack.squadMinSize") + " and " + Config.c.getInt("game.attack.squadMaxSize") + ".", MessageUtils.MessageLevel.WARNING);
+                        MessageUtils.sendMessage(player, "Min Squad Size must be in the range " + Config.c.game.attack.squadMinSize + " and " + Config.c.game.attack.squadMaxSize + ".", MessageUtils.MessageLevel.WARNING);
                     }
                 } catch (NumberFormatException e) {
-                    MessageUtils.sendMessage(player, "Min Squad Size must be a number in the range " + Config.c.getInt("game.attack.squadMinSize") + " and " + Config.c.getInt("game.attack.squadMaxSize") + ".", MessageUtils.MessageLevel.WARNING);
+                    MessageUtils.sendMessage(player, "Min Squad Size must be a number in the range " + Config.c.game.attack.squadMinSize + " and " + Config.c.game.attack.squadMaxSize + ".", MessageUtils.MessageLevel.WARNING);
                 }
             }
 
             if (member.state == Member.MemberState.ALIVE) {
                 member.faction.team.rules().rtsAi = true;
                 member.faction.team.rules().rtsMinSquad = minSquadSize;
-                member.faction.team.rules().rtsMinWeight = (float) Config.c.getDouble("game.attack.rtsMinWeight");
+                member.faction.team.rules().rtsMinWeight = (float) Config.c.game.attack.rtsMinWeight;
                 for (Member m : member.faction.members) {
                     MessageUtils.sendMessage(m.player, "Units commanded to " + MessageUtils.cDanger + "ATTACK" + MessageUtils.cDefault + "!", MessageUtils.MessageLevel.ATTACK);
                 }
@@ -519,7 +519,7 @@ public class FactionManager implements Manager {
                                 MessageUtils.sendMessage(requester.player, "Your join request to " + MessageUtils.cPlayer + leader.player.name + MessageUtils.cDefault + " was not accepted!", MessageUtils.MessageLevel.INFO);
                                 MessageUtils.sendMessage(leader.player, "Join request of " + MessageUtils.cPlayer + requester.player.name + MessageUtils.cDefault + " expired!", MessageUtils.MessageLevel.INFO);
                             }
-                        }, Config.c.getInt("game.joinRequestTimeout"));
+                        }, Config.c.game.joinRequestTimeout);
 
                         MessageUtils.sendMessage(leader.player, MessageUtils.cPlayer + requester.player.name + MessageUtils.cDefault + " requested to join your team! Type " + MessageUtils.cHighlight2 + "/accept" + MessageUtils.cDefault + " to accept or " + MessageUtils.cDanger + "/deny" + MessageUtils.cDefault + " to deny the request!", MessageUtils.MessageLevel.INFO);
                         MessageUtils.sendMessage(requester.player, "Join request sent to " + MessageUtils.cPlayer + leader.player.name + MessageUtils.cDefault + "!", MessageUtils.MessageLevel.INFO);

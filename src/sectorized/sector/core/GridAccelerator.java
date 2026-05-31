@@ -9,7 +9,7 @@ import java.util.*;
 import static mindustry.Vars.world;
 
 public class GridAccelerator {
-    private final static int cellSize = Config.c.getInt("world.gridCellSize");
+    private final static int cellSize = Config.c.world.gridCellSize;
 
     private final ArrayList<Rectangle>[][] grid;
 

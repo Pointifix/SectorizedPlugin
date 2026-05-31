@@ -9,8 +9,8 @@ import mindustry.type.ItemSeq;
 import java.util.HashMap;
 
 public class CoreCost {
-    private static final int size = Config.c.getInt("game.coreTierSize");
-    private static final int maxTeamSize = Config.c.getInt("game.maxTeamSize");
+    private static final int size = Config.c.game.coreTierSize;
+    private static final int maxTeamSize = Config.c.game.maxTeamSize;
 
     public static final HashMap<Item, String> itemUnicodes = new HashMap() {{
         put(Items.copper, "\uF838");
@@ -41,16 +41,16 @@ public class CoreCost {
             for (int i = 0; i < size; i++) {
                 ItemSeq itemSeq = new ItemSeq();
 
-                itemSeq.add(Items.copper, (int) ((Config.c.getInt("coreCost.serpulo.copper.base") + i * Config.c.getInt("coreCost.serpulo.copper.perTier")) * factor));
-                itemSeq.add(Items.lead, (int) ((Config.c.getInt("coreCost.serpulo.lead.base") + i * Config.c.getInt("coreCost.serpulo.lead.perTier")) * factor));
-                if (i >= Config.c.getInt("coreCost.serpulo.graphite.minTier")) itemSeq.add(Items.graphite, (int) ((Config.c.getInt("coreCost.serpulo.graphite.base") + (i - 1) * Config.c.getInt("coreCost.serpulo.graphite.perTier")) * factor));
-                if (i >= Config.c.getInt("coreCost.serpulo.silicon.minTier")) itemSeq.add(Items.silicon, (int) ((Config.c.getInt("coreCost.serpulo.silicon.base") + (i - 2) * Config.c.getInt("coreCost.serpulo.silicon.perTier")) * factor));
-                if (i >= Config.c.getInt("coreCost.serpulo.metaglass.minTier")) itemSeq.add(Items.metaglass, (int) ((Config.c.getInt("coreCost.serpulo.metaglass.base") + (i - 3) * Config.c.getInt("coreCost.serpulo.metaglass.perTier")) * factor));
-                if (i >= Config.c.getInt("coreCost.serpulo.titanium.minTier")) itemSeq.add(Items.titanium, (int) ((Config.c.getInt("coreCost.serpulo.titanium.base") + (i - 5) * Config.c.getInt("coreCost.serpulo.titanium.perTier")) * factor));
-                if (i >= Config.c.getInt("coreCost.serpulo.thorium.minTier")) itemSeq.add(Items.thorium, (int) ((Config.c.getInt("coreCost.serpulo.thorium.base") + (i - 6) * Config.c.getInt("coreCost.serpulo.thorium.perTier")) * factor));
-                if (i >= Config.c.getInt("coreCost.serpulo.plastanium.minTier")) itemSeq.add(Items.plastanium, (int) ((Config.c.getInt("coreCost.serpulo.plastanium.base") + (i - 8) * Config.c.getInt("coreCost.serpulo.plastanium.perTier")) * factor));
-                if (i >= Config.c.getInt("coreCost.serpulo.phaseFabric.minTier")) itemSeq.add(Items.phaseFabric, (int) ((Config.c.getInt("coreCost.serpulo.phaseFabric.base") + (i - 11) * Config.c.getInt("coreCost.serpulo.phaseFabric.perTier")) * factor));
-                if (i >= Config.c.getInt("coreCost.serpulo.surgeAlloy.minTier")) itemSeq.add(Items.surgeAlloy, (int) ((Config.c.getInt("coreCost.serpulo.surgeAlloy.base") + (i - 15) * Config.c.getInt("coreCost.serpulo.surgeAlloy.perTier")) * factor));
+                itemSeq.add(Items.copper, (int) ((Config.c.coreCost.serpulo.copper.base + i * Config.c.coreCost.serpulo.copper.perTier) * factor));
+                itemSeq.add(Items.lead, (int) ((Config.c.coreCost.serpulo.lead.base + i * Config.c.coreCost.serpulo.lead.perTier) * factor));
+                if (i >= Config.c.coreCost.serpulo.graphite.minTier) itemSeq.add(Items.graphite, (int) ((Config.c.coreCost.serpulo.graphite.base + (i - 1) * Config.c.coreCost.serpulo.graphite.perTier) * factor));
+                if (i >= Config.c.coreCost.serpulo.silicon.minTier) itemSeq.add(Items.silicon, (int) ((Config.c.coreCost.serpulo.silicon.base + (i - 2) * Config.c.coreCost.serpulo.silicon.perTier) * factor));
+                if (i >= Config.c.coreCost.serpulo.metaglass.minTier) itemSeq.add(Items.metaglass, (int) ((Config.c.coreCost.serpulo.metaglass.base + (i - 3) * Config.c.coreCost.serpulo.metaglass.perTier) * factor));
+                if (i >= Config.c.coreCost.serpulo.titanium.minTier) itemSeq.add(Items.titanium, (int) ((Config.c.coreCost.serpulo.titanium.base + (i - 5) * Config.c.coreCost.serpulo.titanium.perTier) * factor));
+                if (i >= Config.c.coreCost.serpulo.thorium.minTier) itemSeq.add(Items.thorium, (int) ((Config.c.coreCost.serpulo.thorium.base + (i - 6) * Config.c.coreCost.serpulo.thorium.perTier) * factor));
+                if (i >= Config.c.coreCost.serpulo.plastanium.minTier) itemSeq.add(Items.plastanium, (int) ((Config.c.coreCost.serpulo.plastanium.base + (i - 8) * Config.c.coreCost.serpulo.plastanium.perTier) * factor));
+                if (i >= Config.c.coreCost.serpulo.phaseFabric.minTier) itemSeq.add(Items.phaseFabric, (int) ((Config.c.coreCost.serpulo.phaseFabric.base + (i - 11) * Config.c.coreCost.serpulo.phaseFabric.perTier) * factor));
+                if (i >= Config.c.coreCost.serpulo.surgeAlloy.minTier) itemSeq.add(Items.surgeAlloy, (int) ((Config.c.coreCost.serpulo.surgeAlloy.base + (i - 15) * Config.c.coreCost.serpulo.surgeAlloy.perTier) * factor));
 
                 requirementsSerpulo[i][teamSize] = itemSeq;
             }
@@ -58,11 +58,11 @@ public class CoreCost {
             for (int i = 0; i < size; i++) {
                 ItemSeq itemSeq = new ItemSeq();
 
-                itemSeq.add(Items.beryllium, (int) ((Config.c.getInt("coreCost.erekir.beryllium.base") + i * Config.c.getInt("coreCost.erekir.beryllium.perTier")) * factor));
-                if (i >= Config.c.getInt("coreCost.erekir.graphite.minTier")) itemSeq.add(Items.graphite, (int) ((Config.c.getInt("coreCost.erekir.graphite.base") + (i - 1) * Config.c.getInt("coreCost.erekir.graphite.perTier")) * factor));
-                if (i >= Config.c.getInt("coreCost.erekir.silicon.minTier")) itemSeq.add(Items.silicon, (int) ((Config.c.getInt("coreCost.erekir.silicon.base") + (i - 3) * Config.c.getInt("coreCost.erekir.silicon.perTier")) * factor));
-                if (i >= Config.c.getInt("coreCost.erekir.oxide.minTier")) itemSeq.add(Items.oxide, (int) ((Config.c.getInt("coreCost.erekir.oxide.base") + (i - 5) * Config.c.getInt("coreCost.erekir.oxide.perTier")) * factor));
-                if (i >= Config.c.getInt("coreCost.erekir.carbide.minTier")) itemSeq.add(Items.carbide, (int) ((Config.c.getInt("coreCost.erekir.carbide.base") + (i - 7) * Config.c.getInt("coreCost.erekir.carbide.perTier")) * factor));
+                itemSeq.add(Items.beryllium, (int) ((Config.c.coreCost.erekir.beryllium.base + i * Config.c.coreCost.erekir.beryllium.perTier) * factor));
+                if (i >= Config.c.coreCost.erekir.graphite.minTier) itemSeq.add(Items.graphite, (int) ((Config.c.coreCost.erekir.graphite.base + (i - 1) * Config.c.coreCost.erekir.graphite.perTier) * factor));
+                if (i >= Config.c.coreCost.erekir.silicon.minTier) itemSeq.add(Items.silicon, (int) ((Config.c.coreCost.erekir.silicon.base + (i - 3) * Config.c.coreCost.erekir.silicon.perTier) * factor));
+                if (i >= Config.c.coreCost.erekir.oxide.minTier) itemSeq.add(Items.oxide, (int) ((Config.c.coreCost.erekir.oxide.base + (i - 5) * Config.c.coreCost.erekir.oxide.perTier) * factor));
+                if (i >= Config.c.coreCost.erekir.carbide.minTier) itemSeq.add(Items.carbide, (int) ((Config.c.coreCost.erekir.carbide.base + (i - 7) * Config.c.coreCost.erekir.carbide.perTier) * factor));
 
                 requirementsErekir[i][teamSize] = itemSeq;
             }

@@ -30,7 +30,7 @@ public class SectorSpawns {
         this.gridAccelerator = gridAccelerator;
 
         final int size = Constants.radii.get((CoreBlock) Blocks.coreNucleus);
-        final int rObstacle = Config.c.getInt("world.obstacleCheckRadius");
+        final int rObstacle = Config.c.world.obstacleCheckRadius;
 
         Block placeableBlock = State.planet.equals(Planets.serpulo.name) ? Blocks.multiplicativeReconstructor : Blocks.titan;
 
@@ -57,7 +57,7 @@ public class SectorSpawns {
                     }
                 }
 
-                if (!obstacle && hasSurfaceCount > size * size / Config.c.getInt("world.spawnSurfaceDivisor")) {
+                if (!obstacle && hasSurfaceCount > size * size / Config.c.world.spawnSurfaceDivisor) {
                     spawnSeq.add(new Point2(rx, ry));
                 }
             }

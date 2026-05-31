@@ -5,382 +5,374 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Config {
     public static Config c;
-    private final HashMap<String, String> values;
 
-    public Config(HashMap<String, String> values) {
-        this.values = values;
+    public Database database = new Database();
+    public Discord discord = new Discord();
+    public Game game = new Game();
+    public World world = new World();
+    public Multiplier multiplier = new Multiplier();
+    public Turret turret = new Turret();
+    public Scoring scoring = new Scoring();
+    public Interval interval = new Interval();
+    public UnitCap unitCap = new UnitCap();
+    public Vote vote = new Vote();
+    public Misc misc = new Misc();
+    public Loadout loadout = new Loadout();
+    public CoreCost coreCost = new CoreCost();
+    public Unit unit = new Unit();
+
+    public static class Database {
+        public boolean enabled = false;
+        public boolean updateScoreDecay = false;
+        public int retries = 5;
+        public int retryDelayMs = 3000;
+        public String driver = "org.mariadb.jdbc.Driver";
     }
 
-    public String getString(String key) {
-        String val = values.get(key);
-        if (val == null) throw new IllegalArgumentException("Config key '" + key + "' does not exist");
-        return val;
+    public static class Discord {
+        public boolean enabled = false;
+        public int[] rankRoleThreshold = {500, 200, 100, 50, 25, 10};
     }
 
-    public int getInt(String key) {
-        String val = values.get(key);
-        if (val == null) throw new IllegalArgumentException("Config key '" + key + "' does not exist");
-        try { return Integer.parseInt(val); } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Config key '" + key + "' has non-integer value: " + val);
+    public static class Game {
+        public boolean infiniteResources = false;
+        public int playerLimit = 50;
+        public int waveSpacing = 60 * 60 * 3;
+        public double planetChanceSerpulo = 0.7;
+        public int maxTeamSize = 4;
+        public int coreTierSize = 25;
+        public int gracePeriod = 60 * 60 * 5;
+        public int respawnCooldown = 60 * 5;
+        public int shockMineReArmDelayMin = 10;
+        public int shockMineReArmDelayMax = 15;
+        public int playerDisconnectCoreDestroyDelay = 30;
+        public int joinRequestTimeout = 30;
+        public int gameOverStartWave = 5;
+        public int factionGracePeriodMaxCores = 3;
+        public CorePlacementCooldown corePlacementCooldown = new CorePlacementCooldown();
+        public Domination domination = new Domination();
+        public Attack attack = new Attack();
+
+        public static class CorePlacementCooldown {
+            public int serpulo = 10;
+            public int erekir = 15;
+            public int initial = 30;
+        }
+
+        public static class Domination {
+            public CoreLead coreLead = new CoreLead();
+            public int healthThreshold = 10000;
+            public int healthPerWave = 1000;
+            public int checkStartWave = 15;
+            public int checkMinPlayers = 2;
+
+            public static class CoreLead {
+                public int serpulo = 3;
+                public int erekir = 5;
+            }
+        }
+
+        public static class Attack {
+            public double rtsMinWeight = 1.2;
+            public int squadMinSize = 1;
+            public int squadMaxSize = 100;
         }
     }
 
-    public long getLong(String key) {
-        String val = values.get(key);
-        if (val == null) throw new IllegalArgumentException("Config key '" + key + "' does not exist");
-        try { return Long.parseLong(val); } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Config key '" + key + "' has non-long value: " + val);
+    public static class World {
+        public int mapWidth = 600;
+        public int mapHeight = 600;
+        public int spawnCellSize = 50;
+        public int dropZoneRadius = 100;
+        public int obstacleCheckRadius = 5;
+        public int spawnSurfaceDivisor = 300;
+        public int gridCellSize = 100;
+        public int biomeSampleDensity = 50;
+        public double biomeDisplayThreshold = 0.1;
+        public int biomeDisplayMaxCount = 3;
+        public int voteOptimizationRetries = 10;
+        public Radius radius = new Radius();
+        public SectorMap sectorMap = new SectorMap();
+
+        public static class Radius {
+            public int coreShard = 28;
+            public int coreFoundation = 33;
+            public int coreNucleus = 38;
+            public int coreBastion = 30;
+            public int coreCitadel = 38;
+            public int coreAcropolis = 42;
+        }
+
+        public static class SectorMap {
+            public int sampleDensity = 50;
         }
     }
 
-    public float getFloat(String key) {
-        String val = values.get(key);
-        if (val == null) throw new IllegalArgumentException("Config key '" + key + "' does not exist");
-        try { return Float.parseFloat(val); } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Config key '" + key + "' has non-float value: " + val);
+    public static class Multiplier {
+        public double buildSpeed = 2.0;
+        public double blockDamage = 2.0;
+        public double unitDamage = 0.5;
+        public double buildCost = 1.0;
+        public double blockDamageFormulaA = 1.0;
+        public double blockDamageFormulaB = 0.05;
+        public double blockDamageFormulaC = 1.0;
+        public double unitDamageFormulaA = 3.0;
+        public double unitDamageFormulaB = 2.0;
+        public double unitDamageFormulaC = 0.02;
+        public double unitHealthFormulaA = 6.0;
+        public double unitHealthFormulaB = 5.0;
+        public double unitHealthFormulaC = 0.02;
+    }
+
+    public static class Turret {
+        public double foreshadowAmmoDamage = 1.5;
+        public double spectreAmmoDamage = 2.0;
+        public double meltdownShootTypeDamage = 1.5;
+        public double reconstructorConstructTime = 0.75;
+    }
+
+    public static class Scoring {
+        public int k = 10;
+        public int offset = 10;
+        public int eloDiffClamp = 2000;
+        public double winnerMultiplier = 1.5;
+        public double decayMultiplier = 0.99;
+        public int decayThreshold = 100;
+        public int leaderboardPageSize = 10;
+        public int leaderboardLimit = 100;
+    }
+
+    public static class Interval {
+        public int hudPopup = 60 * 5;
+        public int infoMessage = 60 * 60 * 8;
+        public int dominationCheck = 60 * 60 * 2;
+        public int gameStateLog = 60 * 60 * 5;
+    }
+
+    public static class UnitCap {
+        public int initial = 0;
+        public Modifier modifier = new Modifier();
+
+        public static class Modifier {
+            public int coreShard = 4;
+            public int coreFoundation = 6;
+            public int coreNucleus = 8;
+            public int coreBastion = 3;
+            public int coreCitadel = 5;
+            public int coreAcropolis = 7;
         }
     }
 
-    public double getDouble(String key) {
-        String val = values.get(key);
-        if (val == null) throw new IllegalArgumentException("Config key '" + key + "' does not exist");
-        try { return Double.parseDouble(val); } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Config key '" + key + "' has non-double value: " + val);
+    public static class Vote {
+        public int displayPeriodSec = 3;
+        public int displayDurationSec = 20;
+        public int restartCountdownDelaySec = 25;
+        public int restartCountdownTicks = 10;
+    }
+
+    public static class Misc {
+        public int messageBufferDuration = 3;
+    }
+
+    public static class Loadout {
+        public Serpulo serpulo = new Serpulo();
+        public Erekir erekir = new Erekir();
+
+        public static class Item {
+            public int base;
+            public int perWave;
+            public int waveRequired = -1;
+            public int waveOffset = -1;
+        }
+
+        public static class Serpulo {
+            public Item copper = item(800, 150);
+            public Item lead = item(500, 100);
+            public Item graphite = item(150, 20);
+            public Item silicon = item(150, 30);
+            public Item metaglass = item(100, 10);
+            public Item titanium = item(50, 20);
+            public Item thorium = item(10, 15);
+            public Item plastanium = waveItem(0, 20, 5, 4);
+            public Item phaseFabric = waveItem(0, 15, 10, 9);
+            public Item surgeAlloy = waveItem(0, 15, 10, 9);
+        }
+
+        public static class Erekir {
+            public Item beryllium = item(300, 100);
+            public Item graphite = item(100, 50);
+            public Item silicon = item(50, 30);
+            public Item thorium = item(150, 20);
+            public Item tungsten = waveItem(0, 30, 1, 0);
+            public Item oxide = waveItem(0, 20, 3, 2);
+            public Item carbide = waveItem(0, 10, 5, 4);
+            public Item surgeAlloy = waveItem(0, 20, 7, 7);
+            public Item phaseFabric = waveItem(0, 10, 9, 4);
+        }
+
+        private static Item item(int base, int perWave) {
+            Item i = new Item();
+            i.base = base;
+            i.perWave = perWave;
+            return i;
+        }
+
+        private static Item waveItem(int base, int perWave, int waveRequired, int waveOffset) {
+            Item i = new Item();
+            i.base = base;
+            i.perWave = perWave;
+            i.waveRequired = waveRequired;
+            i.waveOffset = waveOffset;
+            return i;
         }
     }
 
-    public boolean getBool(String key) {
-        String val = values.get(key);
-        if (val == null) throw new IllegalArgumentException("Config key '" + key + "' does not exist");
-        return "true".equalsIgnoreCase(val) || "1".equals(val);
+    public static class CoreCost {
+        public Serpulo serpulo = new Serpulo();
+        public Erekir erekir = new Erekir();
+
+        public static class Tier {
+            public int base;
+            public int perTier;
+            public int minTier = -1;
+        }
+
+        public static class Serpulo {
+            public Tier copper = tier(200, 100);
+            public Tier lead = tier(100, 70);
+            public Tier graphite = tier(50, 20, 1);
+            public Tier silicon = tier(70, 50, 2);
+            public Tier metaglass = tier(50, 30, 3);
+            public Tier titanium = tier(200, 40, 5);
+            public Tier thorium = tier(100, 40, 6);
+            public Tier plastanium = tier(50, 30, 8);
+            public Tier phaseFabric = tier(20, 20, 11);
+            public Tier surgeAlloy = tier(30, 30, 15);
+        }
+
+        public static class Erekir {
+            public Tier beryllium = tier(50, 50, 0);
+            public Tier graphite = tier(20, 20, 1);
+            public Tier silicon = tier(50, 30, 3);
+            public Tier oxide = tier(10, 20, 5);
+            public Tier carbide = tier(10, 10, 7);
+        }
+
+        private static Tier tier(int base, int perTier) {
+            Tier t = new Tier();
+            t.base = base;
+            t.perTier = perTier;
+            return t;
+        }
+
+        private static Tier tier(int base, int perTier, int minTier) {
+            Tier t = new Tier();
+            t.base = base;
+            t.perTier = perTier;
+            t.minTier = minTier;
+            return t;
+        }
     }
 
-    public String getString(String key, String defaultValue) {
-        return values.getOrDefault(key, defaultValue);
+    public static class Unit {
+        public SpeedMultiplier speedMultiplier = new SpeedMultiplier();
+        public HealthMultiplier healthMultiplier = new HealthMultiplier();
+
+        public static class SpeedMultiplier {
+            public double zenith = 0.6;
+            public double mega = 0.5;
+            public double antumbra = 0.8;
+            public double quad = 0.8;
+            public double quadExtra = 1.25;
+            public double eclipse = 0.7;
+            public double crawler = 1.25;
+            public double dagger = 1.25;
+            public double nova = 1.25;
+            public double atrax = 1.25;
+            public double mace = 1.25;
+            public double pulsar = 1.25;
+            public double spiroct = 1.25;
+            public double fortress = 1.25;
+            public double arkyid = 1.25;
+            public double scepter = 1.25;
+            public double vela = 1.25;
+            public double toxopid = 1.25;
+            public double reign = 1.25;
+            public double corvus = 1.25;
+            public double emanate = 0.6;
+        }
+
+        public static class HealthMultiplier {
+            public double zenith = 0.5;
+            public double mega = 0.8;
+            public double antumbra = 0.8;
+            public double eclipse = 0.7;
+        }
     }
 
-    public int getInt(String key, int defaultValue) {
-        String val = values.get(key);
-        if (val == null) return defaultValue;
-        try { return Integer.parseInt(val); } catch (NumberFormatException e) { return defaultValue; }
-    }
-
-    public long getLong(String key, long defaultValue) {
-        String val = values.get(key);
-        if (val == null) return defaultValue;
-        try { return Long.parseLong(val); } catch (NumberFormatException e) { return defaultValue; }
-    }
-
-    public float getFloat(String key, float defaultValue) {
-        String val = values.get(key);
-        if (val == null) return defaultValue;
-        try { return Float.parseFloat(val); } catch (NumberFormatException e) { return defaultValue; }
-    }
-
-    public double getDouble(String key, double defaultValue) {
-        String val = values.get(key);
-        if (val == null) return defaultValue;
-        try { return Double.parseDouble(val); } catch (NumberFormatException e) { return defaultValue; }
-    }
-
-    public boolean getBool(String key, boolean defaultValue) {
-        String val = values.get(key);
-        if (val == null) return defaultValue;
-        return "true".equalsIgnoreCase(val) || "1".equals(val);
-    }
-
-    private static HashMap<String, String> defaults() {
-        HashMap<String, String> d = new HashMap<>();
-
-        d.put("database.enabled", "false");
-        d.put("database.updateScoreDecay", "false");
-        d.put("database.retries", "5");
-        d.put("database.retryDelayMs", "3000");
-        d.put("database.driver", "org.mariadb.jdbc.Driver");
-
-        d.put("discord.enabled", "false");
-        d.put("discord.rankRoleThreshold.1", "500");
-        d.put("discord.rankRoleThreshold.2", "200");
-        d.put("discord.rankRoleThreshold.3", "100");
-        d.put("discord.rankRoleThreshold.4", "50");
-        d.put("discord.rankRoleThreshold.5", "25");
-        d.put("discord.rankRoleThreshold.6", "10");
-
-        d.put("game.infiniteResources", "false");
-        d.put("game.playerLimit", "50");
-        d.put("game.waveSpacing", String.valueOf(60 * 60 * 3));
-        d.put("game.corePlacementCooldown.serpulo", "10");
-        d.put("game.corePlacementCooldown.erekir", "15");
-        d.put("game.corePlacementCooldown.initial", "30");
-        d.put("game.domination.coreLead.serpulo", "3");
-        d.put("game.domination.coreLead.erekir", "5");
-        d.put("game.domination.healthThreshold", "10000");
-        d.put("game.domination.healthPerWave", "1000");
-        d.put("game.domination.checkStartWave", "15");
-        d.put("game.domination.checkMinPlayers", "2");
-        d.put("game.gameOverStartWave", "5");
-        d.put("game.gracePeriod", String.valueOf(60 * 60 * 5));
-        d.put("game.respawnCooldown", String.valueOf(60 * 5));
-        d.put("game.shockMineReArmDelayMin", "10");
-        d.put("game.shockMineReArmDelayMax", "15");
-        d.put("game.playerDisconnectCoreDestroyDelay", "30");
-        d.put("game.joinRequestTimeout", "30");
-        d.put("game.planetChanceSerpulo", "0.7");
-        d.put("game.maxTeamSize", "4");
-        d.put("game.coreTierSize", "25");
-        d.put("game.attack.rtsMinWeight", "1.2");
-        d.put("game.attack.squadMinSize", "1");
-        d.put("game.attack.squadMaxSize", "100");
-        d.put("game.factionGracePeriodMaxCores", "3");
-
-        d.put("world.mapWidth", "600");
-        d.put("world.mapHeight", "600");
-        d.put("world.spawnCellSize", "50");
-        d.put("world.dropZoneRadius", "100");
-        d.put("world.radius.coreShard", "28");
-        d.put("world.radius.coreFoundation", "33");
-        d.put("world.radius.coreNucleus", "38");
-        d.put("world.radius.coreBastion", "30");
-        d.put("world.radius.coreCitadel", "38");
-        d.put("world.radius.coreAcropolis", "42");
-        d.put("world.obstacleCheckRadius", "5");
-        d.put("world.spawnSurfaceDivisor", "300");
-        d.put("world.gridCellSize", "100");
-        d.put("world.biomeSampleDensity", "50");
-        d.put("world.biomeDisplayThreshold", "0.1");
-        d.put("world.biomeDisplayMaxCount", "3");
-        d.put("world.voteOptimizationRetries", "10");
-        d.put("world.sectorMap.sampleDensity", "50");
-
-        d.put("multiplier.buildSpeed", "2.0");
-        d.put("multiplier.blockDamage", "2.0");
-        d.put("multiplier.unitDamage", "0.5");
-        d.put("multiplier.buildCost", "1.0");
-        d.put("multiplier.blockDamageFormulaA", "1.0");
-        d.put("multiplier.blockDamageFormulaB", "0.05");
-        d.put("multiplier.blockDamageFormulaC", "1.0");
-        d.put("multiplier.unitDamageFormulaA", "3.0");
-        d.put("multiplier.unitDamageFormulaB", "2.0");
-        d.put("multiplier.unitDamageFormulaC", "0.02");
-        d.put("multiplier.unitHealthFormulaA", "6.0");
-        d.put("multiplier.unitHealthFormulaB", "5.0");
-        d.put("multiplier.unitHealthFormulaC", "0.02");
-
-        d.put("turret.foreshadowAmmoDamage", "1.5");
-        d.put("turret.spectreAmmoDamage", "2.0");
-        d.put("turret.meltdownShootTypeDamage", "1.5");
-        d.put("turret.reconstructorConstructTime", "0.75");
-
-        d.put("scoring.k", "10");
-        d.put("scoring.offset", "10");
-        d.put("scoring.eloDiffClamp", "2000");
-        d.put("scoring.winnerMultiplier", "1.5");
-        d.put("scoring.decayMultiplier", "0.99");
-        d.put("scoring.decayThreshold", "100");
-        d.put("scoring.leaderboardPageSize", "10");
-        d.put("scoring.leaderboardLimit", "100");
-
-        d.put("interval.hudPopup", String.valueOf(60 * 5));
-        d.put("interval.infoMessage", String.valueOf(60 * 60 * 8));
-        d.put("interval.dominationCheck", String.valueOf(60 * 60 * 2));
-        d.put("interval.gameStateLog", String.valueOf(60 * 60 * 5));
-
-        d.put("unitCap.initial", "0");
-        d.put("unitCap.modifier.coreShard", "4");
-        d.put("unitCap.modifier.coreFoundation", "6");
-        d.put("unitCap.modifier.coreNucleus", "8");
-        d.put("unitCap.modifier.coreBastion", "3");
-        d.put("unitCap.modifier.coreCitadel", "5");
-        d.put("unitCap.modifier.coreAcropolis", "7");
-
-        d.put("vote.displayPeriodSec", "3");
-        d.put("vote.displayDurationSec", "20");
-        d.put("vote.restartCountdownDelaySec", "25");
-        d.put("vote.restartCountdownTicks", "10");
-
-        d.put("misc.messageBufferDuration", "3");
-
-        d.put("loadout.serpulo.copper.base", "800");
-        d.put("loadout.serpulo.copper.perWave", "150");
-        d.put("loadout.serpulo.lead.base", "500");
-        d.put("loadout.serpulo.lead.perWave", "100");
-        d.put("loadout.serpulo.graphite.base", "150");
-        d.put("loadout.serpulo.graphite.perWave", "20");
-        d.put("loadout.serpulo.silicon.base", "150");
-        d.put("loadout.serpulo.silicon.perWave", "30");
-        d.put("loadout.serpulo.metaglass.base", "100");
-        d.put("loadout.serpulo.metaglass.perWave", "10");
-        d.put("loadout.serpulo.titanium.base", "50");
-        d.put("loadout.serpulo.titanium.perWave", "20");
-        d.put("loadout.serpulo.thorium.base", "10");
-        d.put("loadout.serpulo.thorium.perWave", "15");
-        d.put("loadout.serpulo.plastanium.waveRequired", "5");
-        d.put("loadout.serpulo.plastanium.base", "0");
-        d.put("loadout.serpulo.plastanium.perWave", "20");
-        d.put("loadout.serpulo.plastanium.waveOffset", "4");
-        d.put("loadout.serpulo.phaseFabric.waveRequired", "10");
-        d.put("loadout.serpulo.phaseFabric.base", "0");
-        d.put("loadout.serpulo.phaseFabric.perWave", "15");
-        d.put("loadout.serpulo.phaseFabric.waveOffset", "9");
-        d.put("loadout.serpulo.surgeAlloy.waveRequired", "10");
-        d.put("loadout.serpulo.surgeAlloy.base", "0");
-        d.put("loadout.serpulo.surgeAlloy.perWave", "15");
-        d.put("loadout.serpulo.surgeAlloy.waveOffset", "9");
-
-        d.put("loadout.erekir.beryllium.base", "300");
-        d.put("loadout.erekir.beryllium.perWave", "100");
-        d.put("loadout.erekir.graphite.base", "100");
-        d.put("loadout.erekir.graphite.perWave", "50");
-        d.put("loadout.erekir.silicon.base", "50");
-        d.put("loadout.erekir.silicon.perWave", "30");
-        d.put("loadout.erekir.thorium.base", "150");
-        d.put("loadout.erekir.thorium.perWave", "20");
-        d.put("loadout.erekir.tungsten.waveRequired", "1");
-        d.put("loadout.erekir.tungsten.base", "0");
-        d.put("loadout.erekir.tungsten.perWave", "30");
-        d.put("loadout.erekir.tungsten.waveOffset", "0");
-        d.put("loadout.erekir.oxide.waveRequired", "3");
-        d.put("loadout.erekir.oxide.base", "0");
-        d.put("loadout.erekir.oxide.perWave", "20");
-        d.put("loadout.erekir.oxide.waveOffset", "2");
-        d.put("loadout.erekir.carbide.waveRequired", "5");
-        d.put("loadout.erekir.carbide.base", "0");
-        d.put("loadout.erekir.carbide.perWave", "10");
-        d.put("loadout.erekir.carbide.waveOffset", "4");
-        d.put("loadout.erekir.surgeAlloy.waveRequired", "7");
-        d.put("loadout.erekir.surgeAlloy.base", "0");
-        d.put("loadout.erekir.surgeAlloy.perWave", "20");
-        d.put("loadout.erekir.surgeAlloy.waveOffset", "7");
-        d.put("loadout.erekir.phaseFabric.waveRequired", "9");
-        d.put("loadout.erekir.phaseFabric.base", "0");
-        d.put("loadout.erekir.phaseFabric.perWave", "10");
-        d.put("loadout.erekir.phaseFabric.waveOffset", "4");
-
-        d.put("coreCost.serpulo.copper.base", "200");
-        d.put("coreCost.serpulo.copper.perTier", "100");
-        d.put("coreCost.serpulo.lead.base", "100");
-        d.put("coreCost.serpulo.lead.perTier", "70");
-        d.put("coreCost.serpulo.graphite.base", "50");
-        d.put("coreCost.serpulo.graphite.perTier", "20");
-        d.put("coreCost.serpulo.graphite.minTier", "1");
-        d.put("coreCost.serpulo.silicon.base", "70");
-        d.put("coreCost.serpulo.silicon.perTier", "50");
-        d.put("coreCost.serpulo.silicon.minTier", "2");
-        d.put("coreCost.serpulo.metaglass.base", "50");
-        d.put("coreCost.serpulo.metaglass.perTier", "30");
-        d.put("coreCost.serpulo.metaglass.minTier", "3");
-        d.put("coreCost.serpulo.titanium.base", "200");
-        d.put("coreCost.serpulo.titanium.perTier", "40");
-        d.put("coreCost.serpulo.titanium.minTier", "5");
-        d.put("coreCost.serpulo.thorium.base", "100");
-        d.put("coreCost.serpulo.thorium.perTier", "40");
-        d.put("coreCost.serpulo.thorium.minTier", "6");
-        d.put("coreCost.serpulo.plastanium.base", "50");
-        d.put("coreCost.serpulo.plastanium.perTier", "30");
-        d.put("coreCost.serpulo.plastanium.minTier", "8");
-        d.put("coreCost.serpulo.phaseFabric.base", "20");
-        d.put("coreCost.serpulo.phaseFabric.perTier", "20");
-        d.put("coreCost.serpulo.phaseFabric.minTier", "11");
-        d.put("coreCost.serpulo.surgeAlloy.base", "30");
-        d.put("coreCost.serpulo.surgeAlloy.perTier", "30");
-        d.put("coreCost.serpulo.surgeAlloy.minTier", "15");
-
-        d.put("coreCost.erekir.beryllium.base", "50");
-        d.put("coreCost.erekir.beryllium.perTier", "50");
-        d.put("coreCost.erekir.beryllium.minTier", "0");
-        d.put("coreCost.erekir.graphite.base", "20");
-        d.put("coreCost.erekir.graphite.perTier", "20");
-        d.put("coreCost.erekir.graphite.minTier", "1");
-        d.put("coreCost.erekir.silicon.base", "50");
-        d.put("coreCost.erekir.silicon.perTier", "30");
-        d.put("coreCost.erekir.silicon.minTier", "3");
-        d.put("coreCost.erekir.oxide.base", "10");
-        d.put("coreCost.erekir.oxide.perTier", "20");
-        d.put("coreCost.erekir.oxide.minTier", "5");
-        d.put("coreCost.erekir.carbide.base", "10");
-        d.put("coreCost.erekir.carbide.perTier", "10");
-        d.put("coreCost.erekir.carbide.minTier", "7");
-
-        d.put("unit.speedMultiplier.zenith", "0.6");
-        d.put("unit.speedMultiplier.mega", "0.5");
-        d.put("unit.speedMultiplier.antumbra", "0.8");
-        d.put("unit.speedMultiplier.quad", "0.8");
-        d.put("unit.speedMultiplier.quad.extra", "1.25");
-        d.put("unit.speedMultiplier.eclipse", "0.7");
-        d.put("unit.speedMultiplier.crawler", "1.25");
-        d.put("unit.speedMultiplier.dagger", "1.25");
-        d.put("unit.speedMultiplier.nova", "1.25");
-        d.put("unit.speedMultiplier.atrax", "1.25");
-        d.put("unit.speedMultiplier.mace", "1.25");
-        d.put("unit.speedMultiplier.pulsar", "1.25");
-        d.put("unit.speedMultiplier.spiroct", "1.25");
-        d.put("unit.speedMultiplier.fortress", "1.25");
-        d.put("unit.speedMultiplier.arkyid", "1.25");
-        d.put("unit.speedMultiplier.scepter", "1.25");
-        d.put("unit.speedMultiplier.vela", "1.25");
-        d.put("unit.speedMultiplier.toxopid", "1.25");
-        d.put("unit.speedMultiplier.reign", "1.25");
-        d.put("unit.speedMultiplier.corvus", "1.25");
-        d.put("unit.speedMultiplier.emanate", "0.6");
-        d.put("unit.healthMultiplier.zenith", "0.5");
-        d.put("unit.healthMultiplier.mega", "0.8");
-        d.put("unit.healthMultiplier.antumbra", "0.8");
-        d.put("unit.healthMultiplier.eclipse", "0.7");
-
-        return d;
+    private static void migrateOldKeys(JsonObject obj) {
+        String[][] mappings = {
+            {"databaseEnabled", "database", "enabled"},
+            {"updateScoreDecay", "database", "updateScoreDecay"},
+            {"discordEnabled", "discord", "enabled"},
+            {"infiniteResources", "game", "infiniteResources"}
+        };
+        for (String[] m : mappings) {
+            JsonElement old = obj.remove(m[0]);
+            if (old != null) {
+                JsonObject parent = obj;
+                for (int i = 1; i < m.length - 1; i++) {
+                    JsonElement child = parent.get(m[i]);
+                    if (child == null || !child.isJsonObject()) {
+                        JsonObject n = new JsonObject();
+                        parent.add(m[i], n);
+                        parent = n;
+                    } else {
+                        parent = child.getAsJsonObject();
+                    }
+                }
+                if (!parent.has(m[m.length - 1])) {
+                    parent.add(m[m.length - 1], old);
+                }
+            }
+        }
     }
 
     static {
         String path = "config/mods/config/config.json";
-        HashMap<String, String> loaded = new HashMap<>();
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
         try {
             java.io.File file = new java.io.File(path);
             if (file.exists()) {
                 Reader reader = Files.newBufferedReader(Paths.get(path));
-                JsonObject obj = new Gson().fromJson(reader, JsonObject.class);
+                JsonElement parsed = gson.fromJson(reader, JsonElement.class);
                 reader.close();
-                if (obj != null) {
-                    for (Map.Entry<String, JsonElement> entry : obj.entrySet()) {
-                        loaded.put(entry.getKey(), entry.getValue().getAsString());
-                    }
+                if (parsed != null && parsed.isJsonObject()) {
+                    JsonObject obj = parsed.getAsJsonObject();
+                    migrateOldKeys(obj);
+                    c = gson.fromJson(obj, Config.class);
+                } else {
+                    c = new Config();
                 }
+            } else {
+                c = new Config();
             }
         } catch (Exception e) {
             e.printStackTrace();
+            c = new Config();
         }
-
-        HashMap<String, String> oldToNew = new HashMap<>();
-        oldToNew.put("databaseEnabled", "database.enabled");
-        oldToNew.put("updateScoreDecay", "database.updateScoreDecay");
-        oldToNew.put("discordEnabled", "discord.enabled");
-        oldToNew.put("infiniteResources", "game.infiniteResources");
-        for (Map.Entry<String, String> e : oldToNew.entrySet()) {
-            if (loaded.containsKey(e.getKey())) {
-                loaded.put(e.getValue(), loaded.get(e.getKey()));
-                loaded.remove(e.getKey());
-            }
-        }
-
-        HashMap<String, String> merged = new HashMap<>(defaults());
-        merged.putAll(loaded);
-        c = new Config(merged);
 
         try {
             java.io.File file = new java.io.File(path);
             file.getParentFile().mkdirs();
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            String json = gson.toJson(merged);
-            Files.write(Paths.get(path), json.getBytes());
+            Files.write(Paths.get(path), gson.toJson(c).getBytes());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -388,11 +380,6 @@ public class Config {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("Config {\n");
-        for (Map.Entry<String, String> e : values.entrySet()) {
-            sb.append("  ").append(e.getKey()).append("=").append(e.getValue()).append("\n");
-        }
-        sb.append("}");
-        return sb.toString();
+        return "Config " + new GsonBuilder().setPrettyPrinting().create().toJson(this);
     }
 }

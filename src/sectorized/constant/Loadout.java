@@ -11,31 +11,31 @@ public class Loadout {
 
         if (State.planet.equals(Planets.serpulo.name)) {
             Seq<ItemStack> loadout = ItemStack.list(
-                    Items.copper, Config.c.getInt("loadout.serpulo.copper.base") + (Config.c.getInt("loadout.serpulo.copper.perWave") * wave),
-                    Items.lead, Config.c.getInt("loadout.serpulo.lead.base") + (Config.c.getInt("loadout.serpulo.lead.perWave") * wave),
-                    Items.graphite, Config.c.getInt("loadout.serpulo.graphite.base") + (Config.c.getInt("loadout.serpulo.graphite.perWave") * wave),
-                    Items.silicon, Config.c.getInt("loadout.serpulo.silicon.base") + (Config.c.getInt("loadout.serpulo.silicon.perWave") * wave),
-                    Items.metaglass, Config.c.getInt("loadout.serpulo.metaglass.base") + (Config.c.getInt("loadout.serpulo.metaglass.perWave") * wave),
-                    Items.titanium, Config.c.getInt("loadout.serpulo.titanium.base") + (Config.c.getInt("loadout.serpulo.titanium.perWave") * wave),
-                    Items.thorium, Config.c.getInt("loadout.serpulo.thorium.base") + (Config.c.getInt("loadout.serpulo.thorium.perWave") * wave));
+                    Items.copper, Config.c.loadout.serpulo.copper.base + (Config.c.loadout.serpulo.copper.perWave * wave),
+                    Items.lead, Config.c.loadout.serpulo.lead.base + (Config.c.loadout.serpulo.lead.perWave * wave),
+                    Items.graphite, Config.c.loadout.serpulo.graphite.base + (Config.c.loadout.serpulo.graphite.perWave * wave),
+                    Items.silicon, Config.c.loadout.serpulo.silicon.base + (Config.c.loadout.serpulo.silicon.perWave * wave),
+                    Items.metaglass, Config.c.loadout.serpulo.metaglass.base + (Config.c.loadout.serpulo.metaglass.perWave * wave),
+                    Items.titanium, Config.c.loadout.serpulo.titanium.base + (Config.c.loadout.serpulo.titanium.perWave * wave),
+                    Items.thorium, Config.c.loadout.serpulo.thorium.base + (Config.c.loadout.serpulo.thorium.perWave * wave));
 
-            if (wave >= Config.c.getInt("loadout.serpulo.plastanium.waveRequired")) loadout.add(new ItemStack(Items.plastanium, Config.c.getInt("loadout.serpulo.plastanium.perWave") * (wave - Config.c.getInt("loadout.serpulo.plastanium.waveOffset"))));
-            if (wave >= Config.c.getInt("loadout.serpulo.phaseFabric.waveRequired")) loadout.add(new ItemStack(Items.phaseFabric, Config.c.getInt("loadout.serpulo.phaseFabric.perWave") * (wave - Config.c.getInt("loadout.serpulo.phaseFabric.waveOffset"))));
-            if (wave >= Config.c.getInt("loadout.serpulo.surgeAlloy.waveRequired")) loadout.add(new ItemStack(Items.surgeAlloy, Config.c.getInt("loadout.serpulo.surgeAlloy.perWave") * (wave - Config.c.getInt("loadout.serpulo.surgeAlloy.waveOffset"))));
+            if (wave >= Config.c.loadout.serpulo.plastanium.waveRequired) loadout.add(new ItemStack(Items.plastanium, Config.c.loadout.serpulo.plastanium.perWave * (wave - Config.c.loadout.serpulo.plastanium.waveOffset)));
+            if (wave >= Config.c.loadout.serpulo.phaseFabric.waveRequired) loadout.add(new ItemStack(Items.phaseFabric, Config.c.loadout.serpulo.phaseFabric.perWave * (wave - Config.c.loadout.serpulo.phaseFabric.waveOffset)));
+            if (wave >= Config.c.loadout.serpulo.surgeAlloy.waveRequired) loadout.add(new ItemStack(Items.surgeAlloy, Config.c.loadout.serpulo.surgeAlloy.perWave * (wave - Config.c.loadout.serpulo.surgeAlloy.waveOffset)));
 
             return loadout;
         } else if (State.planet.equals(Planets.erekir.name)) {
             Seq<ItemStack> loadout = ItemStack.list(
-                    Items.beryllium, Config.c.getInt("loadout.erekir.beryllium.base") + (Config.c.getInt("loadout.erekir.beryllium.perWave") * wave),
-                    Items.graphite, Config.c.getInt("loadout.erekir.graphite.base") + (Config.c.getInt("loadout.erekir.graphite.perWave") * wave),
-                    Items.silicon, Config.c.getInt("loadout.erekir.silicon.base") + (Config.c.getInt("loadout.erekir.silicon.perWave") * wave),
-                    Items.thorium, Config.c.getInt("loadout.erekir.thorium.base") + (Config.c.getInt("loadout.erekir.thorium.perWave") * wave));
+                    Items.beryllium, Config.c.loadout.erekir.beryllium.base + (Config.c.loadout.erekir.beryllium.perWave * wave),
+                    Items.graphite, Config.c.loadout.erekir.graphite.base + (Config.c.loadout.erekir.graphite.perWave * wave),
+                    Items.silicon, Config.c.loadout.erekir.silicon.base + (Config.c.loadout.erekir.silicon.perWave * wave),
+                    Items.thorium, Config.c.loadout.erekir.thorium.base + (Config.c.loadout.erekir.thorium.perWave * wave));
 
-            if (wave >= Config.c.getInt("loadout.erekir.tungsten.waveRequired")) loadout.add(new ItemStack(Items.tungsten, Config.c.getInt("loadout.erekir.tungsten.perWave") * (wave - Config.c.getInt("loadout.erekir.tungsten.waveOffset"))));
-            if (wave >= Config.c.getInt("loadout.erekir.oxide.waveRequired")) loadout.add(new ItemStack(Items.oxide, Config.c.getInt("loadout.erekir.oxide.perWave") * (wave - Config.c.getInt("loadout.erekir.oxide.waveOffset"))));
-            if (wave >= Config.c.getInt("loadout.erekir.carbide.waveRequired")) loadout.add(new ItemStack(Items.carbide, Config.c.getInt("loadout.erekir.carbide.perWave") * (wave - Config.c.getInt("loadout.erekir.carbide.waveOffset"))));
-            if (wave >= Config.c.getInt("loadout.erekir.surgeAlloy.waveRequired")) loadout.add(new ItemStack(Items.surgeAlloy, Config.c.getInt("loadout.erekir.surgeAlloy.perWave") * (wave - Config.c.getInt("loadout.erekir.surgeAlloy.waveOffset"))));
-            if (wave >= Config.c.getInt("loadout.erekir.phaseFabric.waveRequired")) loadout.add(new ItemStack(Items.phaseFabric, Config.c.getInt("loadout.erekir.phaseFabric.perWave") * (wave - Config.c.getInt("loadout.erekir.phaseFabric.waveOffset"))));
+            if (wave >= Config.c.loadout.erekir.tungsten.waveRequired) loadout.add(new ItemStack(Items.tungsten, Config.c.loadout.erekir.tungsten.perWave * (wave - Config.c.loadout.erekir.tungsten.waveOffset)));
+            if (wave >= Config.c.loadout.erekir.oxide.waveRequired) loadout.add(new ItemStack(Items.oxide, Config.c.loadout.erekir.oxide.perWave * (wave - Config.c.loadout.erekir.oxide.waveOffset)));
+            if (wave >= Config.c.loadout.erekir.carbide.waveRequired) loadout.add(new ItemStack(Items.carbide, Config.c.loadout.erekir.carbide.perWave * (wave - Config.c.loadout.erekir.carbide.waveOffset)));
+            if (wave >= Config.c.loadout.erekir.surgeAlloy.waveRequired) loadout.add(new ItemStack(Items.surgeAlloy, Config.c.loadout.erekir.surgeAlloy.perWave * (wave - Config.c.loadout.erekir.surgeAlloy.waveOffset)));
+            if (wave >= Config.c.loadout.erekir.phaseFabric.waveRequired) loadout.add(new ItemStack(Items.phaseFabric, Config.c.loadout.erekir.phaseFabric.perWave * (wave - Config.c.loadout.erekir.phaseFabric.waveOffset)));
 
             return loadout;
         }

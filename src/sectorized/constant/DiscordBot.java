@@ -27,7 +27,7 @@ public class DiscordBot {
     private static final HashMap<String, sectorized.faction.core.Member> awaitConfirmMessage = new HashMap<>();
 
     public static void init() {
-        if (Config.c.getBool("discord.enabled")) {
+        if (Config.c.discord.enabled) {
             try {
                 Gson gson = new Gson();
                 Reader reader = Files.newBufferedReader(Paths.get("config/mods/config/discordConfig.json"));
@@ -54,19 +54,19 @@ public class DiscordBot {
     }
 
     public static void sendMessage(String message) {
-        if (Config.c.getBool("discord.enabled") && log != null) {
+        if (Config.c.discord.enabled && log != null) {
             log.sendMessage(message).queue();
         }
     }
 
     public static void sendMessageToHallOfFame(String message) {
-        if (Config.c.getBool("discord.enabled") && hallOfFame != null) {
+        if (Config.c.discord.enabled && hallOfFame != null) {
             hallOfFame.sendMessage(message).queue();
         }
     }
 
     public static void editLastMessageInHallOfFame(String message) {
-        if (Config.c.getBool("discord.enabled") && hallOfFame != null) {
+        if (Config.c.discord.enabled && hallOfFame != null) {
             hallOfFame.getHistory().retrievePast(1).queue(messages -> {
                 if (messages.size() == 1) {
                     Message m = messages.get(0);
@@ -78,20 +78,20 @@ public class DiscordBot {
     }
 
     public static void setStatus(String status) {
-        if (Config.c.getBool("discord.enabled") && DiscordBot.bot != null) {
+        if (Config.c.discord.enabled && DiscordBot.bot != null) {
             DiscordBot.bot.getPresence().setActivity(Activity.playing(status));
         }
     }
 
     public static boolean checkIfExists(String tag) {
-        if (Config.c.getBool("discord.enabled") && guild != null) {
+        if (Config.c.discord.enabled && guild != null) {
             return guild.getMemberByTag(tag) != null;
         }
         return false;
     }
 
     public static void register(String tag, sectorized.faction.core.Member sectorizedMember) {
-        if (Config.c.getBool("discord.enabled") && guild != null) {
+        if (Config.c.discord.enabled && guild != null) {
             Member member = guild.getMemberByTag(tag);
 
             if (member != null) {
@@ -143,7 +143,7 @@ public class DiscordBot {
     }
 
     public static void assignRole(sectorized.faction.core.Member sectorizedMember) {
-        if (Config.c.getBool("discord.enabled") && DiscordBot.guild != null) {
+        if (Config.c.discord.enabled && DiscordBot.guild != null) {
             if (sectorizedMember.discordTag != null) {
                 Member guildMember = DiscordBot.guild.getMemberByTag(sectorizedMember.discordTag);
 
@@ -151,20 +151,15 @@ public class DiscordBot {
                     String roleName;
                     int rank = sectorizedMember.rank;
 
-                    int t1 = Config.c.getInt("discord.rankRoleThreshold.1");
-                int t2 = Config.c.getInt("discord.rankRoleThreshold.2");
-                int t3 = Config.c.getInt("discord.rankRoleThreshold.3");
-                int t4 = Config.c.getInt("discord.rankRoleThreshold.4");
-                int t5 = Config.c.getInt("discord.rankRoleThreshold.5");
-                int t6 = Config.c.getInt("discord.rankRoleThreshold.6");
+                    int[] t = Config.c.discord.rankRoleThreshold;
 
-                if (rank > t1 || rank == -1) roleName = "other";
-                    else if (rank > t2) roleName = "top " + t1;
-                    else if (rank > t3) roleName = "top " + t2;
-                    else if (rank > t4) roleName = "top " + t3;
-                    else if (rank > t5) roleName = "top " + t4;
-                    else if (rank > t6) roleName = "top " + t5;
-                    else roleName = "top " + t6;
+                if (rank > t[0] || rank == -1) roleName = "other";
+                    else if (rank > t[1]) roleName = "top " + t[0];
+                    else if (rank > t[2]) roleName = "top " + t[1];
+                    else if (rank > t[3]) roleName = "top " + t[2];
+                    else if (rank > t[4]) roleName = "top " + t[3];
+                    else if (rank > t[5]) roleName = "top " + t[4];
+                    else roleName = "top " + t[5];
 
                     Role role = null;
                     for (Role r : DiscordBot.guild.getRoles()) {

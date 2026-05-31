@@ -101,7 +101,7 @@ public class FactionLogic {
         available.insert(0, defender.team);
 
         double timeSinceSpawned = State.time - defender.time;
-        if (defender.maxCores <= Config.c.getInt("game.factionGracePeriodMaxCores") && timeSinceSpawned < Config.c.getInt("game.gracePeriod")) {
+        if (defender.maxCores <= Config.c.game.factionGracePeriodMaxCores && timeSinceSpawned < Config.c.game.gracePeriod) {
             defender.members.each(m -> {
                 MessageUtils.sendMessage(m.player, "No points lost because you spawned less than " + MessageUtils.cInfo
                         + "5 minutes" + MessageUtils.cDefault + " ago", MessageUtils.MessageLevel.INFO);
@@ -161,14 +161,14 @@ public class FactionLogic {
                                     MessageUtils.MessageLevel.INFO);
                         }
                     }
-                }, Config.c.getInt("game.respawnCooldown"));
+                }, Config.c.game.respawnCooldown);
             }
         });
 
-        if (Vars.state.wave < Config.c.getInt("game.gameOverStartWave"))
+        if (Vars.state.wave < Config.c.game.gameOverStartWave)
             return;
 
-        if (factions.size == 1 && !(defender.maxCores <= Config.c.getInt("game.factionGracePeriodMaxCores") && timeSinceSpawned < Config.c.getInt("game.gracePeriod"))
+        if (factions.size == 1 && !(defender.maxCores <= Config.c.game.factionGracePeriodMaxCores && timeSinceSpawned < Config.c.game.gracePeriod)
                 && State.gameState != State.GameState.GAMEOVER) {
             Member winner = factions.first().members.first();
             State.winner = winner;

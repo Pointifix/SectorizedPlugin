@@ -82,41 +82,41 @@ public class Units {
             unitType.payloadCapacity = 0;
         }
 
-        zenith.speed *= (float) Config.c.getDouble("unit.speedMultiplier.zenith");
-        zenith.health *= (float) Config.c.getDouble("unit.healthMultiplier.zenith");
+        zenith.speed *= (float) Config.c.unit.speedMultiplier.zenith;
+        zenith.health *= (float) Config.c.unit.healthMultiplier.zenith;
 
-        mega.speed *= (float) Config.c.getDouble("unit.speedMultiplier.mega");
-        mega.health *= (float) Config.c.getDouble("unit.healthMultiplier.mega");
+        mega.speed *= (float) Config.c.unit.speedMultiplier.mega;
+        mega.health *= (float) Config.c.unit.healthMultiplier.mega;
 
-        antumbra.speed *= (float) Config.c.getDouble("unit.speedMultiplier.antumbra");
-        antumbra.health *= (float) Config.c.getDouble("unit.healthMultiplier.antumbra");
+        antumbra.speed *= (float) Config.c.unit.speedMultiplier.antumbra;
+        antumbra.health *= (float) Config.c.unit.healthMultiplier.antumbra;
 
-        quad.speed *= (float) Config.c.getDouble("unit.speedMultiplier.quad");
+        quad.speed *= (float) Config.c.unit.speedMultiplier.quad;
 
-        eclipse.speed *= (float) Config.c.getDouble("unit.speedMultiplier.eclipse");
-        eclipse.health *= (float) Config.c.getDouble("unit.healthMultiplier.eclipse");
+        eclipse.speed *= (float) Config.c.unit.speedMultiplier.eclipse;
+        eclipse.health *= (float) Config.c.unit.healthMultiplier.eclipse;
 
-        crawler.speed *= (float) Config.c.getDouble("unit.speedMultiplier.crawler");
-        dagger.speed *= (float) Config.c.getDouble("unit.speedMultiplier.dagger");
-        nova.speed *= (float) Config.c.getDouble("unit.speedMultiplier.nova");
+        crawler.speed *= (float) Config.c.unit.speedMultiplier.crawler;
+        dagger.speed *= (float) Config.c.unit.speedMultiplier.dagger;
+        nova.speed *= (float) Config.c.unit.speedMultiplier.nova;
 
-        atrax.speed *= (float) Config.c.getDouble("unit.speedMultiplier.atrax");
-        mace.speed *= (float) Config.c.getDouble("unit.speedMultiplier.mace");
-        pulsar.speed *= (float) Config.c.getDouble("unit.speedMultiplier.pulsar");
+        atrax.speed *= (float) Config.c.unit.speedMultiplier.atrax;
+        mace.speed *= (float) Config.c.unit.speedMultiplier.mace;
+        pulsar.speed *= (float) Config.c.unit.speedMultiplier.pulsar;
 
-        spiroct.speed *= (float) Config.c.getDouble("unit.speedMultiplier.spiroct");
-        fortress.speed *= (float) Config.c.getDouble("unit.speedMultiplier.fortress");
-        quad.speed *= (float) Config.c.getDouble("unit.speedMultiplier.quad.extra");
+        spiroct.speed *= (float) Config.c.unit.speedMultiplier.spiroct;
+        fortress.speed *= (float) Config.c.unit.speedMultiplier.fortress;
+        quad.speed *= (float) Config.c.unit.speedMultiplier.quadExtra;
 
-        arkyid.speed *= (float) Config.c.getDouble("unit.speedMultiplier.arkyid");
-        scepter.speed *= (float) Config.c.getDouble("unit.speedMultiplier.scepter");
-        vela.speed *= (float) Config.c.getDouble("unit.speedMultiplier.vela");
+        arkyid.speed *= (float) Config.c.unit.speedMultiplier.arkyid;
+        scepter.speed *= (float) Config.c.unit.speedMultiplier.scepter;
+        vela.speed *= (float) Config.c.unit.speedMultiplier.vela;
 
-        toxopid.speed *= (float) Config.c.getDouble("unit.speedMultiplier.toxopid");
-        reign.speed *= (float) Config.c.getDouble("unit.speedMultiplier.reign");
-        corvus.speed *= (float) Config.c.getDouble("unit.speedMultiplier.corvus");
+        toxopid.speed *= (float) Config.c.unit.speedMultiplier.toxopid;
+        reign.speed *= (float) Config.c.unit.speedMultiplier.reign;
+        corvus.speed *= (float) Config.c.unit.speedMultiplier.corvus;
 
-        emanate.speed *= (float) Config.c.getDouble("unit.speedMultiplier.emanate");
+        emanate.speed *= (float) Config.c.unit.speedMultiplier.emanate;
     }
 
     public static void setUnitHealthMultiplier(float multiplier) {
