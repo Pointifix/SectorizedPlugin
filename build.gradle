@@ -48,7 +48,7 @@ jar {
         include "plugin.json"
     }
 
-    destinationDirectory.set(file("$buildDir/../mindustry-server-v7/config/mods"))
+    destinationDirectory.set(file("$buildDir/../deploy/config/mods"))
 
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }

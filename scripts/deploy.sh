@@ -3,21 +3,46 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+DEPLOY_DIR="$PROJECT_DIR/deploy"
 
-export MINDUSTRY_DEPLOY_PATH="/run/user/1000/gvfs/smb-share:server=nas-simon.local,share=docker/Sectorized"
+if [ $# -lt 1 ]; then
+    echo "Usage: $0 <nas-mount-path>"
+    echo ""
+    echo "Copies deploy/ files to the NAS Sectorized folder (excluding .env)."
+    echo ""
+    echo "Example:"
+    echo "  $0 /run/user/1000/gvfs/smb-share:server=nas-simon.local,share=docker/Sectorized"
+    exit 1
+fi
 
-echo "=== Building and Deploying SectorizedPlugin (v158.1) ==="
-cd "$PROJECT_DIR"
-./gradlew deploy
+NAS_PATH="$1"
+
+if [ ! -d "$NAS_PATH" ]; then
+    echo "Error: NAS path not found: $NAS_PATH"
+    echo "Make sure the SMB share is mounted."
+    exit 1
+fi
+
+echo "=== Deploying to $NAS_PATH ==="
+
+# Back up sectorized-discord-config.json to avoid overwriting real credentials
+if [ -f "$NAS_PATH/sectorized-discord-config.json" ]; then
+    cp "$NAS_PATH/sectorized-discord-config.json" /tmp/sectorized-discord-config.json.nas.backup
+fi
+
+rsync -av --exclude='.env' "$DEPLOY_DIR/" "$NAS_PATH/"
+
+# Restore if the NAS version had custom content
+if [ -f /tmp/sectorized-discord-config.json.nas.backup ]; then
+    if ! cmp -s /tmp/sectorized-discord-config.json.nas.backup "$DEPLOY_DIR/sectorized-discord-config.json"; then
+        cp /tmp/sectorized-discord-config.json.nas.backup "$NAS_PATH/sectorized-discord-config.json"
+        echo "Restored existing sectorized-discord-config.json on NAS (preserving real credentials)."
+    fi
+    rm /tmp/sectorized-discord-config.json.nas.backup
+fi
 
 echo ""
-echo "=== Deployment Complete ==="
-echo "To run the server on your NAS:"
-echo "  1. SSH into your NAS or navigate to the folder:"
-echo "     /volume1/docker/Sectorized (or actual path on NAS)"
-echo "  2. Start the containers using:"
-echo "     docker compose up -d --build"
-echo "  3. To restart the mindustry container to reload mods:"
-echo "     docker compose restart mindustry"
-echo "  4. To attach to the Mindustry console:"
-echo "     docker attach sectorized-mindustry"
+echo "=== Deploy complete ==="
+echo ""
+echo "Files deployed:"
+ls -la "$NAS_PATH/" | grep -v ".env$"

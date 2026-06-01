@@ -593,26 +593,26 @@ public class FactionManager implements Manager {
             }
         });
 
-        handler.<Player>register("register", "[tag1] [tag2] [tag3] [tag4] [tag5]", "link your ingame and discord account to display your rank in discord", (args, player) -> {
+        handler.<Player>register("register", "[identifier]", "link your ingame and discord account to display your rank in discord", (args, player) -> {
             if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
             Member member = memberLogic.getMember(player);
 
             if (args.length == 0) {
-                MessageUtils.sendMessage(member.player, "Usage: /register username#0000", MessageUtils.MessageLevel.INFO);
+                MessageUtils.sendMessage(member.player, "Usage: /register <discord id/username>", MessageUtils.MessageLevel.INFO);
                 return;
             }
 
-            String discordTag = String.join(" ", args);
+            String discordId = args[0];
 
             try {
-                if (DiscordBot.checkIfExists(discordTag)) {
-                    DiscordBot.register(discordTag, member);
+                if (DiscordBot.checkIfExists(discordId)) {
+                    DiscordBot.register(discordId, member);
                 } else {
-                    MessageUtils.sendMessage(member.player, "Couln´t find " + MessageUtils.cPlayer + discordTag + MessageUtils.cDefault + " on the Sectorized Discord, please check if you wrote your name and id correctly!", MessageUtils.MessageLevel.INFO);
+                    MessageUtils.sendMessage(member.player, "Couldn't find " + MessageUtils.cPlayer + discordId + MessageUtils.cDefault + " on the Sectorized Discord, please check if you wrote your id or username correctly!", MessageUtils.MessageLevel.INFO);
                 }
             } catch (IllegalArgumentException e) {
-                MessageUtils.sendMessage(member.player, "Invalid Tag format, a Discord Tag looks like this: username#0000", MessageUtils.MessageLevel.INFO);
+                MessageUtils.sendMessage(member.player, "Invalid identifier format", MessageUtils.MessageLevel.INFO);
             }
 
         });

@@ -36,9 +36,9 @@ public class MemberLogic {
             member.player.team(member.faction.team);
         }
 
-        if (member.discordTag == null) {
+        if (member.discordId == null) {
             MessageUtils.sendMessage(member.player,
-                    "Link your account to discord to display your rank using [purple]/register username#0000[white]!",
+                    "Link your account to discord to display your rank using [purple]/register <discord id/username>[white]!",
                     MessageUtils.MessageLevel.INFO);
         }
 

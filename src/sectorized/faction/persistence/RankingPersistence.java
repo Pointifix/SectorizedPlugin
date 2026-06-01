@@ -33,6 +33,8 @@ public class RankingPersistence {
     public int leaderBoardPages = 0;
 
     public RankingPersistence() {
+        Config.ensureJson("config/mods/config/sectorized-database-config.json", new DBUrl("jdbc:mariadb://localhost:3306/sectorized", "admin", "password"));
+
         if (Config.c.database.enabled) {
             try {
                 Class.forName(Config.c.database.driver);
@@ -186,7 +188,7 @@ public class RankingPersistence {
                         member.wins = resultSet.getInt("wins");
                         member.losses = resultSet.getInt("losses");
                         member.rank = member.score > 0 ? resultSet.getInt("rank") : -1;
-                        member.discordTag = resultSet.getString("discordTag");
+                        member.discordId = resultSet.getString("discordTag");
 
                         member.ratio = (float) member.wins / Math.max((float) member.losses, 1);
                     } else {
@@ -261,12 +263,12 @@ public class RankingPersistence {
                     statement.setInt(3, member.score);
                     statement.setInt(4, member.wins);
                     statement.setInt(5, member.losses);
-                    statement.setString(6, member.discordTag);
+                    statement.setString(6, member.discordId);
                     statement.setString(7, Strings.stripColors(member.player.name).substring(1));
                     statement.setInt(8, member.score);
                     statement.setInt(9, member.wins);
                     statement.setInt(10, member.losses);
-                    statement.setString(11, member.discordTag);
+                    statement.setString(11, member.discordId);
 
                     statement.executeQuery();
                 } catch (SQLException e) {
@@ -339,7 +341,7 @@ public class RankingPersistence {
 
     private DBUrl readConfig() throws IOException {
         Gson gson = new Gson();
-        Reader reader = Files.newBufferedReader(Paths.get("config/mods/config/dbUrl.json"));
+        Reader reader = Files.newBufferedReader(Paths.get("config/mods/config/sectorized-database-config.json"));
         DBUrl dbUrl = gson.fromJson(reader, DBUrl.class);
         reader.close();
         return dbUrl;

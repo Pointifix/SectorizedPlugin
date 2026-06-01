@@ -1,10 +1,12 @@
 package sectorized.constant;
 
+import arc.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -28,15 +30,15 @@ public class Config {
     public Unit unit = new Unit();
 
     public static class Database {
-        public boolean enabled = false;
-        public boolean updateScoreDecay = false;
+        public boolean enabled = true;
+        public boolean updateScoreDecay = true;
         public int retries = 5;
         public int retryDelayMs = 3000;
         public String driver = "org.mariadb.jdbc.Driver";
     }
 
     public static class Discord {
-        public boolean enabled = false;
+        public boolean enabled = true;
         public int[] rankRoleThreshold = {500, 200, 100, 50, 25, 10};
     }
 
@@ -316,6 +318,19 @@ public class Config {
         }
     }
 
+    public static void ensureJson(String path, Object defaults) {
+        try {
+            java.io.File file = new java.io.File(path);
+            if (!file.exists()) {
+                file.getParentFile().mkdirs();
+                Files.write(file.toPath(), new GsonBuilder().setPrettyPrinting().create().toJson(defaults).getBytes());
+                Log.warn("[SectorizedPlugin] Created placeholder @. Edit it with your configuration.", file.getName());
+            }
+        } catch (IOException e) {
+            Log.warn("[SectorizedPlugin] Failed to create @: @", path, e.getMessage());
+        }
+    }
+
     private static void migrateOldKeys(JsonObject obj) {
         String[][] mappings = {
             {"databaseEnabled", "database", "enabled"},
@@ -345,7 +360,7 @@ public class Config {
     }
 
     static {
-        String path = "config/mods/config/config.json";
+        String path = "config/mods/config/sectorized-game-config.json";
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
         try {

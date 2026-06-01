@@ -3,23 +3,37 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-SERVER_DIR="$PROJECT_DIR/mindustry-server-v7"
-SERVER_JAR="$SERVER_DIR/server-release.jar"
+DEPLOY_DIR="$PROJECT_DIR/deploy"
+CONFIG_DIR="$DEPLOY_DIR/config/mods/config"
 
-if [ ! -f "$SERVER_JAR" ]; then
-    echo "Mindustry server jar not found at $SERVER_JAR"
-    echo "Run ./scripts/download-server.sh first."
-    exit 1
-fi
+echo "=== Creating config directory ==="
+rm -rf "$CONFIG_DIR"
+mkdir -p "$CONFIG_DIR"
+
+echo "=== Writing database config ==="
+cat > "$CONFIG_DIR/sectorized-database-config.json" <<EOF
+{
+  "url": "jdbc:mariadb://mariadb:3306/sectorized",
+  "user": "sectorized",
+  "password": "local_dev_user_pw"
+}
+EOF
+
+echo "=== Starting MariaDB ==="
+docker compose --env-file "$DEPLOY_DIR/.env" -f "$DEPLOY_DIR/docker-compose.yaml" up -d mariadb
 
 echo "=== Building SectorizedPlugin ==="
 cd "$PROJECT_DIR"
 ./gradlew jar
 
-echo ""
 echo "=== Starting Mindustry Server ==="
 echo "The 'sectorized' command will be sent automatically after server startup."
 echo ""
 
-cd "$SERVER_DIR"
-(sleep 5; echo "sectorized"; cat) | java -jar "$SERVER_JAR"
+cd "$PROJECT_DIR"
+docker compose --env-file "$DEPLOY_DIR/.env" -f "$DEPLOY_DIR/docker-compose.yaml" \
+  run --rm --service-ports --no-deps \
+  mindustry
+
+echo "=== Stopping MariaDB ==="
+docker compose --env-file "$DEPLOY_DIR/.env" -f "$DEPLOY_DIR/docker-compose.yaml" down

@@ -1,7 +1,9 @@
 package sectorized.constant;
 
 import arc.util.Strings;
+import arc.util.Log;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.*;
@@ -17,6 +19,7 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 
 public class DiscordBot {
     private static JDA bot;
@@ -27,10 +30,12 @@ public class DiscordBot {
     private static final HashMap<String, sectorized.faction.core.Member> awaitConfirmMessage = new HashMap<>();
 
     public static void init() {
+        Config.ensureJson("config/mods/config/sectorized-discord-config.json", new DiscordConfig("", 0, 0, 0));
+
         if (Config.c.discord.enabled) {
             try {
                 Gson gson = new Gson();
-                Reader reader = Files.newBufferedReader(Paths.get("config/mods/config/discordConfig.json"));
+                Reader reader = Files.newBufferedReader(Paths.get("config/mods/config/sectorized-discord-config.json"));
                 DiscordConfig config = gson.fromJson(reader, DiscordConfig.class);
                 reader.close();
 
@@ -83,19 +88,19 @@ public class DiscordBot {
         }
     }
 
-    public static boolean checkIfExists(String tag) {
+    public static boolean checkIfExists(String identifier) {
         if (Config.c.discord.enabled && guild != null) {
-            return guild.getMemberByTag(tag) != null;
+            return resolveMember(identifier) != null;
         }
         return false;
     }
 
-    public static void register(String tag, sectorized.faction.core.Member sectorizedMember) {
+    public static void register(String identifier, sectorized.faction.core.Member sectorizedMember) {
         if (Config.c.discord.enabled && guild != null) {
-            Member member = guild.getMemberByTag(tag);
+            Member member = resolveMember(identifier);
 
             if (member != null) {
-                awaitConfirmMessage.put(member.getUser().getAsTag(), sectorizedMember);
+                awaitConfirmMessage.put(member.getId(), sectorizedMember);
 
                 member.getUser().openPrivateChannel().queue(privateChannel -> {
                     privateChannel.sendMessage("Was that you? \nA user named *" + Strings.stripColors(sectorizedMember.player.name).substring(1).replace("@", "at") + "* requested to link this account, type **yes** to confirm! \nIf that was not you please ignore this message!").queue();
@@ -106,6 +111,19 @@ public class DiscordBot {
         } else {
             MessageUtils.sendMessage(sectorizedMember.player, "Discord currently disabled", MessageUtils.MessageLevel.WARNING);
         }
+    }
+
+    private static Member resolveMember(String identifier) {
+        if (guild == null) return null;
+        // Try as user ID first
+        try {
+            Member member = guild.getMemberById(identifier);
+            if (member != null) return member;
+        } catch (NumberFormatException ignored) {}
+        // Fallback: search by username (globally unique since Discord's new username system)
+        List<Member> matches = guild.getMembersByName(identifier, true);
+        if (!matches.isEmpty()) return matches.get(0);
+        return null;
     }
 
     private static class DiscordConfig {
@@ -124,12 +142,12 @@ public class DiscordBot {
 
     private static class MessageListener extends ListenerAdapter {
         public void onMessageReceived(MessageReceivedEvent event) {
-            if (awaitConfirmMessage.containsKey(event.getAuthor().getAsTag()) && event.getMessage().getContentDisplay().equalsIgnoreCase("yes")) {
-                sectorized.faction.core.Member sectorizedMember = awaitConfirmMessage.get(event.getAuthor().getAsTag());
+            if (awaitConfirmMessage.containsKey(event.getAuthor().getId()) && event.getMessage().getContentDisplay().equalsIgnoreCase("yes")) {
+                sectorized.faction.core.Member sectorizedMember = awaitConfirmMessage.get(event.getAuthor().getId());
 
-                sectorizedMember.discordTag = event.getAuthor().getAsTag();
+                sectorizedMember.discordId = event.getAuthor().getId();
 
-                Member guildMember = guild.getMemberByTag(sectorizedMember.discordTag);
+                Member guildMember = resolveMember(sectorizedMember.discordId);
 
                 if (guildMember != null) {
                     DiscordBot.assignRole(sectorizedMember);
@@ -144,8 +162,8 @@ public class DiscordBot {
 
     public static void assignRole(sectorized.faction.core.Member sectorizedMember) {
         if (Config.c.discord.enabled && DiscordBot.guild != null) {
-            if (sectorizedMember.discordTag != null) {
-                Member guildMember = DiscordBot.guild.getMemberByTag(sectorizedMember.discordTag);
+            if (sectorizedMember.discordId != null) {
+                Member guildMember = resolveMember(sectorizedMember.discordId);
 
                 if (guildMember != null) {
                     String roleName;

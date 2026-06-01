@@ -3,8 +3,10 @@
 /build
 /mindustry-server
 /misc
-/mindustry-server-v7/
 /.vscode/
 # deploy.sh moved to scripts/
-/mindustry-server-v7/config/mods/config/
 /bin/
+/deploy/config/mods/config/
+/deploy/db_data/
+/deploy/config/mods/*.jar
+/deploy/.env
