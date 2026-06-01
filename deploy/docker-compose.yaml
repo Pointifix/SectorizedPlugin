@@ -1,0 +1,42 @@
+services:
+  mariadb:
+    build:
+      context: .
+      dockerfile: Dockerfile.mariadb
+    container_name: sectorized-mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+    volumes:
+      - ./db_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-p${MARIADB_ROOT_PASSWORD}" ]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    networks:
+      - sectorized-network
+
+  mindustry:
+    build: .
+    container_name: sectorized-mindustry
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    ports:
+      - "6567:6567/tcp"
+      - "6567:6567/udp"
+    volumes:
+      - ./config:/server/config
+    stdin_open: true
+    tty: true
+    networks:
+      - sectorized-network
+
+networks:
+  sectorized-network:
+    driver: bridge

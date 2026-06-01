@@ -6,7 +6,6 @@
 /.vscode/
 # deploy.sh moved to scripts/
 /bin/
-/deploy/config/mods/config/
+/deploy/config/
 /deploy/db_data/
-/deploy/config/mods/*.jar
 /deploy/.env
