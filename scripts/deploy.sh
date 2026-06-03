@@ -9,7 +9,7 @@ if [ $# -lt 1 ]; then
     echo "Usage: $0 <nas-mount-path>"
     echo ""
     echo "Copies deploy/ infrastructure files and plugin mod to the NAS Sectorized folder."
-    echo "Excludes: .env, config/ (except config/mods/), db_data/."
+    echo "Excludes: .env, config/, db_data/, config/mods/config/. Only deploys SectorizedPlugin.jar from config/mods/."
     echo ""
     echo "Example:"
     echo "  $0 /run/user/1000/gvfs/smb-share:server=nas-simon.local,share=docker/Sectorized"
