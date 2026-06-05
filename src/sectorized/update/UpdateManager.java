@@ -3,7 +3,7 @@ package sectorized.update;
 import arc.Core;
 import arc.Events;
 import arc.struct.Seq;
-import arc.util.Timer;
+
 import arc.util.*;
 import mindustry.Vars;
 import mindustry.content.Planets;
@@ -43,6 +43,8 @@ public class UpdateManager implements Manager {
     @Override
     public void init() {
         Events.run(EventType.Trigger.update, () -> {
+            GameTimer.update();
+
             if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER)
                 return;
 
@@ -245,7 +247,7 @@ public class UpdateManager implements Manager {
 
             Units.setUnitHealthMultiplier((float) (Config.c.multiplier.unitHealthFormulaA - (Config.c.multiplier.unitHealthFormulaB / (Math.pow(state.wave * Config.c.multiplier.unitHealthFormulaC, 4) + 1))));
 
-            if (state.teams.active.size < 2 && state.wave >= Config.c.game.gameOverStartWave) {
+            if (state.teams.active.size < 2 && state.wave >= Config.c.game.gameOverStartWave && Groups.player.size() > 0) {
                 DiscordBot.sendMessage("**Game Over!** Crux won the game in " + Vars.state.wave + " waves.");
 
                 Events.fire(new SectorizedEvents.RestartEvent("No teams left"));
@@ -403,7 +405,7 @@ public class UpdateManager implements Manager {
                 MenuUtils.showMenu(20, player);
 
                 int voteDisplayPeriod = Config.c.vote.displayPeriodSec;
-                Timer.schedule(() -> {
+                GameTimer.schedule(() -> {
                     if (biomeVotes.isEmpty() || biomeVoteFinished)
                         return;
 
@@ -448,7 +450,7 @@ public class UpdateManager implements Manager {
             }
 
             int voteDuration = Config.c.vote.displayDurationSec;
-            Timer.schedule(() -> {
+            GameTimer.schedule(() -> {
                 if (!biomeVotes.isEmpty()) {
                     Seq<Map.Entry<Biomes.Biome, Integer>> maxEntries = new Seq<>();
                     int maxValueInMap = (Collections.max(biomeVotes.values()));
@@ -488,14 +490,14 @@ public class UpdateManager implements Manager {
             int restartDelay = Config.c.vote.restartCountdownDelaySec;
             int restartTicks = Config.c.vote.restartCountdownTicks;
             AtomicInteger countdown = new AtomicInteger(restartTicks);
-            Timer.schedule(() -> {
+            GameTimer.schedule(() -> {
                 if (countdown.get() == 0) {
                     Log.info("[SectorizedPlugin] Restarting server ...");
                     netServer.kickAll(Packets.KickReason.serverRestarting);
 
                     Events.fire(new SectorizedEvents.ShutdownEvent());
 
-                    System.exit(1);
+                    System.exit(0);
                 }
 
                 MessageUtils.sendMessage("Server is restarting in " + MessageUtils.cInfo + (countdown.getAndDecrement())
@@ -510,6 +512,7 @@ public class UpdateManager implements Manager {
 
         interval.clear();
         hideHud.clear();
+        GameTimer.clear();
     }
 
     @Override

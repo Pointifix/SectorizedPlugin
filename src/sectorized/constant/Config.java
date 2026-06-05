@@ -393,6 +393,12 @@ public class Config {
         }
     }
 
+    public static void reset() {
+        c = new Config();
+        c.database.enabled = false;
+        c.discord.enabled = false;
+    }
+
     @Override
     public String toString() {
         return "Config " + new GsonBuilder().setPrettyPrinting().create().toJson(this);

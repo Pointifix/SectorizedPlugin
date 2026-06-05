@@ -1,9 +1,9 @@
 package sectorized.faction;
 
+import arc.Core;
 import arc.Events;
 import arc.struct.Seq;
 import arc.util.CommandHandler;
-import arc.util.Timer;
 import mindustry.ai.types.LogicAI;
 import mindustry.content.UnitTypes;
 import mindustry.entities.Units;
@@ -32,6 +32,11 @@ public class FactionManager implements Manager {
     private final RankingPersistence rankingPersistence = new RankingPersistence();
 
     private final Seq<JoinRequest> joinRequests = new Seq<>();
+
+    void initForTesting(FactionLogic factionLogic, MemberLogic memberLogic) {
+        this.factionLogic = factionLogic;
+        this.memberLogic = memberLogic;
+    }
 
     @Override
     public void init() {
@@ -329,7 +334,7 @@ public class FactionManager implements Manager {
                 if (!member.faction.members.contains(m -> m.online)) {
                     Faction f = member.faction;
 
-                    Timer.schedule(() -> {
+                    GameTimer.schedule(() -> {
                         if (!f.members.contains(m -> m.online))
                             factionLogic.destroyCores(f);
                     }, Config.c.game.playerDisconnectCoreDestroyDelay * f.maxCores);
@@ -358,6 +363,10 @@ public class FactionManager implements Manager {
     public void reset() {
         memberLogic = new MemberLogic(rankingPersistence);
         factionLogic = new FactionLogic(rankingPersistence);
+    }
+
+    public Member getMember(Player player) {
+        return memberLogic.getMember(player);
     }
 
     @Override
@@ -509,21 +518,7 @@ public class FactionManager implements Manager {
                 options[i][0] = MessageUtils.cPlayer + leader.player.name;
                 links[i][0] = -1;
                 handlers[i][0] = p -> {
-                    if (joinRequests.contains(j -> j.requester == leader || j.answerer == leader)) {
-                        MessageUtils.sendMessage(requester.player, "The player you requested to join already has a pending join request!", MessageUtils.MessageLevel.WARNING);
-                    } else {
-                        joinRequests.add(new JoinRequest(requester, leader));
-
-                        Timer.schedule(() -> {
-                            if (joinRequests.remove(j -> j.requester == requester)) {
-                                MessageUtils.sendMessage(requester.player, "Your join request to " + MessageUtils.cPlayer + leader.player.name + MessageUtils.cDefault + " was not accepted!", MessageUtils.MessageLevel.INFO);
-                                MessageUtils.sendMessage(leader.player, "Join request of " + MessageUtils.cPlayer + requester.player.name + MessageUtils.cDefault + " expired!", MessageUtils.MessageLevel.INFO);
-                            }
-                        }, Config.c.game.joinRequestTimeout);
-
-                        MessageUtils.sendMessage(leader.player, MessageUtils.cPlayer + requester.player.name + MessageUtils.cDefault + " requested to join your team! Type " + MessageUtils.cHighlight2 + "/accept" + MessageUtils.cDefault + " to accept or " + MessageUtils.cDanger + "/deny" + MessageUtils.cDefault + " to deny the request!", MessageUtils.MessageLevel.INFO);
-                        MessageUtils.sendMessage(requester.player, "Join request sent to " + MessageUtils.cPlayer + leader.player.name + MessageUtils.cDefault + "!", MessageUtils.MessageLevel.INFO);
-                    }
+                    requestJoin(requester, leader);
                 };
             }
             options[leaders.size][0] = MessageUtils.cDefault + "Cancel";
@@ -543,54 +538,19 @@ public class FactionManager implements Manager {
         handler.<Player>register("join", "Request to join another faction.", (args, player) -> {
             if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
-            Member requester = memberLogic.getMember(player);
-
-            if (joinRequests.contains(j -> j.requester == requester || j.answerer == requester)) {
-                MessageUtils.sendMessage(requester.player, "You already have a pending join request!", MessageUtils.MessageLevel.WARNING);
-                return;
-            }
-
-            MenuUtils.showMenu(10, player);
+            handleJoin(player);
         });
 
         handler.<Player>register("accept", "Accept a pending join request.", (args, player) -> {
             if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
-            Member answerer = memberLogic.getMember(player);
-
-            if (joinRequests.contains(j -> j.answerer == answerer)) {
-                JoinRequest joinRequest = joinRequests.remove(joinRequests.indexOf(j -> j.answerer == answerer));
-
-                Faction oldFaction = joinRequest.requester.faction;
-                if (oldFaction != null) {
-                    int oldFactionMembersSize = oldFaction.members.size;
-                    if (oldFactionMembersSize == 1) {
-                        factionLogic.destroyCores(oldFaction);
-                    }
-                    factionLogic.changeFaction(oldFaction, answerer.faction, joinRequest.requester);
-                } else {
-                    factionLogic.addToFaction(answerer.faction, joinRequest.requester);
-                }
-
-                MessageUtils.sendMessage(answerer.player, MessageUtils.cPlayer + joinRequest.requester.player.name + MessageUtils.cDefault + " is now part of your team!", MessageUtils.MessageLevel.INFO);
-                MessageUtils.sendMessage(joinRequest.requester.player, "Your join request was accepted by " + MessageUtils.cPlayer + answerer.player.name + MessageUtils.cDefault + "!", MessageUtils.MessageLevel.INFO);
-            } else {
-                MessageUtils.sendMessage(answerer.player, "You do not have a pending join request", MessageUtils.MessageLevel.INFO);
-            }
+            handleAccept(player);
         });
 
         handler.<Player>register("deny", "Deny a pending join request.", (args, player) -> {
             if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) return;
 
-            Member answerer = memberLogic.getMember(player);
-
-            JoinRequest request = joinRequests.find(j -> j.answerer == answerer);
-            if (joinRequests.remove(j -> j.answerer == answerer)) {
-                MessageUtils.sendMessage(answerer.player, "Join request denied!", MessageUtils.MessageLevel.INFO);
-                MessageUtils.sendMessage(request.requester.player, "Your join request was denied!", MessageUtils.MessageLevel.INFO);
-            } else {
-                MessageUtils.sendMessage(answerer.player, "You do not have a pending join request", MessageUtils.MessageLevel.INFO);
-            }
+            handleDeny(player);
         });
 
         handler.<Player>register("register", "[identifier]", "link your ingame and discord account to display your rank in discord", (args, player) -> {
@@ -618,7 +578,78 @@ public class FactionManager implements Manager {
         });
     }
 
-    private class JoinRequest {
+    Seq<JoinRequest> getJoinRequests() {
+        return joinRequests;
+    }
+
+    public void handleJoin(Player player) {
+        Member requester = memberLogic.getMember(player);
+
+        if (joinRequests.contains(j -> j.requester == requester || j.answerer == requester)) {
+            MessageUtils.sendMessage(requester.player, "You already have a pending join request!", MessageUtils.MessageLevel.WARNING);
+            return;
+        }
+
+        MenuUtils.showMenu(10, player);
+    }
+
+    public void handleAccept(Player player) {
+        Member answerer = memberLogic.getMember(player);
+
+        if (joinRequests.contains(j -> j.answerer == answerer)) {
+            JoinRequest joinRequest = joinRequests.remove(joinRequests.indexOf(j -> j.answerer == answerer));
+
+            Faction oldFaction = joinRequest.requester.faction;
+            if (oldFaction != null) {
+                int oldFactionMembersSize = oldFaction.members.size;
+                if (oldFactionMembersSize == 1) {
+                    factionLogic.destroyCores(oldFaction);
+                }
+                factionLogic.changeFaction(oldFaction, answerer.faction, joinRequest.requester);
+            } else {
+                factionLogic.addToFaction(answerer.faction, joinRequest.requester);
+            }
+
+            MessageUtils.sendMessage(answerer.player, MessageUtils.cPlayer + joinRequest.requester.player.name + MessageUtils.cDefault + " is now part of your team!", MessageUtils.MessageLevel.INFO);
+            MessageUtils.sendMessage(joinRequest.requester.player, "Your join request was accepted by " + MessageUtils.cPlayer + answerer.player.name + MessageUtils.cDefault + "!", MessageUtils.MessageLevel.INFO);
+        } else {
+            MessageUtils.sendMessage(answerer.player, "You do not have a pending join request", MessageUtils.MessageLevel.INFO);
+        }
+    }
+
+    public void handleDeny(Player player) {
+        Member answerer = memberLogic.getMember(player);
+
+        JoinRequest request = joinRequests.find(j -> j.answerer == answerer);
+        if (joinRequests.remove(j -> j.answerer == answerer)) {
+            MessageUtils.sendMessage(answerer.player, "Join request denied!", MessageUtils.MessageLevel.INFO);
+            MessageUtils.sendMessage(request.requester.player, "Your join request was denied!", MessageUtils.MessageLevel.INFO);
+        } else {
+            MessageUtils.sendMessage(answerer.player, "You do not have a pending join request", MessageUtils.MessageLevel.INFO);
+        }
+    }
+
+    public void requestJoin(Member requester, Member leader) {
+        if (joinRequests.contains(j -> j.requester == leader || j.answerer == leader)) {
+            MessageUtils.sendMessage(requester.player, "The player you requested to join already has a pending join request!", MessageUtils.MessageLevel.WARNING);
+        } else {
+            joinRequests.add(new JoinRequest(requester, leader));
+
+            if (Core.app != null) {
+                GameTimer.schedule(() -> {
+                    if (joinRequests.remove(j -> j.requester == requester)) {
+                        MessageUtils.sendMessage(requester.player, "Your join request to " + MessageUtils.cPlayer + leader.player.name + MessageUtils.cDefault + " was not accepted!", MessageUtils.MessageLevel.INFO);
+                        MessageUtils.sendMessage(leader.player, "Join request of " + MessageUtils.cPlayer + requester.player.name + MessageUtils.cDefault + " expired!", MessageUtils.MessageLevel.INFO);
+                    }
+                }, Config.c.game.joinRequestTimeout);
+            }
+
+            MessageUtils.sendMessage(leader.player, MessageUtils.cPlayer + requester.player.name + MessageUtils.cDefault + " requested to join your team! Type " + MessageUtils.cHighlight2 + "/accept" + MessageUtils.cDefault + " to accept or " + MessageUtils.cDanger + "/deny" + MessageUtils.cDefault + " to deny the request!", MessageUtils.MessageLevel.INFO);
+            MessageUtils.sendMessage(requester.player, "Join request sent to " + MessageUtils.cPlayer + leader.player.name + MessageUtils.cDefault + "!", MessageUtils.MessageLevel.INFO);
+        }
+    }
+
+    static class JoinRequest {
         public Member requester;
         public Member answerer;
 

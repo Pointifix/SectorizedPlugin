@@ -4,7 +4,7 @@ import arc.Events;
 import arc.struct.Seq;
 import arc.util.Strings;
 import arc.util.Time;
-import arc.util.Timer;
+
 import mindustry.Vars;
 import mindustry.ai.types.FlyingAI;
 import mindustry.ai.types.GroundAI;
@@ -15,6 +15,7 @@ import mindustry.gen.Groups;
 import mindustry.gen.Unit;
 import mindustry.world.blocks.storage.CoreBlock;
 import sectorized.SectorizedEvents;
+import sectorized.constant.GameTimer;
 import sectorized.constant.Config;
 import sectorized.constant.DiscordBot;
 import sectorized.constant.MessageUtils;
@@ -42,10 +43,8 @@ public class FactionLogic {
         available.remove(Team.malis);
         available.shuffle();
 
-        Team.crux.data().unitCap = Integer.MAX_VALUE;
-
         Events.run(EventType.Trigger.update, () -> {
-            if (state.rules.waves && state.rules.waveTimer) {
+            if (state != null && state.rules.waves && state.rules.waveTimer) {
                 if (!Vars.logic.isWaitingWave()) {
                     state.wavetime = Math.max(state.wavetime - Time.delta, 0);
                 }
@@ -56,11 +55,15 @@ public class FactionLogic {
             event.unit.controller(!event.unit.isFlying() ? new GroundAI() : new FlyingAI());
         });
 
-        for (Team team : available) {
-            team.rules().aiCoreSpawn = false;
-            team.rules().rtsAi = false;
-            team.rules().rtsMinSquad = Integer.MAX_VALUE;
-            team.rules().rtsMinWeight = Float.MAX_VALUE;
+        if (Vars.state != null) {
+            Team.crux.data().unitCap = Integer.MAX_VALUE;
+
+            for (Team team : available) {
+                team.rules().aiCoreSpawn = false;
+                team.rules().rtsAi = false;
+                team.rules().rtsMinSquad = Integer.MAX_VALUE;
+                team.rules().rtsMinWeight = Float.MAX_VALUE;
+            }
         }
     }
 
@@ -71,15 +74,20 @@ public class FactionLogic {
     }
 
     public Faction getNewFaction() {
+        if (available.isEmpty()) return null;
+
         Faction faction = new Faction(available.pop(), State.time);
 
         factions.add(faction);
-        state.set(GameState.State.playing);
+        if (state != null) {
+            state.set(GameState.State.playing);
+        }
 
         return faction;
     }
 
     public void destroyCores(Faction faction) {
+        if (Vars.state == null) return;
         for (CoreBlock.CoreBuild core : faction.team.cores().copy()) {
             core.kill();
         }
@@ -150,7 +158,7 @@ public class FactionLogic {
                 m.faction = null;
                 m.player.team(Team.derelict);
 
-                Timer.schedule(() -> {
+                GameTimer.schedule(() -> {
                     if (m.faction == null) {
                         m.state = Member.MemberState.WAITING;
 
@@ -169,7 +177,7 @@ public class FactionLogic {
             return;
 
         if (factions.size == 1 && !(defender.maxCores <= Config.c.game.factionGracePeriodMaxCores && timeSinceSpawned < Config.c.game.gracePeriod)
-                && State.gameState != State.GameState.GAMEOVER) {
+                && State.gameState != State.GameState.GAMEOVER && Groups.player.size() > 0) {
             Member winner = factions.first().members.first();
             State.winner = winner;
             winner.wins++;
@@ -181,7 +189,7 @@ public class FactionLogic {
 
             Events.fire(new SectorizedEvents.RestartEvent(
                     "Game over! " + MessageUtils.cPlayer + winner.player.name + MessageUtils.cDefault + " won"));
-        } else if (factions.size == 0 && State.gameState != State.GameState.GAMEOVER) {
+        } else if (factions.size == 0 && State.gameState != State.GameState.GAMEOVER && Groups.player.size() > 0) {
             DiscordBot.sendMessage("**Game Over!** Crux won the game in " + Vars.state.wave + " waves.");
 
             Events.fire(new SectorizedEvents.RestartEvent(

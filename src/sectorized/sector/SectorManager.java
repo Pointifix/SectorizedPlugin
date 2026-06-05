@@ -5,7 +5,7 @@ import arc.graphics.Color;
 import arc.math.Mathf;
 import arc.math.geom.Point2;
 import arc.util.CommandHandler;
-import arc.util.Timer;
+
 import mindustry.content.Blocks;
 import mindustry.content.Fx;
 import mindustry.content.Planets;
@@ -19,6 +19,7 @@ import mindustry.world.blocks.ConstructBlock;
 import mindustry.world.blocks.storage.CoreBlock;
 import sectorized.Manager;
 import sectorized.SectorizedEvents;
+import sectorized.constant.GameTimer;
 import sectorized.constant.Config;
 import sectorized.constant.CoreCost;
 import sectorized.constant.MessageUtils;
@@ -96,7 +97,7 @@ public class SectorManager implements Manager {
             if (event.tile.block() == Blocks.shockMine) {
                 Team team = event.tile.team();
 
-                Timer.schedule(() -> {
+                GameTimer.schedule(() -> {
                     if (sectorLogic.validBorder(event.tile.x, event.tile.y, team.id)) {
                         Call.effectReliable(Fx.tapBlock, event.tile.getX(), event.tile.getY(), 0, Color.red);
                         event.tile.setNet(Blocks.shockMine, team, 0);
@@ -165,7 +166,7 @@ public class SectorManager implements Manager {
 
                             int team = action.player.team().id;
                             bufferedCoresPlacement.put(team, State.time);
-                            Timer.schedule(() -> bufferedCoresPlacement.remove(team), action.player.team().cores().size <= 2 ? Config.c.game.corePlacementCooldown.initial : corePlacementCooldown);
+                            GameTimer.schedule(() -> bufferedCoresPlacement.remove(team), action.player.team().cores().size <= 2 ? Config.c.game.corePlacementCooldown.initial : corePlacementCooldown);
 
                             Events.fire(new SectorizedEvents.CoreBuildEvent(tile));
                         } else {

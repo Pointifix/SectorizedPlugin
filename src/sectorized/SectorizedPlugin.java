@@ -26,7 +26,7 @@ import static arc.util.Log.info;
 import static mindustry.Vars.*;
 
 public class SectorizedPlugin extends Plugin {
-    private final Manager[] managers = new Manager[]{
+    public final Manager[] managers = new Manager[]{
             new WorldManager(),
             new FactionManager(),
             new SectorManager(),

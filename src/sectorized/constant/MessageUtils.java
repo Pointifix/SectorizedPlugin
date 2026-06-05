@@ -1,6 +1,6 @@
 package sectorized.constant;
 
-import arc.util.Timer;
+
 import mindustry.gen.Call;
 import mindustry.gen.Player;
 
@@ -44,7 +44,7 @@ public class MessageUtils {
 
             player.sendMessage(messageLevelPrefixes.get(level) + message);
 
-            Timer.schedule(() -> bufferedMessages.remove(Integer.valueOf(player.id)), seconds);
+            GameTimer.schedule(() -> bufferedMessages.remove(Integer.valueOf(player.id)), seconds);
         }
     }
 

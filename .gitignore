@@ -4,8 +4,12 @@
 /mindustry-server
 /misc
 /.vscode/
-# deploy.sh moved to scripts/
 /bin/
 /deploy/config/
+/config/
 /deploy/db_data/
 /deploy/.env
+
+# Downloaded Mindustry game assets for PlayTest (not in maven artifacts)
+/src/test/resources/maps/
+/src/test/resources/icons/
