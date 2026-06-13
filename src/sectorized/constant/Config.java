@@ -174,8 +174,9 @@ public class Config {
     public static class Vote {
         public int displayPeriodSec = 3;
         public int displayDurationSec = 20;
-        public int restartCountdownDelaySec = 25;
+        public int restartCountdownDelaySec = 20;
         public int restartCountdownTicks = 10;
+        public int restartCooldownSec = 30;
     }
 
     public static class Misc {

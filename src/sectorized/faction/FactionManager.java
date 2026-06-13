@@ -344,6 +344,7 @@ public class FactionManager implements Manager {
 
         Events.on(SectorizedEvents.ShutdownEvent.class, event -> {
             rankingPersistence.closeConnection();
+            DiscordBot.shutdown();
         });
 
         Events.on(SectorizedEvents.TeamDominatingEvent.class, event -> {

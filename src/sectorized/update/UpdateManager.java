@@ -43,11 +43,12 @@ public class UpdateManager implements Manager {
     @Override
     public void init() {
         Events.run(EventType.Trigger.update, () -> {
-            GameTimer.update();
-
-            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER)
+            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) {
+                GameTimer.clear();
                 return;
+            }
 
+            GameTimer.update();
             State.time += Time.delta;
 
             if (interval.get(0, Config.c.interval.hudPopup)) {
@@ -398,7 +399,8 @@ public class UpdateManager implements Manager {
             State.gameState = State.GameState.GAMEOVER;
 
             Log.info("[SectorizedPlugin] Restarting: @", event.reason);
-            MessageUtils.sendMessage(event.reason + "\nServer is restarting in " + MessageUtils.cInfo + "30"
+            int totalRestartSec = Config.c.vote.restartCountdownDelaySec + Config.c.vote.restartCountdownTicks;
+            MessageUtils.sendMessage(event.reason + "\nServer is restarting in " + MessageUtils.cInfo + totalRestartSec
                     + MessageUtils.cDefault + " seconds", MessageUtils.MessageLevel.INFO);
 
             for (Player player : Groups.player) {
@@ -546,10 +548,11 @@ public class UpdateManager implements Manager {
                         return;
 
                     int sec = (int) (State.time / 60);
-                    if (sec < 30) {
+                    int restartCooldown = Config.c.vote.restartCooldownSec;
+                    if (sec < restartCooldown) {
                         MessageUtils.sendMessage(player,
                                 "You cannot call a restart at the start of a game, please wait " + MessageUtils.cInfo
-                                        + "30 seconds" + MessageUtils.cDefault + "!",
+                                        + restartCooldown + " seconds" + MessageUtils.cDefault + "!",
                                 MessageUtils.MessageLevel.WARNING);
                         return;
                     }

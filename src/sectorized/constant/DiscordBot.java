@@ -29,6 +29,18 @@ public class DiscordBot {
 
     private static final HashMap<String, sectorized.faction.core.Member> awaitConfirmMessage = new HashMap<>();
 
+    public static void shutdown() {
+        if (bot != null) {
+            bot.shutdown();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            bot = null;
+        }
+    }
+
     public static void init() {
         Config.ensureJson("config/mods/config/sectorized-discord-config.json", new DiscordConfig("", 0, 0, 0));
 
