@@ -148,6 +148,8 @@ public class Config {
         public int decayThreshold = 100;
         public int leaderboardPageSize = 10;
         public int leaderboardLimit = 100;
+        public double survivalMultiplier = 0.2;
+        public double survivalExponent = 1.6;
     }
 
     public static class Interval {

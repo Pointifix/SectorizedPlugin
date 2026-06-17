@@ -46,7 +46,16 @@ public class FactionLogic {
         Events.run(EventType.Trigger.update, () -> {
             if (state != null && state.rules.waves && state.rules.waveTimer) {
                 if (!Vars.logic.isWaitingWave()) {
-                    state.wavetime = Math.max(state.wavetime - Time.delta, 0);
+                    boolean hasActivePlayerTeam = false;
+                    for (Team team : Team.all) {
+                        if (team != Team.crux && team != Team.derelict && team.cores().size > 0) {
+                            hasActivePlayerTeam = true;
+                            break;
+                        }
+                    }
+                    if (hasActivePlayerTeam) {
+                        state.wavetime = Math.max(state.wavetime - Time.delta, 0);
+                    }
                 }
             }
         });
@@ -107,6 +116,15 @@ public class FactionLogic {
         if (factions.size == 0)
             state.set(GameState.State.paused);
         available.insert(0, defender.team);
+
+        if (defender.members.size > 0) {
+            StringBuilder sb = new StringBuilder();
+            for (Member m : defender.members) {
+                if (sb.length() > 0) sb.append(", ");
+                sb.append(m.player.name);
+            }
+            State.lastSurvivorNames = sb.toString();
+        }
 
         double timeSinceSpawned = State.time - defender.time;
         if (defender.maxCores <= Config.c.game.factionGracePeriodMaxCores && timeSinceSpawned < Config.c.game.gracePeriod) {
@@ -190,10 +208,26 @@ public class FactionLogic {
             Events.fire(new SectorizedEvents.RestartEvent(
                     "Game over! " + MessageUtils.cPlayer + winner.player.name + MessageUtils.cDefault + " won"));
         } else if (factions.size == 0 && State.gameState != State.GameState.GAMEOVER && Groups.player.size() > 0) {
-            DiscordBot.sendMessage("**Game Over!** Crux won the game in " + Vars.state.wave + " waves.");
+            int survivalPoints = (int) (Config.c.scoring.survivalMultiplier * Math.pow(Vars.state.wave, Config.c.scoring.survivalExponent));
+            defender.members.each(m -> {
+                m.score += survivalPoints;
+                persistence.setRanking(m);
+                if (m.online)
+                    MessageUtils.sendMessage(m.player,
+                            "You earned " + MessageUtils.cHighlight2 + survivalPoints + MessageUtils.cDefault + " points for surviving " + MessageUtils.cInfo + Vars.state.wave + MessageUtils.cDefault + " waves against Crux!",
+                            MessageUtils.MessageLevel.INFO);
+            });
+
+            String[] parts = State.lastSurvivorNames.split(", ");
+            StringBuilder clean = new StringBuilder();
+            for (int i = 0; i < parts.length; i++) {
+                if (i > 0) clean.append(", ");
+                clean.append(Strings.stripColors(parts[i]).substring(1).replace("@", "at"));
+            }
+            DiscordBot.sendMessage("**Game Over!** Crux won the game in " + Vars.state.wave + " waves. " + clean + " survived the longest!");
 
             Events.fire(new SectorizedEvents.RestartEvent(
-                    "Game over! " + MessageUtils.cDanger + "crux" + MessageUtils.cDefault + " won."));
+                    "Game over! " + MessageUtils.cDanger + "crux" + MessageUtils.cDefault + " won.\n" + State.lastSurvivorNames + MessageUtils.cDefault + " survived the longest!"));
         }
     }
 

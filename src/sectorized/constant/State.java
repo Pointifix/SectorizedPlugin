@@ -8,6 +8,7 @@ public class State {
     public static String planet;
     public static Member winner = null;
     public static String biomeInfo = "";
+    public static String lastSurvivorNames = "";
 
     public enum GameState {
         ACTIVE,

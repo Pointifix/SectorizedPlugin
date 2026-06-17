@@ -39,11 +39,12 @@ public class UpdateManager implements Manager {
     private boolean biomeVoteFinished = false;
 
     private int coreDominationDifference = Config.c.game.domination.coreLead.serpulo;
+    private boolean restarting = false;
 
     @Override
     public void init() {
         Events.run(EventType.Trigger.update, () -> {
-            if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER) {
+            if (State.gameState == State.GameState.INACTIVE) {
                 GameTimer.clear();
                 return;
             }
@@ -182,7 +183,7 @@ public class UpdateManager implements Manager {
             }
 
             if (interval.get(2, Config.c.interval.dominationCheck)) {
-                if (Groups.player.size() < Config.c.game.domination.checkMinPlayers || state.wave < Config.c.game.domination.checkStartWave)
+                if (state.wave < Config.c.game.domination.checkStartWave)
                     return;
 
                 Team dominatingTeam = null;
@@ -190,8 +191,7 @@ public class UpdateManager implements Manager {
 
                 Team[] teams = Team.all.clone();
                 Arrays.sort(teams, Comparator.comparingInt(t -> -t.cores().size));
-                int domCoreLead = State.planet.equals(Planets.serpulo.name) ? Config.c.game.domination.coreLead.serpulo : Config.c.game.domination.coreLead.erekir;
-                if (teams[0].cores().size >= teams[1].cores().size + domCoreLead + (state.wave * 0.1)) {
+                if (teams[0].cores().size >= teams[1].cores().size + coreDominationDifference + (state.wave * 0.1)) {
                     dominatingTeam = teams[0];
                     lock = true;
                 }
@@ -249,9 +249,21 @@ public class UpdateManager implements Manager {
             Units.setUnitHealthMultiplier((float) (Config.c.multiplier.unitHealthFormulaA - (Config.c.multiplier.unitHealthFormulaB / (Math.pow(state.wave * Config.c.multiplier.unitHealthFormulaC, 4) + 1))));
 
             if (state.teams.active.size < 2 && state.wave >= Config.c.game.gameOverStartWave && Groups.player.size() > 0) {
-                DiscordBot.sendMessage("**Game Over!** Crux won the game in " + Vars.state.wave + " waves.");
+                String discordMsg = "**Game Over!** Crux won the game in " + Vars.state.wave + " waves.";
+                String chatMsg = "Game over! " + MessageUtils.cDanger + "crux" + MessageUtils.cDefault + " won.";
+                if (!State.lastSurvivorNames.isEmpty()) {
+                    String[] parts = State.lastSurvivorNames.split(", ");
+                    StringBuilder clean = new StringBuilder();
+                    for (int i = 0; i < parts.length; i++) {
+                        if (i > 0) clean.append(", ");
+                        clean.append(Strings.stripColors(parts[i]).substring(1).replace("@", "at"));
+                    }
+                    discordMsg += " " + clean + " survived the longest!";
+                    chatMsg += "\n" + State.lastSurvivorNames + MessageUtils.cDefault + " survived the longest!";
+                }
+                DiscordBot.sendMessage(discordMsg);
 
-                Events.fire(new SectorizedEvents.RestartEvent("No teams left"));
+                Events.fire(new SectorizedEvents.RestartEvent(chatMsg));
             }
 
             setServerDescription();
@@ -396,6 +408,8 @@ public class UpdateManager implements Manager {
         });
 
         Events.on(SectorizedEvents.RestartEvent.class, event -> {
+            if (restarting) return;
+            restarting = true;
             State.gameState = State.GameState.GAMEOVER;
 
             Log.info("[SectorizedPlugin] Restarting: @", event.reason);
@@ -511,6 +525,8 @@ public class UpdateManager implements Manager {
     @Override
     public void reset() {
         State.time = 0;
+        State.lastSurvivorNames = "";
+        restarting = false;
 
         interval.clear();
         hideHud.clear();
@@ -544,7 +560,7 @@ public class UpdateManager implements Manager {
 
         handler.<Player>register("restart", "Restarts the server, only available if only one player is online.",
                 (args, player) -> {
-                    if (State.gameState == State.GameState.INACTIVE || State.gameState == State.GameState.GAMEOVER)
+                    if (State.gameState == State.GameState.INACTIVE || restarting)
                         return;
 
                     int sec = (int) (State.time / 60);

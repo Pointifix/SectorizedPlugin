@@ -67,8 +67,10 @@ FROM eclipse-temurin:17-alpine
 RUN apk add --no-cache curl
 WORKDIR /server
 RUN curl -L -o server.jar https://github.com/Anuken/Mindustry/releases/download/v158.1/server-release.jar
+COPY start.sh /server/start.sh
+RUN chmod +x /server/start.sh
 EXPOSE 6567/tcp 6567/udp
-CMD sh -c "(sleep 12 && echo 'config name \"[purple]S[magenta]E[red]C[orange]T[yellow]O[green]R[cyan]I[blue]Z[purple]E[red]D\"' && echo 'config description \"FFA | Pvp | Sector\"' && echo 'sectorized'; cat) | java -jar /server/server.jar"
+CMD ["/server/start.sh"]
 EOF
 
     cat > "$DEPLOY_DIR/Dockerfile.mariadb" <<'EOF'
@@ -118,7 +120,7 @@ echo ""
 
 cd "$PROJECT_DIR"
 docker compose --env-file "$DEPLOY_DIR/.env" -f "$DEPLOY_DIR/docker-compose.yaml" \
-  run --rm --service-ports --no-deps \
+  run --rm --service-ports --no-deps -it \
   mindustry
 
 echo "=== Stopping MariaDB ==="
