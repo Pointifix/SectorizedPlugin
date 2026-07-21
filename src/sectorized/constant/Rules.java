@@ -33,7 +33,6 @@ public class Rules {
         rules.logicUnitBuild = false;
         rules.coreIncinerates = true;
         rules.possessionAllowed = true;
-        rules.showSpawns = true;
         rules.bannedBlocks = ObjectSet.with(
                 Blocks.shockMine,
                 Blocks.switchBlock,
